@@ -21,7 +21,15 @@ export class UserService {
     return this.userRepository.find();
   }
 
-  async findOne(id: number): Promise<User> {
+  async findOne(id: string): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+    return user;
+  }
+
+  async findById(id: string): Promise<User> {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
@@ -49,25 +57,25 @@ export class UserService {
     return user;
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.findOne(id);
     Object.assign(user, updateUserDto);
     return this.userRepository.save(user);
   }
 
-  async updateWallet(id: number, publicAddress: string): Promise<User> {
+  async updateWallet(id: string, publicAddress: string): Promise<User> {
     const user = await this.findOne(id);
     user.publicAddress = publicAddress;
     return this.userRepository.save(user);
   }
 
-  async deactivateUser(id: number): Promise<User> {
+  async deactivateUser(id: string): Promise<User> {
     const user = await this.findOne(id);
     user.isActive = false;
     return this.userRepository.save(user);
   }
 
-  async activateUser(id: number): Promise<User> {
+  async activateUser(id: string): Promise<User> {
     const user = await this.findOne(id);
     user.isActive = true;
     return this.userRepository.save(user);

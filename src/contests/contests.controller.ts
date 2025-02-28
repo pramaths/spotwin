@@ -58,7 +58,7 @@ export class ContestsController {
   @ApiResponse({ status: 200, description: 'Contest retrieved' })
   @ApiResponse({ status: 404, description: 'Contest not found' })
   async findOne(@Param('id') id: string) {
-    return await this.contestsService.findOne(+id);
+    return await this.contestsService.findOne(id);
   }
 
   @Put(':id')
@@ -71,7 +71,7 @@ export class ContestsController {
     @Param('id') id: string,
     @Body() updateContestDto: UpdateContestDto,
   ) {
-    return await this.contestsService.update(+id, updateContestDto);
+    return await this.contestsService.update(id, updateContestDto);
   }
 
   @Delete(':id')
@@ -80,6 +80,6 @@ export class ContestsController {
   @ApiResponse({ status: 200, description: 'Contest deleted' })
   @ApiResponse({ status: 404, description: 'Contest not found' })
   async remove(@Param('id') id: string) {
-    return await this.contestsService.remove(+id);
+    return await this.contestsService.remove(id);
   }
 }

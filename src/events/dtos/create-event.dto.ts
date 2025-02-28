@@ -10,7 +10,7 @@ export class CreateEventDto {
   description?: string;
 
   @IsNumber()
-  sportId: number;
+  sportId: string;
 
   @IsDateString()
   startDate: Date;

@@ -5,8 +5,8 @@ import { ApiProperty } from '@nestjs/swagger';
 @Entity('sports')
 export class Sport {
   @ApiProperty({ example: 1, description: 'Unique identifier' })
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @ApiProperty({ example: 'Football', description: 'Name of the sport' })
   @Column({ unique: true })

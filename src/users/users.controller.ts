@@ -28,7 +28,7 @@ export class UserController {
 
   @Get(':id')
   findOne(@Param('id') id: string): Promise<User> {
-    return this.userService.findOne(+id);
+    return this.userService.findOne(id);
   }
 
   @Get('email/find')
@@ -46,7 +46,7 @@ export class UserController {
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<User> {
-    return this.userService.update(+id, updateUserDto);
+    return this.userService.update(id, updateUserDto);
   }
 
   @Patch(':id/wallet')
@@ -54,16 +54,16 @@ export class UserController {
     @Param('id') id: string,
     @Body('publicAddress') publicAddress: string,
   ): Promise<User> {
-    return this.userService.updateWallet(+id, publicAddress);
+    return this.userService.updateWallet(id, publicAddress);
   }
 
   @Patch(':id/deactivate')
   deactivateUser(@Param('id') id: string): Promise<User> {
-    return this.userService.deactivateUser(+id);
+    return this.userService.deactivateUser(id);
   }
 
   @Patch(':id/activate')
   activateUser(@Param('id') id: string): Promise<User> {
-    return this.userService.activateUser(+id);
+    return this.userService.activateUser(id);
   }
 }

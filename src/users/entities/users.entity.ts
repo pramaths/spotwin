@@ -2,14 +2,19 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
+  OneToMany,
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { UserContest } from '../../user-contests/entities/user-contest.entity';
+import { Leaderboard } from '../../leaderboards/entities/leaderboard.entity';
+import { Transaction } from '../../transactions/entities/transaction.entity';
+import { Payout } from '../../payouts/entities/payout.entity';
 
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ unique: true })
   username: string;
@@ -34,6 +39,18 @@ export class User {
 
   @Column({ nullable: true })
   totalBetsWon: number;
+
+  @OneToMany(() => UserContest, (userContest) => userContest.user)
+  userContests: UserContest[];
+
+  @OneToMany(() => Leaderboard, (leaderboard) => leaderboard.user)
+  leaderboards: Leaderboard[];
+
+  @OneToMany(() => Transaction, (transaction) => transaction.user)
+  transactions: Transaction[];
+
+  @OneToMany(() => Payout, (payout) => payout.user)
+  payouts: Payout[];
 
   @CreateDateColumn()
   createdAt: Date;

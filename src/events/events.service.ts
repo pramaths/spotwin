@@ -31,7 +31,7 @@ export class EventsService {
     return event;
   }
 
-  async findOne(id: number): Promise<Event> {
+  async findOne(id: string): Promise<Event> {
     const event = await this.eventRepository.findOne({
       where: { id },
       relations: ['contests'],
@@ -43,7 +43,7 @@ export class EventsService {
     return await this.eventRepository.find();
   }
 
-  async update(id: number, updateEventDto: UpdateEventDto) {
+  async update(id: string, updateEventDto: UpdateEventDto) {
     const event = await this.eventRepository.findOne({ where: { id } });
     if (!event) {
       throw new NotFoundException(`Event with ID ${id} not found`);

@@ -21,11 +21,11 @@ export class SportsService {
     return this.sportRepository.find();
   }
 
-  async findOne(id: number): Promise<Sport | undefined> {
+  async findOne(id: string): Promise<Sport | undefined> {
     return this.sportRepository.findOne({ where: { id } });
   }
 
-  async update(id: number, updateSportDto: UpdateSportDto): Promise<Sport> {
+  async update(id: string, updateSportDto: UpdateSportDto): Promise<Sport> {
     const sport = await this.findOne(id);
     if (!sport) {
       throw new NotFoundException('Sport not found');
@@ -34,7 +34,7 @@ export class SportsService {
     return this.sportRepository.save(sport);
   }
 
-  async remove(id: number): Promise<string> {
+  async remove(id: string): Promise<string> {
     await this.sportRepository.delete(id);
     return 'Sport deleted successfully';
   }

@@ -72,7 +72,7 @@ export class SportsController {
   @ApiResponse({ status: 500, description: 'Internal server error' })
   async findOne(@Param('id') id: string) {
     try {
-      const sport = await this.sportsService.findOne(+id);
+      const sport = await this.sportsService.findOne(id);
       if (!sport) {
         throw new HttpException('Sport not found', HttpStatus.NOT_FOUND);
       }
@@ -100,7 +100,7 @@ export class SportsController {
     @Body() updateSportDto: UpdateSportDto,
   ) {
     try {
-      const sport = await this.sportsService.update(+id, updateSportDto);
+      const sport = await this.sportsService.update(id, updateSportDto);
       if (!sport) {
         throw new HttpException('Sport not found', HttpStatus.NOT_FOUND);
       }
@@ -124,7 +124,7 @@ export class SportsController {
   @ApiResponse({ status: 500, description: 'Internal server error' })
   async remove(@Param('id') id: string) {
     try {
-      const result = await this.sportsService.remove(+id);
+      const result = await this.sportsService.remove(id);
       if (!result) {
         throw new HttpException('Sport not found', HttpStatus.NOT_FOUND);
       }

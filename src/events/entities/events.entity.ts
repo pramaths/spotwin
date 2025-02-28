@@ -10,8 +10,8 @@ import { Contest } from '../../contests/entities/contest.entity';
 
 @Entity('events')
 export class Event {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
   title: string;

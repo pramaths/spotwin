@@ -15,7 +15,7 @@ export class ContestsService {
   ) {}
 
   async createContest(
-    eventId: number,
+    eventId: string,
     createContestDto: CreateContestDto,
   ): Promise<Contest> {
     const event = await this.eventsService.findOne(eventId);
@@ -35,7 +35,7 @@ export class ContestsService {
     return await this.contestRepository.find();
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     const contest = await this.contestRepository.findOne({ where: { id } });
     if (!contest) {
       throw new NotFoundException(`Contest with ID ${id} not found`);
@@ -43,7 +43,7 @@ export class ContestsService {
     return contest;
   }
 
-  async update(id: number, updateContestDto: UpdateContestDto) {
+  async update(id: string, updateContestDto: UpdateContestDto) {
     const contest = await this.contestRepository.findOne({ where: { id } });
     if (!contest) {
       throw new NotFoundException(`Contest with ID ${id} not found`);
@@ -51,7 +51,7 @@ export class ContestsService {
     return this.contestRepository.save({ ...contest, ...updateContestDto });
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     const result = await this.contestRepository.delete(id);
     if (result.affected === 0) {
       throw new NotFoundException(`Contest with ID ${id} not found`);
