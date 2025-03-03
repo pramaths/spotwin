@@ -6,13 +6,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import configuration from './config/configuration';
 import { typeOrmConfig } from './config/typeorm.config';
 import { ThrottlerModule } from '@nestjs/throttler';
-// import { UserModule } from './users/users.module';
-// import { EventsModule } from './events/events.module';
-// import { ContestsModule } from './contests/contests.module';
+import { UserModule } from './users/users.module';
+import { EventsModule } from './events/events.module';
+import { ContestsModule } from './contests/contests.module';
 import { AuthController } from './auth/auth.controller';
 import { AuthService } from './auth/auth.service';
-// import { AuthModule } from './auth/auth.module';
+import { AuthModule } from './auth/auth.module';
 import { SportsModule } from './common/sports/sports.module';
+import { TeamsModule } from './teams/teams.module';
 
 @Module({
   imports: [
@@ -29,11 +30,12 @@ import { SportsModule } from './common/sports/sports.module';
     TypeOrmModule.forRootAsync({
       useFactory: typeOrmConfig,
     }),
-    // UserModule,
-    // EventsModule,
-    // ContestsModule,
-    // AuthModule,
+    AuthModule,
+    UserModule,
     SportsModule,
+    TeamsModule,
+    EventsModule,
+    ContestsModule,
   ],
   controllers: [AppController, AuthController],
   providers: [AppService, AuthService],

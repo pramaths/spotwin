@@ -36,10 +36,10 @@ async function bootstrap() {
     );
     app.useGlobalFilters(new AllExceptionsFilter());
     const config = new DocumentBuilder()
-      .setTitle('9Shoot API')
-      .setDescription('API documentation for the 9shoot  API')
+      .setTitle('Events API')
+      .setDescription('The Events API description')
       .setVersion('1.0')
-      .addTag('9shoot')
+      .addTag('events')
       .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api', app, document);
@@ -52,6 +52,23 @@ async function bootstrap() {
         },
       }),
     );
+
+    // Add middleware to show validation errors
+    app.use((req, res, next) => {
+      const originalSend = res.send;
+      res.send = function (body) {
+        if (res.statusCode >= 400) {
+          console.log('Error Response:', {
+            statusCode: res.statusCode,
+            path: req.path,
+            method: req.method,
+            body: typeof body === 'string' ? JSON.parse(body) : body,
+          });
+        }
+        return originalSend.call(this, body);
+      };
+      next();
+    });
 
     const PORT = process.env.PORT ?? 8000;
     await app.listen(process.env.PORT, () => {

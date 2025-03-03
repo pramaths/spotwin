@@ -5,9 +5,11 @@ import {
   Body,
   Param,
   Delete,
-  Put,
+  Patch,
   HttpStatus,
   HttpException,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { SportsService } from './sports.service';
 import { CreateSportDto } from './dtos/create-sport.dto';
@@ -18,7 +20,9 @@ import {
   ApiResponse,
   ApiParam,
   ApiBody,
+  ApiConsumes,
 } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('sports')
 @Controller('sports')
@@ -26,17 +30,36 @@ export class SportsController {
   constructor(private readonly sportsService: SportsService) {}
 
   @Post()
+  @UseInterceptors(FileInterceptor('image'))
   @ApiOperation({ summary: 'Create a new sport' })
-  @ApiBody({ type: CreateSportDto })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', example: 'Cricket' },
+        description: {
+          type: 'string',
+          example: 'A team sport played with a ball',
+        },
+        image: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
   @ApiResponse({ status: 201, description: 'Sport successfully created' })
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
-  async create(@Body() createSportDto: CreateSportDto) {
+  async create(
+    @Body() createSportDto: CreateSportDto,
+    @UploadedFile() imageFile: Express.Multer.File,
+  ) {
     try {
-      return await this.sportsService.create(createSportDto);
+      return await this.sportsService.create(createSportDto, imageFile);
     } catch (error) {
       if (error.code === '23505') {
-        // PostgreSQL unique violation code
         throw new HttpException(
           'Sport with this name already exists',
           HttpStatus.BAD_REQUEST,
@@ -66,7 +89,11 @@ export class SportsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a sport by id' })
-  @ApiParam({ name: 'id', description: 'Sport ID' })
+  @ApiParam({
+    name: 'id',
+    description: 'Sport ID',
+    example: '3dc44aff-9748-44fc-aa74-1379213a4363',
+  })
   @ApiResponse({ status: 200, description: 'Return the sport' })
   @ApiResponse({ status: 404, description: 'Sport not found' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
@@ -88,19 +115,46 @@ export class SportsController {
     }
   }
 
-  @Put(':id')
+  @Patch(':id')
+  @UseInterceptors(FileInterceptor('image'))
   @ApiOperation({ summary: 'Update a sport' })
-  @ApiParam({ name: 'id', description: 'Sport ID' })
-  @ApiBody({ type: UpdateSportDto })
+  @ApiConsumes('multipart/form-data')
+  @ApiParam({
+    name: 'id',
+    description: 'Sport ID',
+    example: '3dc44aff-9748-44fc-aa74-1379213a4363',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', example: 'Cricket' },
+        description: {
+          type: 'string',
+          example: 'A team sport played with a ball',
+        },
+        image: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+      required: [],
+    },
+  })
   @ApiResponse({ status: 200, description: 'Sport successfully updated' })
   @ApiResponse({ status: 404, description: 'Sport not found' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
   async update(
     @Param('id') id: string,
     @Body() updateSportDto: UpdateSportDto,
+    @UploadedFile() imageFile?: Express.Multer.File,
   ) {
     try {
-      const sport = await this.sportsService.update(id, updateSportDto);
+      const sport = await this.sportsService.update(
+        id,
+        updateSportDto,
+        imageFile,
+      );
       if (!sport) {
         throw new HttpException('Sport not found', HttpStatus.NOT_FOUND);
       }
@@ -110,7 +164,7 @@ export class SportsController {
         throw error;
       }
       throw new HttpException(
-        'Failed to update sport',
+        'Failed to update sport: ' + error.message,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

@@ -5,6 +5,7 @@ import { Event } from './entities/events.entity';
 import { CreateEventDto } from './dtos/create-event.dto';
 import { SportsService } from '../common/sports/sports.service';
 import { UpdateEventDto } from './dtos/update-event.dto';
+import { PaginatedResultDto } from '../common/dto/paginated-result.dto';
 
 @Injectable()
 export class EventsService {
@@ -14,7 +15,7 @@ export class EventsService {
     private sportsService: SportsService,
   ) {}
 
-  async createEvent(createEventDto: CreateEventDto): Promise<Event> {
+  async create(createEventDto: CreateEventDto): Promise<Event> {
     const sport = await this.sportsService.findOne(createEventDto.sportId);
     if (!sport) {
       throw new NotFoundException(
@@ -39,8 +40,14 @@ export class EventsService {
     return event;
   }
 
-  async findAll() {
-    return await this.eventRepository.find();
+  async findAll(page = 1, limit = 10) {
+    const [items, totalItems] = await this.eventRepository.findAndCount({
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { createdAt: 'DESC' },
+    });
+
+    return PaginatedResultDto.create(items, page, limit, totalItems);
   }
 
   async update(id: string, updateEventDto: UpdateEventDto) {
@@ -51,5 +58,13 @@ export class EventsService {
 
     Object.assign(event, updateEventDto);
     return await this.eventRepository.save(event);
+  }
+
+  async remove(id: string): Promise<Event> {
+    const event = await this.findOne(id);
+    if (!event) {
+      throw new NotFoundException(`Event with ID ${id} not found`);
+    }
+    return await this.eventRepository.remove(event);
   }
 }

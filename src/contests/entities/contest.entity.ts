@@ -10,6 +10,7 @@ import { UserContest } from '../../user-contests/entities/user-contest.entity';
 import { Leaderboard } from '../../leaderboards/entities/leaderboard.entity';
 import { Transaction } from '../../transactions/entities/transaction.entity';
 import { Payout } from '../../payouts/entities/payout.entity';
+import { ContestStatus } from '../../common/enums/common.enum';
 
 @Entity('contests')
 export class Contest {
@@ -25,8 +26,8 @@ export class Contest {
   @Column({ nullable: true })
   description?: string;
 
-  @Column({ default: true })
-  isActive: boolean;
+  @Column({ type: 'enum', enum: ContestStatus, default: ContestStatus.OPEN })
+  status: ContestStatus;
 
   @ManyToOne(() => Event, (event) => event.contests, { nullable: false })
   event: Event;
