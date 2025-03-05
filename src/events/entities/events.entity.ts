@@ -35,6 +35,15 @@ export class Event {
   @Column({ nullable: true })
   description?: string;
 
+
+  @ApiProperty({
+    example: 'https://example.com/image.jpg',
+    description: 'URL to the image of the event',
+    required: false,
+  })
+  @Column()
+  eventImageUrl: string;
+
   @ApiProperty({
     example: {
       id: '123e4567-e89b-12d3-a456-426614174000',

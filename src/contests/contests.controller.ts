@@ -54,7 +54,7 @@ export class ContestsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a contest by ID' })
-  @ApiParam({ name: 'id', type: Number, description: 'Contest ID' })
+  @ApiParam({ name: 'id', type: String, description: 'Contest ID (UUID)' })
   @ApiResponse({ status: 200, description: 'Contest retrieved' })
   @ApiResponse({ status: 404, description: 'Contest not found' })
   async findOne(@Param('id') id: string) {
@@ -63,7 +63,7 @@ export class ContestsController {
 
   @Put(':id')
   @ApiOperation({ summary: 'Update a contest by ID' })
-  @ApiParam({ name: 'id', type: Number, description: 'Contest ID' })
+  @ApiParam({ name: 'id', type: String, description: 'Contest ID (UUID)' })
   @ApiBody({ type: UpdateContestDto })
   @ApiResponse({ status: 200, description: 'Contest updated' })
   @ApiResponse({ status: 404, description: 'Contest not found' })
@@ -76,7 +76,7 @@ export class ContestsController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a contest by ID' })
-  @ApiParam({ name: 'id', type: Number, description: 'Contest ID' })
+  @ApiParam({ name: 'id', type: String, description: 'Contest ID (UUID)' })
   @ApiResponse({ status: 200, description: 'Contest deleted' })
   @ApiResponse({ status: 404, description: 'Contest not found' })
   async remove(@Param('id') id: string) {

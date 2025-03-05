@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FeaturedVideo } from './entities/featured-video.entity';
 import { VideoSubmission } from './entities/video-submission.entity';
+import { CreateFeaturedVideoDto } from './dto/create-featured-video.dto';
 
 @Injectable()
 export class FeaturedService {
@@ -13,13 +14,15 @@ export class FeaturedService {
     private readonly videoSubmissionRepository: Repository<VideoSubmission>,
   ) {}
 
-  async featureVideo(submissionId: string): Promise<FeaturedVideo> {
+  async featureVideo(createFeaturedVideoDto: CreateFeaturedVideoDto): Promise<FeaturedVideo> {
+    const { submissionId, contestId } = createFeaturedVideoDto;
+    
     const featuredCount = await this.featuredVideoRepository.count({
-      where: { isActive: true },
+      where: { isActive: true, contestId },
     });
 
     if (featuredCount >= 30) {
-      throw new Error('Maximum limit of 30 featured videos reached');
+      throw new Error('Maximum limit of 30 featured videos reached for this contest');
     }
 
     const submission = await this.videoSubmissionRepository.findOne({
@@ -34,11 +37,10 @@ export class FeaturedService {
 
     const featuredVideo = this.featuredVideoRepository.create({
       submissionId: submission.id,
-      title: submission.title,
-      description: submission.description,
       videoUrl: submission.videoUrl,
       thumbnailUrl: submission.thumbnailUrl,
       userId: submission.userId,
+      contestId,
     });
 
     return this.featuredVideoRepository.save(featuredVideo);
@@ -60,6 +62,14 @@ export class FeaturedService {
   async getAllFeatured(): Promise<FeaturedVideo[]> {
     return this.featuredVideoRepository.find({
       where: { isActive: true },
+      relations: ['submission', 'user', 'contest'],
+    });
+  }
+
+  async getFeaturedByContest(contestId: string): Promise<FeaturedVideo[]> {
+    return this.featuredVideoRepository.find({
+      where: { isActive: true, contestId },
+      relations: ['submission', 'user', 'contest'],
     });
   }
 }

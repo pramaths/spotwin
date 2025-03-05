@@ -35,10 +35,10 @@ export class User {
   bio: string;
 
   @Column({ nullable: true })
-  totalBetsPlaced: number;
+  totalContests: number;
 
   @Column({ nullable: true })
-  totalBetsWon: number;
+  totalContestsWon: number;
 
   @OneToMany(() => UserContest, (userContest) => userContest.user)
   userContests: UserContest[];

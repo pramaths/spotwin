@@ -9,11 +9,11 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { UserModule } from './users/users.module';
 import { EventsModule } from './events/events.module';
 import { ContestsModule } from './contests/contests.module';
-import { AuthController } from './auth/auth.controller';
-import { AuthService } from './auth/auth.service';
 import { AuthModule } from './auth/auth.module';
 import { SportsModule } from './common/sports/sports.module';
 import { TeamsModule } from './teams/teams.module';
+import { VideosModule } from './videos/videos.module';
+import { PrivyModule } from './privy/privy.module';
 
 @Module({
   imports: [
@@ -36,8 +36,10 @@ import { TeamsModule } from './teams/teams.module';
     TeamsModule,
     EventsModule,
     ContestsModule,
+    VideosModule,
+    PrivyModule
   ],
-  controllers: [AppController, AuthController],
-  providers: [AppService, AuthService],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

@@ -1,17 +1,33 @@
-import { IsString, IsNumber } from 'class-validator';
+import { IsString, IsNumber, IsEnum, IsOptional, IsUUID } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateContestDto {
   @ApiProperty({
     description: 'The ID of the event the contest belongs to',
-    example: '123e4567-e89b-12d3-a456-426614174000',
+    example: '077e38f3-6275-4c68-920f-3a7de8ba9bbf',
   })
-  @IsNumber()
+  @IsUUID()
   eventId: string;
 
+  @ApiProperty({
+    description: "The name of the contest",
+    example: "Basketball Shootout"
+  })
   @IsString()
-  title: string;
+  name: string;
 
+  @ApiProperty({
+    description: "The description of the contest",
+    example: "A contest where two teams compete against each other in basketball"
+  })
   @IsString()
+  @IsOptional()
   description: string;
+
+  @ApiProperty({
+    description: "The entry fee of the contest",
+    example: 100
+  })
+  @IsNumber()
+  entryFee: number;
 }

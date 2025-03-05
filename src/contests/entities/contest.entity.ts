@@ -18,10 +18,15 @@ export class Contest {
   id: string;
 
   @Column()
-  entryFee: number;
+  name: string;
 
   @Column()
-  currency: string; // e.g., 'USDC'
+  entryFee: number;
+
+  @Column({
+    default: 'SOL',
+  })
+  currency: string;
 
   @Column({ nullable: true })
   description?: string;

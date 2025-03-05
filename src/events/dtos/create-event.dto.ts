@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsDateString, IsOptional } from 'class-validator';
+import { IsString, IsNumber, IsDateString, IsOptional, IsUUID } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateEventDto {
@@ -19,10 +19,10 @@ export class CreateEventDto {
   description?: string;
 
   @ApiProperty({
-    example: '550e8400-e29b-41d4-a716-446655440000',
+    example: '3dc44aff-9748-44fc-aa74-1379213a4363',
     description: 'Unique identifier for the sport',
   })
-  @IsNumber()
+  @IsString()
   sportId: string;
 
   @ApiProperty({
@@ -38,4 +38,27 @@ export class CreateEventDto {
   })
   @IsDateString()
   endDate: Date;
+
+  @ApiProperty({
+    example: '4ec72fe7-263b-42e5-af1f-b0c26fed97a7',
+    description: 'Unique identifier for the first team (Team A)',
+  })
+  @IsUUID()
+  teamAId: string;
+
+  @ApiProperty({
+    example: '59217b82-77ae-4340-ba13-483bea11a7d6',
+    description: 'Unique identifier for the second team (Team B)',
+  })
+  @IsUUID()
+  teamBId: string;
+
+  @ApiProperty({
+    example: 'https://example.com/event-image.jpg',
+    description: 'URL of the event image',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  eventImage?: string;
 }

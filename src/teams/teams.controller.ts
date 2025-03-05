@@ -46,7 +46,7 @@ export class TeamsController {
         image: {
           type: 'string',
           format: 'binary',
-        },
+          },
       },
     },
   })
