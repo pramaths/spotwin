@@ -10,24 +10,32 @@ export class CreateContestDto {
   eventId: string;
 
   @ApiProperty({
-    description: "The name of the contest",
-    example: "Basketball Shootout"
+    description: 'The name of the contest',
+    example: 'Basketball Shootout',
   })
   @IsString()
   name: string;
 
   @ApiProperty({
-    description: "The description of the contest",
-    example: "A contest where two teams compete against each other in basketball"
+    description: 'The description of the contest',
+    example: 'A contest where two teams compete against each other in basketball',
   })
   @IsString()
   @IsOptional()
-  description: string;
+  description?: string;
 
   @ApiProperty({
-    description: "The entry fee of the contest",
-    example: 100
+    description: 'The entry fee of the contest',
+    example: 100,
   })
   @IsNumber()
   entryFee: number;
+
+  @ApiProperty({
+    description: 'The Solana contest ID (optional, for on-chain reference)',
+    example: '1',
+  })
+  @IsString()
+  @IsOptional()
+  solanaContestId?: string;
 }

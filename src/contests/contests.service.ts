@@ -44,7 +44,7 @@ export class ContestsService {
   }
 
   async findOne(id: string) {
-    const contest = await this.contestRepository.findOne({ 
+    const contest = await this.contestRepository.findOne({
       where: { id },
       relations: {
         event: {
@@ -60,8 +60,27 @@ export class ContestsService {
     return contest;
   }
 
+  async findBySolanaContestId(solanaContestId: string): Promise<Contest> {
+    const contest = await this.contestRepository.findOne({
+      where: { solanaContestId },
+      relations: {
+        event: {
+          sport: true,
+          teamA: true,
+          teamB: true,
+        },
+      },
+    });
+    if (!contest) {
+      throw new NotFoundException(
+        `Contest with solanaContestId ${solanaContestId} not found`,
+      );
+    }
+    return contest;
+  }
+
   async update(id: string, updateContestDto: UpdateContestDto) {
-    const contest = await this.contestRepository.findOne({ 
+    const contest = await this.contestRepository.findOne({
       where: { id },
       relations: {
         event: {
@@ -74,11 +93,10 @@ export class ContestsService {
     if (!contest) {
       throw new NotFoundException(`Contest with ID ${id} not found`);
     }
-    
+
     const updatedContest = { ...contest, ...updateContestDto };
     await this.contestRepository.save(updatedContest);
-    
-    // Fetch and return the updated contest with all relations
+
     return this.findOne(id);
   }
 

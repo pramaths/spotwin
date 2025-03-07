@@ -34,6 +34,9 @@ export class Contest {
   @Column({ type: 'enum', enum: ContestStatus, default: ContestStatus.OPEN })
   status: ContestStatus;
 
+  @Column({ nullable: true })
+  solanaContestId: string;
+
   @ManyToOne(() => Event, (event) => event.contests, { nullable: false })
   event: Event;
 
