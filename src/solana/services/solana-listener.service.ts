@@ -1,11 +1,20 @@
-import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, OnModuleDestroy, Inject } from '@nestjs/common';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { Program, AnchorProvider, Wallet, BN } from '@coral-xyz/anchor';
 import { ConfigService } from '@nestjs/config';
-import Shoot9SDK from '../program/contract_sdk'; // Adjusted import path
-import * as IDL from '../program/shoot_9_solana.json'; // Adjusted import path
-import { Shoot9Solana } from '../program/shoot_9_solana'; // Adjusted import path
+import Shoot9SDK from '../program/contract_sdk';
+import * as IDL from '../program/shoot_9_solana.json';
+import { Shoot9Solana } from '../program/shoot_9_solana';
 import { getKeypairFromFile } from '@solana-developers/helpers';
+import { UserContestsService } from '../../user-contests/user-contests.service';
+import { TransactionsService } from '../../transactions/transactions.service';
+import { ContestsService } from '../../contests/contests.service';
+import { UserService } from '../../users/users.service';
+import { ContestStatus } from '../../common/enums/common.enum';
+import { CreateUserContestDto } from '../../user-contests/dto/create-user-contest.dto';
+import { CreateTransactionDto } from '../../transactions/dto/create-transaction.dto';
+import { User } from '../../users/entities/users.entity';
+import { TransactionType } from '../../common/enums/transaction-type.enum';
 
 @Injectable()
 export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
@@ -16,12 +25,17 @@ export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
   private isListening = false;
   private processedTxs = new Set<string>(); // For deduplication
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    @Inject(UserContestsService) private userContestsService: UserContestsService,
+    @Inject(TransactionsService) private transactionsService: TransactionsService,
+    @Inject(ContestsService) private contestsService: ContestsService,
+    @Inject(UserService) private userService: UserService,
+  ) {
     this.connection = new Connection(
       this.configService.get<string>('SOLANA_RPC_URL') || 'https://api.devnet.solana.com',
       'confirmed',
     );
-    // SDK initialization deferred to initializeSolanaProgram
   }
 
   async onModuleInit() {
@@ -57,7 +71,6 @@ export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-
   public async initializeListener() {
     if (this.isListening) {
       this.logger.warn('Listener is already running');
@@ -73,8 +86,7 @@ export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
 
     this.connection.onLogs(
       this.program.programId,
-      (logs, context) => {
-        // Deduplicate based on transaction signature
+      async (logs, context) => {
         if (this.processedTxs.has(logs.signature)) {
           this.logger.debug(`Transaction ${logs.signature} already processed, skipping.`);
           return;
@@ -106,7 +118,7 @@ export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
                 this.handleContestCreated(eventData.data);
                 break;
               case 'ContestEntered':
-                this.handleContestEntered(eventData.data);
+                await this.handleContestEntered(eventData.data, logs.signature);
                 break;
               case 'ContestResolved':
                 this.handleContestResolved(eventData.data);
@@ -136,10 +148,10 @@ export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
       feeReceiver: event.feeReceiver.toString(),
       timestamp: Number(event.timestamp),
     });
-    // Add custom logic here (e.g., notify admin, update cache, etc.)
+    // Add custom logic if needed
   }
 
-  private handleContestEntered(event: any) {
+  private async handleContestEntered(event: any, signature: string) {
     this.logger.log('ContestEntered Event:', {
       contest: event.contest.toString(),
       contestId: Number(event.contestId),
@@ -147,7 +159,60 @@ export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
       amount: Number(event.amount),
       timestamp: Number(event.timestamp),
     });
-    // Add custom logic here (e.g., update participant list, trigger notification)
+
+    try {
+      const contestId = event.contestId.toString();
+      const userPubkey = event.user.toString();
+      const entryFee = Number(event.amount) / 1_000_000_000; // Convert lamports to SOL
+
+      // Check if the contest is not canceled or completed
+      const contest = await this.contestsService.findOne(contestId);
+      if (!contest) {
+        this.logger.error(`Contest with ID ${contestId} not found`);
+        return;
+      }
+
+      if (contest.status === ContestStatus.CANCELLED || contest.status === ContestStatus.COMPLETED) {
+        this.logger.error(`Contest with ID ${contestId} is ${contest.status}, cannot join`);
+        return;
+      }
+
+      // Find or create the user by public key
+      let user = await this.userService.findByPublicAddress(userPubkey);
+      if (!user) {
+        // If user doesn't exist, create a new one with minimal data
+        const createUserDto = {
+          username: `user_${userPubkey.slice(0, 8)}`, // Generate a default username
+          email: `${userPubkey.slice(0, 8)}@example.com`, // Generate a default email
+          publicAddress: userPubkey,
+          imageUrl: 'https://default-user-image.com', // Default image URL
+        };
+        user = await this.userService.create(createUserDto);
+        this.logger.log(`Created new user: ${user.id} for public address ${userPubkey}`);
+      }
+
+      // Create an entry in the user_contests table
+      const createUserContestDto: CreateUserContestDto = {
+        contestId: contestId,
+        entryFee: entryFee,
+      };
+      const userContest = await this.userContestsService.create(createUserContestDto, user);
+      this.logger.log(`UserContest created: ${userContest.id}`);
+
+      // Create an entry in the transactions table
+      const createTransactionDto: CreateTransactionDto = {
+        userId: user.id,
+        contestId: contestId,
+        type: TransactionType.ENTRY_FEE,
+        amount: entryFee,
+        transactionHash: signature,
+      };
+      const transaction = await this.transactionsService.create(createTransactionDto);
+      this.logger.log(`Transaction created: ${transaction.id}`);
+
+    } catch (error) {
+      this.logger.error(`Failed to process ContestEntered event: ${error.message}`);
+    }
   }
 
   private handleContestResolved(event: any) {
@@ -158,7 +223,7 @@ export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
       payouts: event.payouts.map((p: BN) => Number(p)),
       timestamp: Number(event.timestamp),
     });
-    // Add custom logic here (e.g., update leaderboard, notify winners)
+    // Add custom logic if needed
   }
 
   async stopListening() {
@@ -167,7 +232,6 @@ export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
     this.logger.log('Stopped Solana event listener and cleared processed transactions');
   }
 
-  // Optional: Clear processed transactions to manage memory
   public clearProcessedTxs(): void {
     this.processedTxs.clear();
     this.logger.debug('Cleared processed transaction cache.');
