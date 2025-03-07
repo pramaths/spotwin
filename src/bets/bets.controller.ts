@@ -19,12 +19,12 @@ export class BetsController {
   constructor(private readonly betsService: BetsService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a new bet' })
+  @ApiOperation({ summary: 'Create a new contest entry' })
   @ApiBody({ type: CreateBetDto })
-  @ApiResponse({ 
-    status: 201, 
-    description: 'The bet has been successfully created.',
-    type: Bet 
+  @ApiResponse({
+    status: 201,
+    description: 'The contest entry has been successfully created.',
+    type: Bet,
   })
   @ApiResponse({ status: 400, description: 'Bad request.' })
   create(@Body() createBetDto: CreateBetDto) {
@@ -32,88 +32,64 @@ export class BetsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all bets' })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Return all bets',
-    type: [Bet] 
+  @ApiOperation({ summary: 'Get all contest entries' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return all contest entries',
+    type: [Bet],
   })
   findAll() {
     return this.betsService.findAll();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get a bet by id' })
+  @ApiOperation({ summary: 'Get a contest entry by id' })
   @ApiParam({ name: 'id', description: 'Bet ID' })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Return the bet with the specified id',
-    type: Bet 
+  @ApiResponse({
+    status: 200,
+    description: 'Return the contest entry with the specified id',
+    type: Bet,
   })
-  @ApiResponse({ status: 404, description: 'Bet not found.' })
+  @ApiResponse({ status: 404, description: 'Contest entry not found.' })
   findOne(@Param('id') id: string) {
     return this.betsService.findOne(id);
   }
 
-  @Get('user-contest/:userContestId')
-  @ApiOperation({ summary: 'Get bets by user contest id' })
-  @ApiParam({ name: 'userContestId', description: 'User Contest ID' })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Return the bets for the specified user contest',
-    type: [Bet] 
+  @Get('user/:userId')
+  @ApiOperation({ summary: 'Get all contest entries for a specific user' })
+  @ApiParam({ name: 'userId', description: 'User ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return the contest entries for the specified user',
+    type: [Bet],
   })
-  findByUserContest(@Param('userContestId') userContestId: string) {
-    return this.betsService.findByUserContest(userContestId);
+  findByUser(@Param('userId') userId: string) {
+    return this.betsService.findByUser(userId);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update a bet' })
+  @ApiOperation({ summary: 'Update a contest entry' })
   @ApiParam({ name: 'id', description: 'Bet ID' })
   @ApiBody({ type: UpdateBetDto })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'The bet has been successfully updated.',
-    type: Bet 
+  @ApiResponse({
+    status: 200,
+    description: 'The contest entry has been successfully updated.',
+    type: Bet,
   })
   @ApiResponse({ status: 400, description: 'Bad request.' })
-  @ApiResponse({ status: 404, description: 'Bet not found.' })
+  @ApiResponse({ status: 404, description: 'Contest entry not found.' })
   update(@Param('id') id: string, @Body() updateBetDto: UpdateBetDto) {
     return this.betsService.update(id, updateBetDto);
   }
 
-  @Patch(':id/result')
-  @ApiOperation({ summary: 'Update bet result' })
-  @ApiParam({ name: 'id', description: 'Bet ID' })
-  @ApiBody({ 
-    schema: {
-      type: 'object',
-      properties: {
-        isCorrect: {
-          type: 'boolean',
-          description: 'Whether the bet prediction was correct or not'
-        }
-      }
-    }
-  })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'The bet result has been successfully updated.',
-    type: Bet 
-  })
-  @ApiResponse({ status: 404, description: 'Bet not found.' })
-  updateResult(@Param('id') id: string, @Body('isCorrect') isCorrect: boolean) {
-    return this.betsService.updateBetResult(id, isCorrect);
-  }
-
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a bet' })
+  @ApiOperation({ summary: 'Delete a contest entry' })
   @ApiParam({ name: 'id', description: 'Bet ID' })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'The bet has been successfully deleted.' 
+  @ApiResponse({
+    status: 200,
+    description: 'The contest entry has been successfully deleted.',
   })
-  @ApiResponse({ status: 404, description: 'Bet not found.' })
+  @ApiResponse({ status: 404, description: 'Contest entry not found.' })
   remove(@Param('id') id: string) {
     return this.betsService.remove(id);
   }

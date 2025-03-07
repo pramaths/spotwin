@@ -1,37 +1,26 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateBetDto } from './create-bet.dto';
 import { ApiProperty } from '@nestjs/swagger';
-import { OutcomeType } from '../../common/enums/outcome-type.enum';
 
 export class UpdateBetDto extends PartialType(CreateBetDto) {
   @ApiProperty({
-    description: 'The ID of the user contest',
+    description: 'The ID of the contest',
     example: '123e4567-e89b-12d3-a456-426614174000',
-    required: false
+    required: false,
   })
-  userContestId?: string;
+  contestId?: string;
 
   @ApiProperty({
-    description: 'The ID of the video',
+    description: 'The ID of the user',
     example: '123e4567-e89b-12d3-a456-426614174001',
-    required: false
+    required: false,
   })
-  videoId?: string;
+  userId?: string;
 
   @ApiProperty({
-    description: 'The prediction outcome (YES or NO)',
-    enum: OutcomeType,
-    example: OutcomeType.YES,
-    required: false
+    description: 'The ID of the transaction',
+    example: '123e4567-e89b-12d3-a456-426614174002',
+    required: false,
   })
-  prediction?: OutcomeType;
-
-  @ApiProperty({
-    description: 'The position of the bet (1-9)',
-    minimum: 1,
-    maximum: 9,
-    example: 5,
-    required: false
-  })
-  position?: number;
+  transactionId?: string;
 }

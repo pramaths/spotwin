@@ -1,38 +1,28 @@
-import { IsEnum, IsNotEmpty, IsNumber, Min, Max } from 'class-validator';
-import { OutcomeType } from '../../common/enums/outcome-type.enum';
+import { IsString, IsNotEmpty, IsUUID } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateBetDto {
   @ApiProperty({
-    description: 'The ID of the user contest',
-    example: '123e4567-e89b-12d3-a456-426614174000'
+    description: 'The ID of the contest',
+    example: '123e4567-e89b-12d3-a456-426614174000',
   })
+  @IsUUID()
   @IsNotEmpty()
-  userContestId: string;
+  contestId: string;
 
   @ApiProperty({
-    description: 'The ID of the video',
-    example: '123e4567-e89b-12d3-a456-426614174001'
+    description: 'The ID of the user',
+    example: '123e4567-e89b-12d3-a456-426614174001',
   })
+  @IsUUID()
   @IsNotEmpty()
-  videoId: string;
+  userId: string;
 
   @ApiProperty({
-    description: 'The prediction outcome (YES or NO)',
-    enum: OutcomeType,
-    example: OutcomeType.YES
+    description: 'The ID of the transaction',
+    example: '123e4567-e89b-12d3-a456-426614174002',
   })
-  @IsEnum(OutcomeType)
-  prediction: OutcomeType;
-
-  @ApiProperty({
-    description: 'The position of the bet (1-9)',
-    minimum: 1,
-    maximum: 9,
-    example: 5
-  })
-  @IsNumber()
-  @Min(1)
-  @Max(9)
-  position: number;
+  @IsUUID()
+  @IsNotEmpty()
+  transactionId: string;
 }

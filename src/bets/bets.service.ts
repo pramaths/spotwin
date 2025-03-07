@@ -17,29 +17,16 @@ export class BetsService {
   ) {}
 
   async create(createBetDto: CreateBetDto): Promise<Bet> {
-    // Check if user already has 9 bets for this user contest
-    const existingBets = await this.betRepository.count({
+    // Check if user already has an entry for this contest
+    const existingBet = await this.betRepository.findOne({
       where: {
-        userContestId: createBetDto.userContestId,
+        userId: createBetDto.userId,
+        contestId: createBetDto.contestId,
       },
     });
 
-    if (existingBets >= 9) {
-      throw new BadRequestException(
-        'User already has maximum number of bets for this contest',
-      );
-    }
-
-    // Check if position is already taken
-    const existingPosition = await this.betRepository.findOne({
-      where: {
-        userContestId: createBetDto.userContestId,
-        position: createBetDto.position,
-      },
-    });
-
-    if (existingPosition) {
-      throw new BadRequestException('Position already taken for this contest');
+    if (existingBet) {
+      throw new BadRequestException('User already entered this contest');
     }
 
     const bet = this.betRepository.create(createBetDto);
@@ -48,47 +35,27 @@ export class BetsService {
 
   async findAll(): Promise<Bet[]> {
     return await this.betRepository.find({
-      relations: [
-        'userContest',
-        'userContest.user',
-        'userContest.contest',
-        'video',
-      ],
+      relations: ['user', 'contest', 'transaction'],
     });
   }
 
   async findOne(id: string): Promise<Bet> {
     const bet = await this.betRepository.findOne({
       where: { id },
-      relations: [
-        'userContest',
-        'userContest.user',
-        'userContest.contest',
-        'video',
-      ],
+      relations: ['user', 'contest', 'transaction'],
     });
 
     if (!bet) {
-      throw new NotFoundException(`Bet with ID ${id} not found`);
+      throw new NotFoundException(`Contest entry with ID ${id} not found`);
     }
 
     return bet;
   }
 
-  async findByUserContest(userContestId: string): Promise<Bet[]> {
+  async findByUser(userId: string): Promise<Bet[]> {
     return await this.betRepository.find({
-      where: {
-        userContestId,
-      },
-      relations: [
-        'userContest',
-        'userContest.user',
-        'userContest.contest',
-        'video',
-      ],
-      order: {
-        position: 'ASC',
-      },
+      where: { userId },
+      relations: ['contest', 'transaction'],
     });
   }
 
@@ -101,11 +68,5 @@ export class BetsService {
   async remove(id: string): Promise<void> {
     const bet = await this.findOne(id);
     await this.betRepository.remove(bet);
-  }
-
-  async updateBetResult(id: string, isCorrect: boolean): Promise<Bet> {
-    const bet = await this.findOne(id);
-    bet.isCorrect = isCorrect;
-    return await this.betRepository.save(bet);
   }
 }

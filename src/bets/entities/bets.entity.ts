@@ -7,85 +7,75 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { FeaturedVideo } from '../../videos/entities/featured-video.entity';
-import { OutcomeType } from '../../common/enums/outcome-type.enum';
-import { UserContest } from '../../user-contests/entities/user-contest.entity';
+import { User } from '../../users/entities/users.entity';
+import { Contest } from '../../contests/entities/contest.entity';
+import { Transaction } from '../../transactions/entities/transaction.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Entity('bets')
 export class Bet {
   @ApiProperty({
-    description: 'The unique identifier of the bet',
-    example: '123e4567-e89b-12d3-a456-426614174000'
+    description: 'The unique identifier of the bet (contest entry)',
+    example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @ApiProperty({
-    description: 'The user contest associated with this bet',
-    type: () => UserContest
+    description: 'The contest associated with this entry',
+    type: () => Contest,
   })
-  @ManyToOne(() => UserContest, (userContest) => userContest.bets)
-  @JoinColumn({ name: 'userContestId' })
-  userContest: UserContest;
+  @ManyToOne(() => Contest, (contest) => contest.bets)
+  @JoinColumn({ name: 'contestId' })
+  contest: Contest;
 
   @ApiProperty({
-    description: 'The ID of the user contest',
-    example: '123e4567-e89b-12d3-a456-426614174001'
-  })
-  @Column()
-  userContestId: string;
-
-  @ApiProperty({
-    description: 'The video associated with this bet',
-    type: () => FeaturedVideo
-  })
-  @ManyToOne(() => FeaturedVideo)
-  @JoinColumn({ name: 'videoId' })
-  video: FeaturedVideo;
-
-  @ApiProperty({
-    description: 'The ID of the video',
-    example: '123e4567-e89b-12d3-a456-426614174002'
+    description: 'The ID of the contest',
+    example: '123e4567-e89b-12d3-a456-426614174001',
   })
   @Column()
-  videoId: string;
+  contestId: string;
 
   @ApiProperty({
-    description: 'The prediction outcome (YES or NO)',
-    enum: OutcomeType,
-    example: OutcomeType.YES
+    description: 'The user associated with this entry',
+    type: () => User,
   })
-  @Column({ type: 'enum', enum: OutcomeType })
-  prediction: OutcomeType;
+  @ManyToOne(() => User, (user) => user.bets)
+  @JoinColumn({ name: 'userId' })
+  user: User;
 
   @ApiProperty({
-    description: 'Whether the prediction was correct',
-    example: true,
-    nullable: true
+    description: 'The ID of the user',
+    example: '123e4567-e89b-12d3-a456-426614174002',
   })
-  @Column({ type: 'boolean', nullable: true })
-  isCorrect: boolean;
+  @Column()
+  userId: string;
 
   @ApiProperty({
-    description: 'The position of the bet (1-9)',
-    example: 5,
-    minimum: 1,
-    maximum: 9
+    description: 'The transaction associated with this entry',
+    type: () => Transaction,
   })
-  @Column({ type: 'int', default: 0 })
-  position: number; // Position 1-9 in the bet slip
+  @ManyToOne(() => Transaction, (transaction) => transaction.bets)
+  @JoinColumn({ name: 'transactionId' })
+  transaction: Transaction;
 
   @ApiProperty({
-    description: 'The date when the bet was created',
-    example: '2023-01-01T00:00:00Z'
+    description: 'The ID of the transaction',
+    example: '123e4567-e89b-12d3-a456-426614174003',
+  })
+  @Column()
+  transactionId: string;
+
+  @ApiProperty({
+    description: 'The date when the entry was created',
+    example: '2023-01-01T00:00:00Z',
   })
   @CreateDateColumn()
   createdAt: Date;
 
   @ApiProperty({
-    description: 'The date when the bet was last updated',
-    example: '2023-01-02T00:00:00Z'
+    description: 'The date when the entry was last updated',
+    example: '2023-01-02T00:00:00Z',
   })
   @UpdateDateColumn()
   updatedAt: Date;
