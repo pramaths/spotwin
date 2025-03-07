@@ -12,6 +12,7 @@ import { User } from '../../users/entities/users.entity';
 import { Contest } from '../../contests/entities/contest.entity';
 import { TransactionType } from '../../common/enums/transaction-type.enum';
 import { Payout } from '../../payouts/entities/payout.entity';
+import { Bet } from '../../bets/entities/bets.entity';
 
 @Entity('transactions')
 export class Transaction {
@@ -88,4 +89,7 @@ export class Transaction {
 
   @OneToMany(() => Payout, (payout) => payout.transaction)
   payouts: Payout[];
+
+  @OneToMany(() => Bet, (bet) => bet.transaction) // Add this line
+  bets: Bet[];
 }

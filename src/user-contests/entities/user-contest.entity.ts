@@ -10,6 +10,7 @@ import {
 import { User } from '../../users/entities/users.entity';
 import { Contest } from '../../contests/entities/contest.entity';
 import { Bet } from '../../bets/entities/bets.entity';
+import { Prediction } from '../../predictions/entities/prediction.entity';
 
 @Entity('user_contests')
 export class UserContest {
@@ -26,6 +27,9 @@ export class UserContest {
 
   @OneToMany(() => Bet, (bet) => bet.userContest)
   bets: Bet[];
+
+  @OneToMany(() => Prediction, (prediction) => prediction.userContest)
+  predictions: Prediction[];
 
   @Column('decimal', { precision: 10, scale: 2 })
   entryFee: number;

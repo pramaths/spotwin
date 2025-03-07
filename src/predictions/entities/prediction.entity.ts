@@ -74,7 +74,7 @@ export class Prediction {
     maximum: 9,
   })
   @Column({ type: 'int', default: 0 })
-  position: number; // Position 1-9 in the prediction slip
+  position: number;
 
   @ApiProperty({
     description: 'The date when the prediction was created',
