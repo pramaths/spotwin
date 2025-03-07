@@ -16,15 +16,13 @@ import { BetsService } from '../../bets/bets.service';
 import { TransactionsService } from '../../transactions/transactions.service';
 import { ContestsService } from '../../contests/contests.service';
 import { UserService } from '../../users/users.service';
-import { EventsService } from '../../events/events.service';
 import { UserContestsService } from '../../user-contests/user-contests.service';
 import { ContestStatus } from '../../common/enums/common.enum';
 import { CreateBetDto } from '../../bets/dto/create-bet.dto';
 import { CreateTransactionDto } from '../../transactions/dto/create-transaction.dto';
-import { CreateContestDto } from '../../contests/dtos/create-contest.dto';
-import { User } from '../../users/entities/users.entity';
 import { TransactionType } from '../../common/enums/transaction-type.enum';
 import { CreateUserContestDto } from '../../user-contests/dto/create-user-contest.dto';
+import { getConnection } from 'typeorm'; // Import getConnection for transaction management
 
 @Injectable()
 export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
@@ -42,9 +40,8 @@ export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
     private transactionsService: TransactionsService,
     @Inject(ContestsService) private contestsService: ContestsService,
     @Inject(UserService) private userService: UserService,
-    @Inject(EventsService) private eventsService: EventsService,
     @Inject(UserContestsService)
-    private userContestsService: UserContestsService, // Inject UserContestsService
+    private userContestsService: UserContestsService,
   ) {
     this.connection = new Connection(
       this.configService.get<string>('SOLANA_RPC_URL') ||
@@ -186,74 +183,80 @@ export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
     });
 
     try {
-      const solanaContestId = event.contestId.toString();
-      const userPubkey = event.user.toString();
-      const entryFee = Number(event.amount) / 1_000_000_000;
+      await getConnection().transaction(async (manager) => {
+        const solanaContestId = event.contestId.toString();
+        const userPubkey = event.user.toString();
+        const entryFee = Number(event.amount) / 1_000_000_000;
 
-      const contest =
-        await this.contestsService.findBySolanaContestId(solanaContestId);
-      if (!contest) {
-        this.logger.error(
-          `Contest with solanaContestId ${solanaContestId} not found`,
-        );
-        return;
-      }
+        const contest =
+          await this.contestsService.findBySolanaContestId(solanaContestId);
+        if (!contest) {
+          this.logger.error(
+            `Contest with solanaContestId ${solanaContestId} not found`,
+          );
+          throw new Error('Contest not found'); // Trigger rollback
+        }
 
-      if (
-        contest.status === ContestStatus.CANCELLED ||
-        contest.status === ContestStatus.COMPLETED
-      ) {
-        this.logger.error(
-          `Contest with ID ${contest.id} is ${contest.status}, cannot join`,
-        );
-        return;
-      }
+        if (
+          contest.status === ContestStatus.CANCELLED ||
+          contest.status === ContestStatus.COMPLETED
+        ) {
+          this.logger.error(
+            `Contest with ID ${contest.id} is ${contest.status}, cannot join`,
+          );
+          throw new Error('Contest cannot be joined'); // Trigger rollback
+        }
 
-      let user = await this.userService.findByPublicAddress(userPubkey);
-      if (!user) {
-        const createUserDto = {
-          username: `user_${userPubkey.slice(0, 8)}`,
-          email: `${userPubkey.slice(0, 8)}@example.com`,
-          publicAddress: userPubkey,
-          imageUrl: 'https://default-user-image.com',
+        let user = await this.userService.findByPublicAddress(userPubkey);
+        if (!user) {
+          const createUserDto = {
+            username: `user_${userPubkey.slice(0, 8)}`,
+            email: `${userPubkey.slice(0, 8)}@example.com`,
+            publicAddress: userPubkey,
+            imageUrl: 'https://default-user-image.com',
+          };
+          user = await this.userService.create(createUserDto);
+          this.logger.log(
+            `Created new user: ${user.id} for public address ${userPubkey}`,
+          );
+        }
+
+        // Create an entry in the user_contests table
+        const createUserContestDto: CreateUserContestDto = {
+          contestId: contest.id,
+          entryFee: entryFee,
         };
-        user = await this.userService.create(createUserDto);
-        this.logger.log(
-          `Created new user: ${user.id} for public address ${userPubkey}`,
-        );
-      }
+        const userContest = await this.userContestsService.create(
+          createUserContestDto,
+          user,
+          manager,
+        ); // Pass manager
+        this.logger.log(`UserContest created: ${userContest.id}`);
 
-      // Create an entry in the user_contests table
-      const createUserContestDto: CreateUserContestDto = {
-        contestId: contest.id,
-        entryFee: entryFee,
-      };
-      const userContest = await this.userContestsService.create(
-        createUserContestDto,
-        user,
-      );
-      this.logger.log(`UserContest created: ${userContest.id}`);
+        // Create an entry in the transactions table
+        const createTransactionDto: CreateTransactionDto = {
+          userId: user.id,
+          contestId: contest.id,
+          type: TransactionType.ENTRY_FEE,
+          amount: entryFee,
+          transactionHash: signature,
+        };
+        const transaction = await this.transactionsService.create(
+          createTransactionDto,
+          manager,
+        ); // Pass manager
+        this.logger.log(`Transaction created: ${transaction.id}`);
 
-      // Create an entry in the transactions table
-      const createTransactionDto: CreateTransactionDto = {
-        userId: user.id,
-        contestId: contest.id,
-        type: TransactionType.ENTRY_FEE,
-        amount: entryFee,
-        transactionHash: signature,
-      };
-      const transaction =
-        await this.transactionsService.create(createTransactionDto);
-      this.logger.log(`Transaction created: ${transaction.id}`);
-
-      // Create an entry in the bets table
-      const createBetDto: CreateBetDto = {
-        contestId: contest.id,
-        userId: user.id,
-        transactionId: transaction.id,
-      };
-      const bet = await this.betsService.create(createBetDto);
-      this.logger.log(`Bet (contest entry) created: ${bet.id}`);
+        // Create an entry in the bets table
+        const createBetDto: CreateBetDto = {
+          contestId: contest.id,
+          userId: user.id,
+          transactionId: transaction.id,
+          userContestId: userContest.id,
+        };
+        const bet = await this.betsService.create(createBetDto, manager); // Pass manager
+        this.logger.log(`Bet (contest entry) created: ${bet.id}`);
+      });
     } catch (error) {
       this.logger.error(
         `Failed to process ContestEntered event: ${error.message}`,

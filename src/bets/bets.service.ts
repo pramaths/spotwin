@@ -16,21 +16,30 @@ export class BetsService {
     private betRepository: Repository<Bet>,
   ) {}
 
-  async create(createBetDto: CreateBetDto): Promise<Bet> {
+  async create(createBetDto: CreateBetDto, manager?: any): Promise<Bet> {
     // Check if user already has an entry for this contest
-    const existingBet = await this.betRepository.findOne({
-      where: {
-        userId: createBetDto.userId,
-        contestId: createBetDto.contestId,
-      },
-    });
+    const existingBet = await (manager
+      ? manager.findOne(Bet, {
+          where: {
+            userId: createBetDto.userId,
+            contestId: createBetDto.contestId,
+          },
+        })
+      : this.betRepository.findOne({
+          where: {
+            userId: createBetDto.userId,
+            contestId: createBetDto.contestId,
+          },
+        }));
 
     if (existingBet) {
       throw new BadRequestException('User already entered this contest');
     }
 
-    const bet = this.betRepository.create(createBetDto);
-    return await this.betRepository.save(bet);
+    const bet = manager
+      ? manager.create(Bet, createBetDto)
+      : this.betRepository.create(createBetDto);
+    return manager ? manager.save(bet) : this.betRepository.save(bet);
   }
 
   async findAll(): Promise<Bet[]> {

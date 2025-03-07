@@ -10,9 +10,6 @@ import { UserContest } from './entities/user-contest.entity';
 import { CreateUserContestDto } from './dto/create-user-contest.dto';
 import { User } from '../users/entities/users.entity';
 import { Contest } from '../contests/entities/contest.entity';
-import { BetsService } from '../bets/bets.service';
-import { TransactionsService } from '../transactions/transactions.service';
-import { TransactionType } from 'src/common/enums/transaction-type.enum';
 
 @Injectable()
 export class UserContestsService {
@@ -21,18 +18,20 @@ export class UserContestsService {
     private userContestRepository: Repository<UserContest>,
     @InjectRepository(Contest)
     private contestRepository: Repository<Contest>,
-    @Inject(BetsService) private betsService: BetsService,
-    @Inject(TransactionsService)
-    private transactionsService: TransactionsService,
   ) {}
 
   async create(
     createUserContestDto: CreateUserContestDto,
     user: User,
+    manager?: any, // Optional manager for transactions
   ): Promise<UserContest> {
-    const contest = await this.contestRepository.findOne({
-      where: { id: createUserContestDto.contestId },
-    });
+    const contest = await (manager
+      ? manager.findOne(Contest, {
+          where: { id: createUserContestDto.contestId },
+        })
+      : this.contestRepository.findOne({
+          where: { id: createUserContestDto.contestId },
+        }));
 
     if (!contest) {
       throw new NotFoundException('Contest not found');
@@ -42,43 +41,39 @@ export class UserContestsService {
       throw new BadRequestException('Contest is cancelled or completed');
     }
 
-    const existingUserContest = await this.userContestRepository.findOne({
-      where: {
-        user: { id: user.id },
-        contest: { id: contest.id },
-      },
-    });
+    const existingUserContest = await (manager
+      ? manager.findOne(UserContest, {
+          where: {
+            user: { id: user.id },
+            contest: { id: contest.id },
+          },
+        })
+      : this.userContestRepository.findOne({
+          where: {
+            user: { id: user.id },
+            contest: { id: contest.id },
+          },
+        }));
 
     if (existingUserContest) {
       throw new BadRequestException('User already joined this contest');
     }
 
-    // Create transaction (simulating on-chain payment)
-    const transaction = await this.transactionsService.create({
-      userId: user.id,
-      contestId: contest.id,
-      type: TransactionType.ENTRY_FEE,
-      amount: createUserContestDto.entryFee,
-      transactionHash: `tx_${Date.now()}`, // Placeholder for actual transaction hash
-    });
-
     // Create user contest entry
-    const userContest = this.userContestRepository.create({
-      user,
-      contest,
-      entryFee: createUserContestDto.entryFee,
-    });
-    const savedUserContest = await this.userContestRepository.save(userContest);
-
-    // Create bet entry (contest entry)
-    const createBetDto = {
-      contestId: contest.id,
-      userId: user.id,
-      transactionId: transaction.id,
-    };
-    await this.betsService.create(createBetDto);
-
-    return savedUserContest;
+    const userContest = manager
+      ? manager.create(UserContest, {
+          user,
+          contest,
+          entryFee: createUserContestDto.entryFee,
+        })
+      : this.userContestRepository.create({
+          user,
+          contest,
+          entryFee: createUserContestDto.entryFee,
+        });
+    return manager
+      ? manager.save(userContest)
+      : this.userContestRepository.save(userContest);
   }
 
   async findAll(): Promise<UserContest[]> {
