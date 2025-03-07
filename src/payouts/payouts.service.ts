@@ -13,6 +13,16 @@ export class PayoutsService {
   ) {}
 
   async create(createPayoutDto: CreatePayoutDto): Promise<Payout> {
+    // Check for duplicate transactionHash
+    const existingPayout = await this.payoutRepository.findOne({
+      where: { transactionHash: createPayoutDto.transactionHash },
+    });
+    if (existingPayout) {
+      throw new NotFoundException(
+        `Payout with transaction hash ${createPayoutDto.transactionHash} already exists`,
+      );
+    }
+
     const payout = this.payoutRepository.create(createPayoutDto);
     return await this.payoutRepository.save(payout);
   }
@@ -20,6 +30,9 @@ export class PayoutsService {
   async findAll(): Promise<Payout[]> {
     return await this.payoutRepository.find({
       relations: ['user', 'contest', 'transaction'],
+      order: {
+        createdAt: 'DESC',
+      },
     });
   }
 
@@ -37,28 +50,58 @@ export class PayoutsService {
   }
 
   async findByUser(userId: string): Promise<Payout[]> {
-    return await this.payoutRepository.find({
+    const payouts = await this.payoutRepository.find({
       where: { user: { id: userId } },
       relations: ['user', 'contest', 'transaction'],
       order: {
         createdAt: 'DESC',
       },
     });
+
+    if (payouts.length === 0) {
+      throw new NotFoundException(`No payouts found for user ID ${userId}`);
+    }
+
+    return payouts;
   }
 
   async findByContest(contestId: string): Promise<Payout[]> {
-    return await this.payoutRepository.find({
+    const payouts = await this.payoutRepository.find({
       where: { contest: { id: contestId } },
       relations: ['user', 'contest', 'transaction'],
       order: {
         createdAt: 'DESC',
       },
     });
+
+    if (payouts.length === 0) {
+      throw new NotFoundException(
+        `No payouts found for contest ID ${contestId}`,
+      );
+    }
+
+    return payouts;
   }
 
   async update(id: string, updatePayoutDto: UpdatePayoutDto): Promise<Payout> {
     const payout = await this.findOne(id);
     Object.assign(payout, updatePayoutDto);
+
+    // Check for duplicate transactionHash if updated
+    if (
+      updatePayoutDto.transactionHash &&
+      updatePayoutDto.transactionHash !== payout.transactionHash
+    ) {
+      const existingPayout = await this.payoutRepository.findOne({
+        where: { transactionHash: updatePayoutDto.transactionHash },
+      });
+      if (existingPayout) {
+        throw new NotFoundException(
+          `Payout with transaction hash ${updatePayoutDto.transactionHash} already exists`,
+        );
+      }
+    }
+
     return await this.payoutRepository.save(payout);
   }
 
