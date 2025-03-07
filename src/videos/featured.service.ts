@@ -18,7 +18,7 @@ export class FeaturedService {
     const { submissionId, contestId } = createFeaturedVideoDto;
     
     const featuredCount = await this.featuredVideoRepository.count({
-      where: { isActive: true, contestId },
+      where: { contestId },
     });
 
     if (featuredCount >= 30) {
@@ -55,20 +55,18 @@ export class FeaturedService {
       throw new NotFoundException(`Featured video with ID ${id} not found`);
     }
 
-    featuredVideo.isActive = false;
     await this.featuredVideoRepository.save(featuredVideo);
   }
 
   async getAllFeatured(): Promise<FeaturedVideo[]> {
     return this.featuredVideoRepository.find({
-      where: { isActive: true },
       relations: ['submission', 'user', 'contest'],
     });
   }
 
   async getFeaturedByContest(contestId: string): Promise<FeaturedVideo[]> {
     return this.featuredVideoRepository.find({
-      where: { isActive: true, contestId },
+      where: { contestId },
       relations: ['submission', 'user', 'contest'],
     });
   }

@@ -81,13 +81,6 @@ export class FeaturedVideo {
   contest: Contest;
 
   @ApiProperty({
-    description: 'Whether the featured video is active',
-    example: true
-  })
-  @Column({ default: true })
-  isActive: boolean;
-
-  @ApiProperty({
     description: 'When the featured video was created',
     example: '2023-01-01T00:00:00Z'
   })
