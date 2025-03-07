@@ -14,6 +14,7 @@ import { SportsModule } from './common/sports/sports.module';
 import { TeamsModule } from './teams/teams.module';
 import { VideosModule } from './videos/videos.module';
 import { PrivyModule } from './privy/privy.module';
+import { SolanaModule } from './solana/solana.module';
 
 @Module({
   imports: [
@@ -37,7 +38,8 @@ import { PrivyModule } from './privy/privy.module';
     EventsModule,
     ContestsModule,
     VideosModule,
-    PrivyModule
+    PrivyModule,
+    SolanaModule,
   ],
   controllers: [AppController],
   providers: [AppService],
