@@ -17,12 +17,14 @@ import { TransactionsService } from '../../transactions/transactions.service';
 import { ContestsService } from '../../contests/contests.service';
 import { UserService } from '../../users/users.service';
 import { EventsService } from '../../events/events.service';
+import { UserContestsService } from '../../user-contests/user-contests.service';
 import { ContestStatus } from '../../common/enums/common.enum';
 import { CreateBetDto } from '../../bets/dto/create-bet.dto';
 import { CreateTransactionDto } from '../../transactions/dto/create-transaction.dto';
 import { CreateContestDto } from '../../contests/dtos/create-contest.dto';
 import { User } from '../../users/entities/users.entity';
 import { TransactionType } from '../../common/enums/transaction-type.enum';
+import { CreateUserContestDto } from '../../user-contests/dto/create-user-contest.dto';
 
 @Injectable()
 export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
@@ -41,6 +43,8 @@ export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
     @Inject(ContestsService) private contestsService: ContestsService,
     @Inject(UserService) private userService: UserService,
     @Inject(EventsService) private eventsService: EventsService,
+    @Inject(UserContestsService)
+    private userContestsService: UserContestsService, // Inject UserContestsService
   ) {
     this.connection = new Connection(
       this.configService.get<string>('SOLANA_RPC_URL') ||
@@ -169,47 +173,7 @@ export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
       feeReceiver: event.feeReceiver.toString(),
       timestamp: Number(event.timestamp),
     });
-
-    try {
-      const solanaContestId = event.contestId.toString();
-      const entryFee = Number(event.entryFee) / 1_000_000_000;
-
-      const existingContest =
-        await this.contestsService.findBySolanaContestId(solanaContestId);
-      if (existingContest) {
-        this.logger.warn(
-          `Contest with solanaContestId ${solanaContestId} already exists, skipping creation`,
-        );
-        return;
-      }
-
-      const events = await this.eventsService.findAll();
-      if (!events) {
-        this.logger.error(
-          'No events found in the database to associate with the contest',
-        );
-        return;
-      }
-      const defaultEvent = events[0];
-
-      const createContestDto: CreateContestDto = {
-        eventId: defaultEvent.id,
-        name: event.name,
-        description: `Contest created on-chain with Solana ID ${solanaContestId}`,
-        entryFee: entryFee,
-        solanaContestId: solanaContestId,
-      };
-
-      const contest = await this.contestsService.createContest(
-        defaultEvent.id,
-        createContestDto,
-      );
-      this.logger.log(`Contest created: ${contest.id}`);
-    } catch (error) {
-      this.logger.error(
-        `Failed to process ContestCreated event: ${error.message}`,
-      );
-    }
+    // No contest creation; logging only as per requirement
   }
 
   private async handleContestEntered(event: any, signature: string) {
@@ -258,6 +222,17 @@ export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
           `Created new user: ${user.id} for public address ${userPubkey}`,
         );
       }
+
+      // Create an entry in the user_contests table
+      const createUserContestDto: CreateUserContestDto = {
+        contestId: contest.id,
+        entryFee: entryFee,
+      };
+      const userContest = await this.userContestsService.create(
+        createUserContestDto,
+        user,
+      );
+      this.logger.log(`UserContest created: ${userContest.id}`);
 
       // Create an entry in the transactions table
       const createTransactionDto: CreateTransactionDto = {
