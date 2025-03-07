@@ -3,7 +3,7 @@ import { Connection, PublicKey } from '@solana/web3.js';
 import { Program, AnchorProvider, Wallet, BN } from '@coral-xyz/anchor';
 import { ConfigService } from '@nestjs/config';
 import Shoot9SDK from '../program/contract_sdk'; // Adjusted import path
-import IDL from '../program/shoot_9_solana.json'; // Adjusted import path
+import * as IDL from '../program/shoot_9_solana.json'; // Adjusted import path
 import { Shoot9Solana } from '../program/shoot_9_solana'; // Adjusted import path
 import { getKeypairFromFile } from '@solana-developers/helpers';
 
@@ -44,11 +44,10 @@ export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
         preflightCommitment: 'confirmed',
       });
 
-      // Initialize the SDK with the wallet
-      this.sdk = new Shoot9SDK(this.connection, wallet);
+      const InterfaceString = JSON.stringify(IDL);
+      const InterfaceObject = JSON.parse(InterfaceString);
 
-      // Initialize the program with the program ID from the SDK
-      this.program = new Program<Shoot9Solana>(IDL as Shoot9Solana, provider);
+      this.program = new Program(InterfaceObject, provider);
 
       this.logger.log('Solana program initialized successfully');
       this.logger.log(`Program ID: ${this.program.programId.toBase58()}`);
@@ -57,6 +56,7 @@ export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
       throw error;
     }
   }
+
 
   public async initializeListener() {
     if (this.isListening) {
