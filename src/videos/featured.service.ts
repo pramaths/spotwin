@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { FeaturedVideo } from './entities/featured-video.entity';
 import { VideoSubmission } from './entities/video-submission.entity';
 import { CreateFeaturedVideoDto } from './dto/create-featured-video.dto';
+import { OutcomeType } from '../common/enums/outcome-type.enum';
 
 @Injectable()
 export class FeaturedService {
@@ -14,15 +15,19 @@ export class FeaturedService {
     private readonly videoSubmissionRepository: Repository<VideoSubmission>,
   ) {}
 
-  async featureVideo(createFeaturedVideoDto: CreateFeaturedVideoDto): Promise<FeaturedVideo> {
-    const { submissionId, contestId } = createFeaturedVideoDto;
-    
+  async featureVideo(
+    createFeaturedVideoDto: CreateFeaturedVideoDto,
+  ): Promise<FeaturedVideo> {
+    const { submissionId, contestId, correctOutcome } = createFeaturedVideoDto;
+
     const featuredCount = await this.featuredVideoRepository.count({
       where: { contestId },
     });
 
     if (featuredCount >= 30) {
-      throw new Error('Maximum limit of 30 featured videos reached for this contest');
+      throw new Error(
+        'Maximum limit of 30 featured videos reached for this contest',
+      );
     }
 
     const submission = await this.videoSubmissionRepository.findOne({
@@ -41,8 +46,25 @@ export class FeaturedService {
       thumbnailUrl: submission.thumbnailUrl,
       userId: submission.userId,
       contestId,
+      correctOutcome,
     });
 
+    return this.featuredVideoRepository.save(featuredVideo);
+  }
+
+  async setOutcome(
+    id: string,
+    correctOutcome: OutcomeType,
+  ): Promise<FeaturedVideo> {
+    const featuredVideo = await this.featuredVideoRepository.findOne({
+      where: { id },
+    });
+
+    if (!featuredVideo) {
+      throw new NotFoundException(`Featured video with ID ${id} not found`);
+    }
+
+    featuredVideo.correctOutcome = correctOutcome;
     return this.featuredVideoRepository.save(featuredVideo);
   }
 
@@ -55,7 +77,7 @@ export class FeaturedService {
       throw new NotFoundException(`Featured video with ID ${id} not found`);
     }
 
-    await this.featuredVideoRepository.save(featuredVideo);
+    await this.featuredVideoRepository.remove(featuredVideo);
   }
 
   async getAllFeatured(): Promise<FeaturedVideo[]> {
