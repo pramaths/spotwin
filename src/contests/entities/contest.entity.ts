@@ -12,6 +12,7 @@ import { UserContest } from '../../user-contests/entities/user-contest.entity';
 import { Leaderboard } from '../../leaderboards/entities/leaderboard.entity';
 import { Transaction } from '../../transactions/entities/transaction.entity';
 import { Payout } from '../../payouts/entities/payout.entity';
+import { FeaturedVideo } from '../../videos/entities/featured-video.entity';
 import { ContestStatus } from '../../common/enums/common.enum';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -84,6 +85,10 @@ export class Contest {
   })
   @ManyToOne(() => Event, (event) => event.contests, { nullable: false })
   event: Event;
+
+  @ApiProperty({ description: 'The featured videos associated with this contest', type: () => [FeaturedVideo] })
+  @OneToMany(() => FeaturedVideo, (featuredVideo) => featuredVideo.contest)
+  featuredVideos: FeaturedVideo[];
 
   @ApiProperty({
     description: 'When the contest was created',

@@ -17,6 +17,6 @@ import { S3Module } from '../aws/s3.module';
   ],
   controllers: [SubmissionController, FeaturedController],
   providers: [SubmissionService, FeaturedService],
-  exports: [FeaturedService],
+  exports: [FeaturedService, SubmissionService],
 })
 export class VideosModule {}
