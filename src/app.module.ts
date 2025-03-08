@@ -15,6 +15,9 @@ import { TeamsModule } from './teams/teams.module';
 import { VideosModule } from './videos/videos.module';
 import { PrivyModule } from './privy/privy.module';
 import { SolanaModule } from './solana/solana.module';
+import { LeaderboardsModule } from './leaderboards/leaderboards.module';
+import { PayoutsModule } from './payouts/payouts.module';
+import { PredictionsModule } from './predictions/predictions.module';
 
 @Module({
   imports: [
@@ -40,6 +43,9 @@ import { SolanaModule } from './solana/solana.module';
     VideosModule,
     PrivyModule,
     SolanaModule,
+    PredictionsModule,
+    LeaderboardsModule,
+    PayoutsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
