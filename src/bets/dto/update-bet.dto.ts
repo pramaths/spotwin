@@ -23,4 +23,11 @@ export class UpdateBetDto extends PartialType(CreateBetDto) {
     required: false,
   })
   transactionId?: string;
+
+  @ApiProperty({
+    description: 'The ID of the user contest',
+    example: '123e4567-e89b-12d3-a456-426614174003',
+    required: false,
+  })
+  userContestId?: string;
 }

@@ -6,6 +6,9 @@ import {
   Patch,
   Param,
   Delete,
+  HttpException,
+  HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { PredictionsService } from './predictions.service';
 import { CreatePredictionDto } from './dto/create-prediction.dto';
@@ -33,8 +36,12 @@ export class PredictionsController {
     type: Prediction,
   })
   @ApiResponse({ status: 400, description: 'Bad request.' })
-  create(@Body() createPredictionDto: CreatePredictionDto) {
-    return this.predictionsService.create(createPredictionDto);
+  async create(@Body() createPredictionDto: CreatePredictionDto) {
+    try {
+      return await this.predictionsService.create(createPredictionDto);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
   }
 
   @Get()
@@ -44,8 +51,8 @@ export class PredictionsController {
     description: 'Return all predictions',
     type: [Prediction],
   })
-  findAll() {
-    return this.predictionsService.findAll();
+  async findAll() {
+    return await this.predictionsService.findAll();
   }
 
   @Get(':id')
@@ -57,8 +64,8 @@ export class PredictionsController {
     type: Prediction,
   })
   @ApiResponse({ status: 404, description: 'Prediction not found.' })
-  findOne(@Param('id') id: string) {
-    return this.predictionsService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    return await this.predictionsService.findOne(id);
   }
 
   @Get('user-contest/:userContestId')
@@ -69,8 +76,8 @@ export class PredictionsController {
     description: 'Return the predictions for the specified user contest',
     type: [Prediction],
   })
-  findByUserContest(@Param('userContestId') userContestId: string) {
-    return this.predictionsService.findByUserContest(userContestId);
+  async findByUserContest(@Param('userContestId') userContestId: string) {
+    return await this.predictionsService.findByUserContest(userContestId);
   }
 
   @Patch(':id')
@@ -84,11 +91,15 @@ export class PredictionsController {
   })
   @ApiResponse({ status: 400, description: 'Bad request.' })
   @ApiResponse({ status: 404, description: 'Prediction not found.' })
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updatePredictionDto: UpdatePredictionDto,
   ) {
-    return this.predictionsService.update(id, updatePredictionDto);
+    try {
+      return await this.predictionsService.update(id, updatePredictionDto);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
   }
 
   @Patch(':id/result')
@@ -111,19 +122,23 @@ export class PredictionsController {
     type: Prediction,
   })
   @ApiResponse({ status: 404, description: 'Prediction not found.' })
-  updateResult(@Param('id') id: string, @Body('isCorrect') isCorrect: boolean) {
-    return this.predictionsService.updatePredictionResult(id, isCorrect);
+  async updateResult(
+    @Param('id') id: string,
+    @Body('isCorrect') isCorrect: boolean,
+  ) {
+    return await this.predictionsService.updatePredictionResult(id, isCorrect);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a prediction' })
   @ApiParam({ name: 'id', description: 'Prediction ID' })
   @ApiResponse({
-    status: 200,
+    status: 204,
     description: 'The prediction has been successfully deleted.',
   })
   @ApiResponse({ status: 404, description: 'Prediction not found.' })
-  remove(@Param('id') id: string) {
-    return this.predictionsService.remove(id);
+  async remove(@Param('id') id: string) {
+    await this.predictionsService.remove(id);
+    return; // No content response
   }
 }

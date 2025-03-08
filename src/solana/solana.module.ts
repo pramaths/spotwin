@@ -4,7 +4,6 @@ import { BetsModule } from '../bets/bets.module';
 import { TransactionsModule } from '../transactions/transactions.module';
 import { ContestsModule } from '../contests/contests.module';
 import { UserModule } from '../users/users.module';
-import { EventsModule } from '../events/events.module';
 import { UserContestsModule } from '../user-contests/user-contests.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Contest } from '../contests/entities/contest.entity';
@@ -16,7 +15,6 @@ import { Contest } from '../contests/entities/contest.entity';
     TransactionsModule,
     ContestsModule,
     UserModule,
-    EventsModule,
     UserContestsModule,
   ],
   providers: [SolanaListenerService],

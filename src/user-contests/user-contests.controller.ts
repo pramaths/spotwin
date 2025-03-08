@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, HttpException, HttpStatus } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiParam,
 } from '@nestjs/swagger';
 import { UserContestsService } from './user-contests.service';
 import { CreateUserContestDto } from './dto/create-user-contest.dto';
@@ -11,6 +12,7 @@ import { JwtAuthGuard } from '../auth/strategies/jwt.strategy';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { User } from '../users/entities/users.entity';
 import { UserContest } from './entities/user-contest.entity';
+import { UserStreak } from './entities/user-streak.entity';
 
 @ApiTags('user-contests')
 @Controller('user-contests')
@@ -64,5 +66,25 @@ export class UserContestsController {
   })
   findByUser(@Param('userId') userId: string) {
     return this.userContestsService.findByUser(userId);
+  }
+
+  @Get('user/:userId/streak')
+  @ApiOperation({ summary: 'Get the streak for a specific user' })
+  @ApiParam({ name: 'userId', description: 'User ID' })
+  @ApiResponse({
+    status: 200,
+    description: "Returns the user's streak information",
+    type: UserStreak,
+  })
+  @ApiResponse({ status: 404, description: 'Streak not found for user.' })
+  async getStreak(@Param('userId') userId: string) {
+    try {
+      return await this.userContestsService.getStreak(userId);
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Failed to retrieve user streak',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

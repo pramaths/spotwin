@@ -52,13 +52,4 @@ export class CreateEventDto {
   })
   @IsUUID()
   teamBId: string;
-
-  @ApiProperty({
-    example: 'https://example.com/event-image.jpg',
-    description: 'URL of the event image',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  eventImage?: string;
 }

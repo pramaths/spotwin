@@ -14,9 +14,14 @@ export class TransactionsService {
 
   async create(
     createTransactionDto: CreateTransactionDto,
+    manager?: any,
   ): Promise<Transaction> {
-    const transaction = this.transactionRepository.create(createTransactionDto);
-    return await this.transactionRepository.save(transaction);
+    const transaction = manager
+      ? manager.create(Transaction, createTransactionDto)
+      : this.transactionRepository.create(createTransactionDto);
+    return manager
+      ? manager.save(transaction)
+      : this.transactionRepository.save(transaction);
   }
 
   async findAll(): Promise<Transaction[]> {

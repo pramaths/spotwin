@@ -19,10 +19,27 @@ export class LeaderboardsService {
     return await this.leaderboardRepository.save(leaderboard);
   }
 
-  async findAll(): Promise<Leaderboard[]> {
-    return await this.leaderboardRepository.find({
+  async findAllGroupedByContest(): Promise<{
+    [contestId: string]: Leaderboard[];
+  }> {
+    const leaderboards = await this.leaderboardRepository.find({
       relations: ['user', 'contest'],
+      order: {
+        contestId: 'ASC',
+        rank: 'ASC',
+      },
     });
+
+    // Group by contestId
+    const groupedByContest: { [contestId: string]: Leaderboard[] } = {};
+    leaderboards.forEach((leaderboard) => {
+      if (!groupedByContest[leaderboard.contestId]) {
+        groupedByContest[leaderboard.contestId] = [];
+      }
+      groupedByContest[leaderboard.contestId].push(leaderboard);
+    });
+
+    return groupedByContest;
   }
 
   async findOne(id: string): Promise<Leaderboard> {
@@ -39,13 +56,40 @@ export class LeaderboardsService {
   }
 
   async findByContest(contestId: string): Promise<Leaderboard[]> {
-    return await this.leaderboardRepository.find({
-      where: { contest: { id: contestId } },
+    const leaderboards = await this.leaderboardRepository.find({
+      where: { contestId },
       relations: ['user', 'contest'],
       order: {
         rank: 'ASC',
       },
     });
+
+    if (leaderboards.length === 0) {
+      throw new NotFoundException(
+        `No leaderboard entries found for contest ID ${contestId}`,
+      );
+    }
+
+    return leaderboards;
+  }
+
+  async findByUser(userId: string): Promise<Leaderboard[]> {
+    const leaderboards = await this.leaderboardRepository.find({
+      where: { userId },
+      relations: ['user', 'contest'],
+      order: {
+        contestId: 'ASC',
+        rank: 'ASC',
+      },
+    });
+
+    if (leaderboards.length === 0) {
+      throw new NotFoundException(
+        `No leaderboard entries found for user ID ${userId}`,
+      );
+    }
+
+    return leaderboards;
   }
 
   async update(
@@ -55,5 +99,10 @@ export class LeaderboardsService {
     const leaderboard = await this.findOne(id);
     Object.assign(leaderboard, updateLeaderboardDto);
     return await this.leaderboardRepository.save(leaderboard);
+  }
+
+  async remove(id: string): Promise<void> {
+    const leaderboard = await this.findOne(id);
+    await this.leaderboardRepository.remove(leaderboard);
   }
 }

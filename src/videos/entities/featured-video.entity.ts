@@ -94,6 +94,13 @@ export class FeaturedVideo {
   correctOutcome: OutcomeType;
 
   @ApiProperty({
+    description: 'The number of bets placed on this featured video',
+    example: 150,
+  })
+  @Column({ type: 'int', default: 0 })
+  numberOfBets: number;
+
+  @ApiProperty({
     description: 'When the featured video was created',
     example: '2023-01-01T00:00:00Z',
   })
