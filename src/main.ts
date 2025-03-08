@@ -36,10 +36,9 @@ async function bootstrap() {
     );
     app.useGlobalFilters(new AllExceptionsFilter());
     const config = new DocumentBuilder()
-      .setTitle('Events API')
-      .setDescription('The Events API description')
+      .setTitle('9Shoot API')
+      .setDescription('The 9Shoot API description')
       .setVersion('1.0')
-      .addTag('events')
       .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api', app, document);
