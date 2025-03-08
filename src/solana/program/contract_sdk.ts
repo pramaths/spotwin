@@ -2,7 +2,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program, BN, IdlAccounts } from "@coral-xyz/anchor";
 import { Connection, PublicKey, Keypair, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { Shoot9Solana } from "./shoot_9_solana";
-import IDL from "./shoot_9_solana.json";
+import * as IDL from "./shoot_9_solana.json";
 
 export type ContestAccount = IdlAccounts<Shoot9Solana>["contestAccount"];
 export type AuthStore = IdlAccounts<Shoot9Solana>["authStore"];
@@ -21,7 +21,7 @@ export class Shoot9SDKError extends Error {
 
 export class Shoot9SDK {
   private readonly connection: Connection;
-  private readonly wallet: anchor.Wallet;
+  public readonly wallet: anchor.Wallet;
   private readonly program: Program<Shoot9Solana>;
   private readonly provider: anchor.AnchorProvider;
 
