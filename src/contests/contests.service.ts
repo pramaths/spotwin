@@ -19,7 +19,7 @@ import { Connection, PublicKey } from '@solana/web3.js';
 import { ConfigService } from '@nestjs/config';
 import { Wallet } from '@coral-xyz/anchor';
 import { getKeypairFromFile } from '@solana-developers/helpers';
-import Shoot9SDK, { Winner } from '../solana/program/contract_sdk';
+import Shoot9SDK, { Winner } from '../solana/program/contract-sdk';
 
 @Injectable()
 export class ContestsService implements OnModuleInit {

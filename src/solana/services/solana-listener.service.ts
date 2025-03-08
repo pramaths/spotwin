@@ -8,7 +8,7 @@ import {
 import { Connection, PublicKey } from '@solana/web3.js';
 import { Program, AnchorProvider, Wallet, BN } from '@coral-xyz/anchor';
 import { ConfigService } from '@nestjs/config';
-import Shoot9SDK from '../program/contract_sdk';
+import Shoot9SDK from '../program/contract-sdk';
 import * as IDL from '../program/shoot_9_solana.json';
 import { Shoot9Solana } from '../program/shoot_9_solana';
 import { getKeypairFromFile } from '@solana-developers/helpers';
