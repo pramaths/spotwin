@@ -358,10 +358,11 @@ export class ContestsService implements OnModuleInit {
     videoIds: string[],
   ): Promise<FeaturedVideo[]> {
     const contest = await this.findOne(contestId);
-    if (videoIds.length > 30)
+    if (videoIds.length > 30) {
       throw new BadRequestException(
         'Cannot select more than 30 videos for a contest',
       );
+    }
 
     const existingFeatured =
       await this.featuredService.getFeaturedByContest(contestId);
@@ -371,21 +372,21 @@ export class ContestsService implements OnModuleInit {
       );
     }
 
-    const featuredVideos = [];
+    const featuredVideos: FeaturedVideo[] = [];
     for (const videoId of videoIds) {
       const submission = await this.submissionService.findOne(videoId);
-      if (!submission.isApproved)
+      if (!submission.isApproved) {
         throw new BadRequestException(
           `Video ${videoId} must be approved before selection`,
         );
-      if (submission.contestId !== contestId)
+      }
+      if (submission.contestId !== contestId) {
         throw new BadRequestException(
           `Video ${videoId} does not belong to contest ${contestId}`,
         );
+      }
 
-      const existing = await this.featuredService
-        .getFeaturedByContest(contestId)
-        .then((videos) => videos.find((v) => v.submissionId === videoId));
+      const existing = existingFeatured.find((v) => v.submissionId === videoId);
       if (!existing) {
         const featuredVideo = await this.featuredService.featureVideo({
           submissionId: videoId,
@@ -402,11 +403,34 @@ export class ContestsService implements OnModuleInit {
     contestId: string,
   ): Promise<VideoSubmission> {
     const submission = await this.submissionService.findOne(videoId);
-    if (submission.contestId !== contestId)
+    if (submission.contestId !== contestId) {
       throw new BadRequestException(
         `Video ${videoId} does not belong to contest ${contestId}`,
       );
-    return this.submissionService.update(videoId, { isApproved: true });
+    }
+
+    // Approve the video
+    const updatedSubmission = await this.submissionService.update(videoId, {
+      isApproved: true,
+    });
+
+    // Automatically feature the video if not already featured
+    const existingFeatured =
+      await this.featuredService.getFeaturedByContest(contestId);
+    if (!existingFeatured.some((v) => v.submissionId === videoId)) {
+      const featuredCount = existingFeatured.length;
+      if (featuredCount >= 30) {
+        throw new BadRequestException(
+          'Maximum limit of 30 featured videos reached for this contest',
+        );
+      }
+      await this.featuredService.featureVideo({
+        submissionId: videoId,
+        contestId,
+      });
+    }
+
+    return updatedSubmission;
   }
 
   async rejectVideo(
@@ -414,11 +438,28 @@ export class ContestsService implements OnModuleInit {
     contestId: string,
   ): Promise<VideoSubmission> {
     const submission = await this.submissionService.findOne(videoId);
-    if (submission.contestId !== contestId)
+    if (submission.contestId !== contestId) {
       throw new BadRequestException(
         `Video ${videoId} does not belong to contest ${contestId}`,
       );
-    return this.submissionService.update(videoId, { isApproved: false });
+    }
+
+    // Reject the video
+    const updatedSubmission = await this.submissionService.update(videoId, {
+      isApproved: false,
+    });
+
+    // Optionally remove from featured_videos if it exists
+    const featuredVideos =
+      await this.featuredService.getFeaturedByContest(contestId);
+    const featuredVideo = featuredVideos.find(
+      (v) => v.submissionId === videoId,
+    );
+    if (featuredVideo) {
+      await this.featuredService.unfeaturedVideo(featuredVideo.id);
+    }
+
+    return updatedSubmission;
   }
 
   async answerVideo(
@@ -427,21 +468,37 @@ export class ContestsService implements OnModuleInit {
     answer: 'yes' | 'no',
     question: string,
   ): Promise<FeaturedVideo> {
-    const featuredVideos =
-      await this.featuredService.getFeaturedByContest(contestId);
-    const featuredVideo = featuredVideos.find(
-      (v) => v.submissionId === videoId,
-    );
-    if (!featuredVideo)
-      throw new NotFoundException(
-        `Featured video with submission ID ${videoId} not found in contest ${contestId}`,
-      );
-
     const submission = await this.submissionService.findOne(videoId);
-    if (submission.contestId !== contestId)
+    if (!submission || submission.contestId !== contestId) {
       throw new BadRequestException(
         `Video ${videoId} does not belong to contest ${contestId}`,
       );
+    }
+
+    if (!submission.isApproved) {
+      throw new BadRequestException(
+        `Video ${videoId} must be approved before answering`,
+      );
+    }
+
+    let featuredVideo = (
+      await this.featuredService.getFeaturedByContest(contestId)
+    ).find((v) => v.submissionId === videoId);
+
+    if (!featuredVideo) {
+      // If not featured, feature it (since approval now features it, this is a fallback)
+      const existingFeatured =
+        await this.featuredService.getFeaturedByContest(contestId);
+      if (existingFeatured.length >= 30) {
+        throw new BadRequestException(
+          'Maximum limit of 30 featured videos reached for this contest',
+        );
+      }
+      featuredVideo = await this.featuredService.featureVideo({
+        submissionId: videoId,
+        contestId,
+      });
+    }
 
     await this.submissionService.update(videoId, { question });
     return this.featuredService.setOutcome(
