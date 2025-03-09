@@ -13,6 +13,7 @@ import { EventsService } from '../events/events.service';
 import { ContestStatus } from '../common/enums/common.enum';
 import { PredictionsService } from '../predictions/predictions.service';
 import { FeaturedService } from '../videos/featured.service';
+import { SubmissionService } from '../videos/submission.service'; // Add this
 import { LeaderboardsService } from '../leaderboards/leaderboards.service';
 import { UserContestsService } from '../user-contests/user-contests.service';
 import { Connection, PublicKey } from '@solana/web3.js';
@@ -20,6 +21,9 @@ import { ConfigService } from '@nestjs/config';
 import { Wallet } from '@coral-xyz/anchor';
 import { getKeypairFromFile } from '@solana-developers/helpers';
 import Shoot9SDK, { Winner } from '../solana/program/contract-sdk';
+import { VideoSubmission } from '../videos/entities/video-submission.entity';
+import { FeaturedVideo } from '../videos/entities/featured-video.entity';
+import { OutcomeType } from '../common/enums/outcome-type.enum';
 
 @Injectable()
 export class ContestsService implements OnModuleInit {
@@ -31,15 +35,14 @@ export class ContestsService implements OnModuleInit {
     private eventsService: EventsService,
     private predictionsService: PredictionsService,
     private featuredService: FeaturedService,
+    private submissionService: SubmissionService, // Add this
     private leaderboardsService: LeaderboardsService,
     private userContestsService: UserContestsService,
     private configService: ConfigService,
   ) {
-    // Initialize without async operations
     this.sdk = null;
   }
 
-  // Use onModuleInit lifecycle hook from NestJS
   async onModuleInit() {
     const connection = new Connection(
       this.configService.get<string>('SOLANA_RPC_URL') ||
@@ -58,9 +61,8 @@ export class ContestsService implements OnModuleInit {
     createContestDto: CreateContestDto,
   ): Promise<Contest> {
     const event = await this.eventsService.findOne(eventId);
-    if (!event) {
+    if (!event)
       throw new NotFoundException(`Event with ID ${eventId} not found`);
-    }
 
     const contest = this.contestRepository.create({
       ...createContestDto,
@@ -78,39 +80,30 @@ export class ContestsService implements OnModuleInit {
       where: { id: contestId },
       relations: ['userContests', 'userContests.user'],
     });
-    if (!contest) {
+    if (!contest)
       throw new NotFoundException(`Contest with ID ${contestId} not found`);
-    }
-
-    if (contest.status !== ContestStatus.OPEN) {
+    if (contest.status !== ContestStatus.OPEN)
       throw new BadRequestException(
         'Contest is not open and cannot be resolved',
       );
-    }
 
-    // Step 1: Validate that all 30 featured videos have a correctOutcome
     const featuredVideos =
       await this.featuredService.getFeaturedByContest(contestId);
-    if (featuredVideos.length !== 30) {
+    if (featuredVideos.length !== 30)
       throw new BadRequestException(
         'Contest must have exactly 30 featured videos to resolve',
       );
-    }
-
     const allOutcomesSet = featuredVideos.every(
       (video) => video.correctOutcome !== null,
     );
-    if (!allOutcomesSet) {
+    if (!allOutcomesSet)
       throw new BadRequestException(
         'All featured videos must have a correct outcome set before resolving',
       );
-    }
 
-    // Step 2: Retrieve all users who joined the contest
     const userContests = contest.userContests;
     const users = userContests.map((uc) => uc.user);
 
-    // Step 3: Calculate scores based on predictions (limited to 9 per user)
     const userScores: {
       userId: string;
       correctAnswers: number;
@@ -124,11 +117,10 @@ export class ContestsService implements OnModuleInit {
       const predictions = await this.predictionsService.findByUserContest(
         userContest.id,
       );
-      if (predictions.length !== 9) {
+      if (predictions.length !== 9)
         throw new BadRequestException(
           `User ${user.id} must have exactly 9 predictions for contest ${contestId}`,
         );
-      }
 
       let correctAnswers = 0;
       let tiebreakerScore = 0;
@@ -138,11 +130,10 @@ export class ContestsService implements OnModuleInit {
         const featuredVideo = featuredVideos.find(
           (v) => v.id === prediction.videoId,
         );
-        if (!featuredVideo) {
+        if (!featuredVideo)
           throw new NotFoundException(
             `Featured video ${prediction.videoId} not found`,
           );
-        }
 
         const isCorrect =
           prediction.prediction === featuredVideo.correctOutcome;
@@ -157,10 +148,8 @@ export class ContestsService implements OnModuleInit {
           tiebreakerScore +=
             featuredVideo.numberOfBets > 0 ? 1 / featuredVideo.numberOfBets : 1;
         }
-
-        if (prediction.videoId === selectedVideoId) {
+        if (prediction.videoId === selectedVideoId)
           predictedSelectedVideo = true;
-        }
       }
 
       userScores.push({
@@ -171,15 +160,12 @@ export class ContestsService implements OnModuleInit {
       });
     }
 
-    // Step 4: Rank users
     userScores.sort((a, b) => {
-      if (a.correctAnswers !== b.correctAnswers) {
-        return b.correctAnswers - a.correctAnswers; // Sort by correct answers (descending)
-      }
-      return b.tiebreakerScore - a.tiebreakerScore; // Tiebreaker (descending)
+      if (a.correctAnswers !== b.correctAnswers)
+        return b.correctAnswers - a.correctAnswers;
+      return b.tiebreakerScore - a.tiebreakerScore;
     });
 
-    // Step 5: Assign ranks and create leaderboard entries
     const leaderboardEntries = [];
     let currentRank = 1;
     for (let i = 0; i < userScores.length; i++) {
@@ -206,12 +192,9 @@ export class ContestsService implements OnModuleInit {
       }
     }
 
-    // Update leaderboard
-    for (const entry of leaderboardEntries) {
+    for (const entry of leaderboardEntries)
       await this.leaderboardsService.create(entry);
-    }
 
-    // Step 6: Assign batches
     const batchSlots = [
       { min: 1, max: 1, slot: '1' },
       { min: 2, max: 2, slot: '2' },
@@ -274,28 +257,22 @@ export class ContestsService implements OnModuleInit {
       }
     }
 
-    // Step 7: Update contest status and selected video
     contest.status = ContestStatus.COMPLETED;
     contest.selectedVideoId = selectedVideoId;
     await this.contestRepository.save(contest);
 
-    // Step 8: Trigger Solana payout
     const winners: Winner[] = leaderboardEntries.map((entry) => {
       const user = users.find((u) => u.id === entry.userId)!;
       const batch = batchAssignments.find(
         (ba) => ba.userId === entry.userId,
       )!.batch;
-      const basePayout = entry.score * 10; // Example: 10 SOL per correct answer
-      const batchMultiplier = batch === '1' ? 2 : batch === '2' ? 1.5 : 1; // Example multipliers
-      const payoutInSol = basePayout * batchMultiplier; // Payout in SOL
+      const basePayout = entry.score * 10;
+      const batchMultiplier = batch === '1' ? 2 : batch === '2' ? 1.5 : 1;
+      const payoutInSol = basePayout * batchMultiplier;
 
-      return {
-        wallet: new PublicKey(user.publicAddress),
-        payout: payoutInSol, // In SOL, not lamports (SDK converts internally)
-      };
+      return { wallet: new PublicKey(user.publicAddress), payout: payoutInSol };
     });
 
-    // Define feeReceiver (e.g., admin wallet or a configured address)
     const feeReceiver = new PublicKey(
       this.configService.get<string>('FEE_RECEIVER_ADDRESS') ||
         this.sdk.wallet.publicKey.toString(),
@@ -311,11 +288,7 @@ export class ContestsService implements OnModuleInit {
   async findAll(): Promise<Contest[]> {
     return await this.contestRepository.find({
       relations: {
-        event: {
-          sport: true,
-          teamA: true,
-          teamB: true,
-        },
+        event: { sport: true, teamA: true, teamB: true },
         userContests: true,
         transactions: true,
         leaderboards: true,
@@ -328,20 +301,15 @@ export class ContestsService implements OnModuleInit {
     const contest = await this.contestRepository.findOne({
       where: { id },
       relations: {
-        event: {
-          sport: true,
-          teamA: true,
-          teamB: true,
-        },
+        event: { sport: true, teamA: true, teamB: true },
         userContests: true,
         transactions: true,
         leaderboards: true,
         payouts: true,
       },
     });
-    if (!contest) {
+    if (!contest)
       throw new NotFoundException(`Contest with ID ${id} not found`);
-    }
     return contest;
   }
 
@@ -349,22 +317,17 @@ export class ContestsService implements OnModuleInit {
     const contest = await this.contestRepository.findOne({
       where: { solanaContestId },
       relations: {
-        event: {
-          sport: true,
-          teamA: true,
-          teamB: true,
-        },
+        event: { sport: true, teamA: true, teamB: true },
         userContests: true,
         transactions: true,
         leaderboards: true,
         payouts: true,
       },
     });
-    if (!contest) {
+    if (!contest)
       throw new NotFoundException(
         `Contest with solanaContestId ${solanaContestId} not found`,
       );
-    }
     return contest;
   }
 
@@ -380,8 +343,110 @@ export class ContestsService implements OnModuleInit {
 
   async remove(id: string): Promise<void> {
     const result = await this.contestRepository.delete(id);
-    if (result.affected === 0) {
+    if (result.affected === 0)
       throw new NotFoundException(`Contest with ID ${id} not found`);
+  }
+
+  // New Contest Video Methods
+  async getContestVideos(contestId: string): Promise<VideoSubmission[]> {
+    const contest = await this.findOne(contestId);
+    return this.submissionService.findByContestId(contestId);
+  }
+
+  async selectVideos(
+    contestId: string,
+    videoIds: string[],
+  ): Promise<FeaturedVideo[]> {
+    const contest = await this.findOne(contestId);
+    if (videoIds.length > 30)
+      throw new BadRequestException(
+        'Cannot select more than 30 videos for a contest',
+      );
+
+    const existingFeatured =
+      await this.featuredService.getFeaturedByContest(contestId);
+    if (existingFeatured.length + videoIds.length > 30) {
+      throw new BadRequestException(
+        `Cannot exceed 30 featured videos. Currently ${existingFeatured.length} videos are featured.`,
+      );
     }
+
+    const featuredVideos = [];
+    for (const videoId of videoIds) {
+      const submission = await this.submissionService.findOne(videoId);
+      if (!submission.isApproved)
+        throw new BadRequestException(
+          `Video ${videoId} must be approved before selection`,
+        );
+      if (submission.contestId !== contestId)
+        throw new BadRequestException(
+          `Video ${videoId} does not belong to contest ${contestId}`,
+        );
+
+      const existing = await this.featuredService
+        .getFeaturedByContest(contestId)
+        .then((videos) => videos.find((v) => v.submissionId === videoId));
+      if (!existing) {
+        const featuredVideo = await this.featuredService.featureVideo({
+          submissionId: videoId,
+          contestId,
+        });
+        featuredVideos.push(featuredVideo);
+      }
+    }
+    return featuredVideos;
+  }
+
+  async approveVideo(
+    videoId: string,
+    contestId: string,
+  ): Promise<VideoSubmission> {
+    const submission = await this.submissionService.findOne(videoId);
+    if (submission.contestId !== contestId)
+      throw new BadRequestException(
+        `Video ${videoId} does not belong to contest ${contestId}`,
+      );
+    return this.submissionService.update(videoId, { isApproved: true });
+  }
+
+  async rejectVideo(
+    videoId: string,
+    contestId: string,
+  ): Promise<VideoSubmission> {
+    const submission = await this.submissionService.findOne(videoId);
+    if (submission.contestId !== contestId)
+      throw new BadRequestException(
+        `Video ${videoId} does not belong to contest ${contestId}`,
+      );
+    return this.submissionService.update(videoId, { isApproved: false });
+  }
+
+  async answerVideo(
+    videoId: string,
+    contestId: string,
+    answer: 'yes' | 'no',
+    question: string,
+  ): Promise<FeaturedVideo> {
+    const featuredVideos =
+      await this.featuredService.getFeaturedByContest(contestId);
+    const featuredVideo = featuredVideos.find(
+      (v) => v.submissionId === videoId,
+    );
+    if (!featuredVideo)
+      throw new NotFoundException(
+        `Featured video with submission ID ${videoId} not found in contest ${contestId}`,
+      );
+
+    const submission = await this.submissionService.findOne(videoId);
+    if (submission.contestId !== contestId)
+      throw new BadRequestException(
+        `Video ${videoId} does not belong to contest ${contestId}`,
+      );
+
+    await this.submissionService.update(videoId, { question });
+    return this.featuredService.setOutcome(
+      featuredVideo.id,
+      answer === 'yes' ? OutcomeType.YES : OutcomeType.NO,
+    );
   }
 }
