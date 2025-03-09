@@ -37,6 +37,9 @@ export class AuthService {
             email: email,
             publicAddress: walletAddress,
             username: generateUsername('', 2, 10),
+            didToken: didToken,
+            name: metadata.name,
+            imageUrl: metadata.imageUrl,
           });
           this.logger.log('User created successfully', { user });
         } catch (e) {

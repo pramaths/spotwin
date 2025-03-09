@@ -4,6 +4,7 @@ import {
   OnModuleInit,
   OnModuleDestroy,
   Inject,
+  BadRequestException 
 } from '@nestjs/common';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { Program, AnchorProvider, Wallet, BN } from '@coral-xyz/anchor';
@@ -204,21 +205,12 @@ export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
           this.logger.error(
             `Contest with ID ${contest.id} is ${contest.status}, cannot join`,
           );
-          throw new Error('Contest cannot be joined'); // Trigger rollback
+          throw new Error('Contest cannot be joined');
         }
 
         let user = await this.userService.findByPublicAddress(userPubkey);
         if (!user) {
-          const createUserDto = {
-            username: `user_${userPubkey.slice(0, 8)}`,
-            email: `${userPubkey.slice(0, 8)}@example.com`,
-            publicAddress: userPubkey,
-            imageUrl: 'https://default-user-image.com',
-          };
-          user = await this.userService.create(createUserDto);
-          this.logger.log(
-            `Created new user: ${user.id} for public address ${userPubkey}`,
-          );
+          throw new BadRequestException('User not found with the provided public address');
         }
 
         // Create an entry in the user_contests table

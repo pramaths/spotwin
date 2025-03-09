@@ -50,7 +50,7 @@ export class ContestsService implements OnModuleInit {
       'confirmed',
     );
     const keypair = await getKeypairFromFile(
-      '/home/ritikbhatt020/.config/solana/id.json',
+      'C:/Users/prama/Desktop/9shoot-backend/src/keypairs/admin-keypair.json',
     );
     const wallet = new Wallet(keypair);
     this.sdk = new Shoot9SDK(connection, wallet);

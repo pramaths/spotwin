@@ -18,8 +18,14 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({unique: true})
+  didToken: string;
+
   @Column({ unique: true })
   username: string;
+
+  @Column()
+  name: string;
 
   @Column({ unique: true })
   email: string;
