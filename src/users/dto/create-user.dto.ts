@@ -5,11 +5,11 @@ export class CreateUserDto {
   @ApiProperty({
     description: 'User DID token for authentication',
     example: 'did:ethr:0x1234567890abcdef',
-    required: true
+    required: false
   })
   @IsString()
-  @IsNotEmpty()
-  didToken: string;
+  @IsOptional()
+  didToken?: string;
 
   @ApiProperty({
     description: 'Unique username for the user',
@@ -30,13 +30,13 @@ export class CreateUserDto {
   name: string;
 
   @ApiProperty({
-    description: 'Email address of the user',
-    example: 'john.doe@example.com',
-    required: true
+    description: 'Twitter username of the user',
+    example: 'batman',
+    required: false
   })
-  @IsEmail()
-  @IsNotEmpty()
-  email: string;
+  @IsString()
+  @IsOptional()
+  twitterUsername?: string;
 
   @ApiProperty({
     description: 'Public blockchain address of the user',
@@ -74,4 +74,13 @@ export class CreateUserDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
+
+  @ApiProperty({
+    description: 'Email address of the user',
+    example: 'john.doe@example.com',
+    required: false
+  })
+  @IsEmail()
+  @IsOptional()
+  email?: string;
 }

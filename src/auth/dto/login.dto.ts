@@ -3,10 +3,18 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginDto {
   @ApiProperty({
-    description: 'The DID token from the Magic SDK',
-    example: 'did:ethr:rsk:0x1234567890abcdef1234567890abcdef12345678',
+    description: 'The Twitter username of the user',
+    example: 'batman',
   })
   @IsString()
   @IsNotEmpty()
-  didToken: string;
+  twitterUsername: string;
+
+  @ApiProperty({
+    description: 'The wallet address of the user',
+    example: '0x1234567890abcdef',
+  })
+  @IsString()
+  @IsNotEmpty()
+  address: string;
 }
