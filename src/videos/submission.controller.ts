@@ -56,18 +56,16 @@ export class SubmissionController {
     @UploadedFiles()
     files: {
       video?: Express.Multer.File[];
-      thumbnail?: Express.Multer.File[];
     },
   ) {
     try {
-      if (!files.video || !files.thumbnail) {
-        throw new HttpException('Video and thumbnail files are required', HttpStatus.BAD_REQUEST);
+      if (!files.video) {
+        throw new HttpException('Video file is required', HttpStatus.BAD_REQUEST);
       }
       
       const dto = {
         ...createVideoSubmissionDto,
         videoFile: files.video[0],
-        thumbnailFile: files.thumbnail[0],
       };
       return await this.submissionService.create(dto);
     } catch (error) {
