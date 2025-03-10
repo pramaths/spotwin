@@ -150,11 +150,23 @@ export class SubmissionService {
     await this.videoSubmissionRepository.remove(submission);
   }
 
-  async findByUser(userId: string): Promise<VideoSubmission[]> {
+  async findByUser(userId: string): Promise<any[]> {
     const submissions = await this.videoSubmissionRepository.find({
       where: { userId },
-      relations: ['user', 'contest'], // Include related user and contest details
+      relations: ['user', 'contest', 'contest.event', 'contest.event.teamA', 'contest.event.teamB'], // Include related user and contest details
     });
-    return submissions;
+    const simplifiedDetails = submissions.map((submission) => ({
+      id: submission.id,
+      contestId: submission.contestId,
+      question: submission.question,
+      status: submission.status,
+      teams: `${submission.contest.event.teamA} VS ${submission.contest.event.teamB}`,
+      eventImage: submission.contest.event.eventImageUrl,
+      eventName: submission.contest.event.title,
+      contestName: submission.contest.name,
+      username: submission.user.twitterUsername,
+      userId: submission.user.id,
+    }));
+    return simplifiedDetails;
   }
 }
