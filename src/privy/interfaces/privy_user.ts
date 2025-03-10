@@ -2,6 +2,9 @@ export interface PrivyUser {
   email?: string;
   walletAddress?: string;
   userId: string;
+  name?: string;
+  imageUrl?: string;
+  twitterUsername?: string;
 }
 
 export interface AuthTokenClaims {

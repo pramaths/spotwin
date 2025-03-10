@@ -1,9 +1,9 @@
-import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger, NotFoundException } from '@nestjs/common';
 import { PrivyService } from '../privy/privy.service';
 import { UserService } from '../users/users.service';
 import { Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
-import { generateUsername } from 'unique-username-generator';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -14,57 +14,79 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(didToken: string, idToken: string) {
-    this.logger.debug('Login request received', { didToken });
+  async login(loginDto: LoginDto) {
+    this.logger.debug('Login request received', { loginDto });
     try {
-      let metadata;
-      try {
-        metadata = await this.privyService.validateToken(didToken, idToken);
-        this.logger.log('Token validated successfully', { metadata });
-      } catch (e) {
-        this.logger.error('Token validation failed', { error: e });
-        throw new Error('Invalid or expired token');
+      // Try to find user by Twitter username or wallet address
+      let user;
+      let privyUser;
+
+      if (loginDto.twitterUsername) {
+        try {
+          user = await this.userService.findByTwitterUsername(loginDto.twitterUsername);
+          this.logger.log('User found in database by Twitter username', { userId: user.id });
+        } catch (error) {
+          if (error instanceof NotFoundException) {
+            // If not in our database, try to get from Privy
+            this.logger.log('User not found in database, checking Privy');
+            privyUser = await this.privyService.getUserByTwitterUsername(loginDto.twitterUsername);
+          } else {
+            throw error;
+          }
+        }
+      } else if (loginDto.address) {
+        try {
+          // First check if user exists in our database
+          user = await this.userService.findByPublicAddress(loginDto.address);
+          this.logger.log('User found in database by wallet address', { userId: user.id });
+        } catch (error) {
+          if (error instanceof NotFoundException) {
+            // If not in our database, try to get from Privy
+            this.logger.log('User not found in database, checking Privy');
+            privyUser = await this.privyService.getUserByWalletAddress(loginDto.address);
+          } else {
+            throw error;
+          }
+        }
+      } else {
+        throw new Error('Twitter username or wallet address is required');
       }
 
-      const { email, walletAddress } = metadata;
-
-      let user;
-      user = await this.userService.findByEmail(email);
+      // If user not found in our database but found in Privy, create a new user
+      if (!user && privyUser) {
+        this.logger.log('Creating new user from Privy data', { privyUser });
+        user = await this.userService.create({
+          email: privyUser.email || `${privyUser.twitterUsername}@twitter.com`,
+          publicAddress: privyUser.walletAddress,
+          username: privyUser.twitterUsername,
+          name: privyUser.name || privyUser.twitterUsername || '',
+          imageUrl: privyUser.imageUrl || '',
+          twitterUsername: privyUser.twitterUsername,
+        });
+        this.logger.log('User created successfully', { userId: user.id });
+      }
 
       if (!user) {
-        try {
-          user = await this.userService.create({
-            email: email,
-            publicAddress: walletAddress,
-            username: generateUsername('', 2, 10),
-            didToken: didToken,
-            name: metadata.name,
-            imageUrl: metadata.imageUrl,
-          });
-          this.logger.log('User created successfully', { user });
-        } catch (e) {
-          this.logger.error('Error creating user', { error: e });
-          throw new Error('Failed to create user');
-        }
+        throw new Error('User not found');
       }
 
+      // Generate JWT token
       const payload = {
         sub: user.id,
         email: user.email,
-        publicAddress: user.walletAddress,
+        publicAddress: user.publicAddress,
+        twitterUsername: user.twitterUsername,
       };
 
-      let token;
-      try {
-        token = this.jwtService.sign(payload);
-      } catch (e) {
-        this.logger.error('Error signing JWT token', { error: e });
-        throw new Error('Token creation failed');
-      }
-      return { user, token };
-    } catch (e) {
-      this.logger.error('Login process failed', { error: e });
-      throw new Error('Login failed, please try again later');
+      const token = this.jwtService.sign(payload);
+      
+      return { 
+        user,
+        token 
+      };
+    } catch (error) {
+      this.logger.error('Login process failed', { error });
+      throw error;
     }
   }
 

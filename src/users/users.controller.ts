@@ -65,22 +65,6 @@ export class UserController {
     return await this.userService.findOne(id);
   }
 
-  @Get('email/find')
-  @ApiOperation({ summary: 'Get a user by email' })
-  @ApiQuery({ name: 'email', description: 'User email' })
-  @ApiResponse({ 
-    status: HttpStatus.OK, 
-    description: 'Returns the user with the specified email',
-    type: User
-  })
-  @ApiResponse({ 
-    status: HttpStatus.NOT_FOUND, 
-    description: 'User with the specified email not found' 
-  })
-  async findByEmail(@Query('email') email: string): Promise<User> {
-    return await this.userService.findByEmail(email);
-  }
-
   @Get('address/find')
   @ApiOperation({ summary: 'Get a user by public address' })
   @ApiQuery({ name: 'address', description: 'User public blockchain address' })

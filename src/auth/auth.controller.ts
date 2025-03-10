@@ -8,13 +8,17 @@ import {
     Get,
     Req,
     Logger,
+    Body,
   } from '@nestjs/common';
   import { AuthService } from './auth.service';
   import { Response, Request } from 'express';
-  // import { LoginDto } from './dto/login.dto';
+  import { LoginDto } from './dto/login.dto';
   import { JwtAuthGuard } from './strategies/jwt.strategy';
   import { JwtService } from '@nestjs/jwt';
   import { PrivyService } from '../privy/privy.service';
+  import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+
+  @ApiTags('auth')
   @Controller('auth')
   export class AuthController {
     private readonly logger = new Logger(AuthController.name);
@@ -24,40 +28,27 @@ import {
       private readonly privyService: PrivyService,
     ) {}
   
-    @Get('login')
+    @Post('login')
     @HttpCode(HttpStatus.OK)
-    async login(@Req() req: Request, @Res() res: Response) {
-      const Cookietoken = req.cookies['privy-token'];
-      const idToken = req.cookies['privy-id-token'];
-      this.logger.log('Login request received');
-      this.logger.log(`Cookie token value: ${Cookietoken}`);
-  
-      if (!Cookietoken) {
-        this.logger.warn('No privy token found in cookies');
-        return res.status(HttpStatus.UNAUTHORIZED).json({
-          message: 'No privy token found',
-        });
-      }
-  
+    @ApiOperation({ summary: 'Login with Twitter username or wallet address' })
+    @ApiBody({ type: LoginDto })
+    @ApiResponse({ 
+      status: HttpStatus.OK, 
+      description: 'User logged in successfully',
+    })
+    @ApiResponse({ 
+      status: HttpStatus.UNAUTHORIZED, 
+      description: 'Invalid credentials' 
+    })
+    async login(@Body() loginDto: LoginDto, @Res() res: Response) {
       try {
-        const { token, user } = await this.authService.login(
-          Cookietoken,
-          idToken,
-        );
+        const user = await this.authService.login(loginDto);
   
-        this.logger.log('Login successful, setting access token cookie');
-        res.cookie('access_token', token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-          sameSite: 'lax',
-        });
-  
+        this.logger.log('Login successful');
         return res.json(user);
       } catch (error) {
         this.logger.error(`Login error: ${error.message}`);
         this.logger.error('Full error details:', error);
-        // More specific error handling
         if (error.message === 'Invalid Privy token') {
           return res.status(HttpStatus.UNAUTHORIZED).json({
             message: 'Invalid authentication token',

@@ -22,13 +22,13 @@ export class UserService {
    */
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
-      this.logger.log(`Creating new user with email: ${createUserDto.email}`);
+      this.logger.log(`Creating new user with name: ${createUserDto.name}`);
       const user = this.userRepository.create(createUserDto);
       return await this.userRepository.save(user);
     } catch (error) {
       this.logger.error(`Failed to create user: ${error.message}`, error.stack);
       if (error.code === '23505') { // PostgreSQL unique violation code
-        throw new BadRequestException('User with this email, username, or public address already exists');
+        throw new BadRequestException('User with this name, username, or public address already exists');
       }
       throw new InternalServerErrorException('Failed to create user');
     }
@@ -127,6 +127,29 @@ export class UserService {
       }
       this.logger.error(`Failed to fetch user by public address: ${error.message}`, error.stack);
       throw new InternalServerErrorException('Failed to fetch user by public address');
+    }
+  }
+
+  /**
+   * Find a user by Twitter username
+   * @param twitterUsername Twitter username
+   * @returns User with the specified Twitter username
+   */
+  async findByTwitterUsername(twitterUsername: string): Promise<User> {
+    try {
+      this.logger.log(`Fetching user with Twitter username: ${twitterUsername}`);
+      const user = await this.userRepository.findOne({ where: { twitterUsername } });
+      if (!user) {
+        this.logger.warn(`User with Twitter username ${twitterUsername} not found`);
+        throw new NotFoundException(`User with Twitter username ${twitterUsername} not found`);
+      }
+      return user;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error(`Failed to fetch user by Twitter username: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Failed to fetch user by Twitter username');
     }
   }
 

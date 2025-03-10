@@ -18,17 +18,17 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({unique: true})
+  @Column({unique: true, nullable: true})
   didToken: string;
-
-  @Column({ unique: true })
-  username: string;
 
   @Column()
   name: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, nullable: true })
   email: string;
+
+  @Column({ unique: true, nullable: true })
+  twitterUsername: string;
 
   @Column({ unique: true })
   publicAddress: string;
