@@ -277,11 +277,11 @@ export class ContestsService implements OnModuleInit {
         this.sdk.wallet.publicKey.toString(),
     );
 
-    await this.sdk.resolveContest(
-      Number(contest.solanaContestId),
-      winners,
-      feeReceiver,
-    );
+    // await this.sdk.resolveContest(
+    //   Number(contest.solanaContestId),
+    //   winners,
+    //   feeReceiver,
+    // );
   }
 
   async findAll(): Promise<Contest[]> {
