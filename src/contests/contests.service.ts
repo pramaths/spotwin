@@ -287,18 +287,6 @@ export class ContestsService implements OnModuleInit {
     // );
   }
 
-  async findAll(): Promise<Contest[]> {
-    return await this.contestRepository.find({
-      relations: {
-        event: { sport: true, teamA: true, teamB: true },
-        // userContests: true,
-        // transactions: true,
-        // leaderboards: true,
-        // payouts: true,
-      },
-    });
-  }
-
   async findOne(id: string): Promise<Contest> {
     const contest = await this.contestRepository.findOne({
       where: { id },
@@ -504,5 +492,34 @@ export class ContestsService implements OnModuleInit {
       featuredVideo.id,
       answer === 'yes' ? OutcomeType.YES : OutcomeType.NO,
     );
+  }
+
+  async findAll(): Promise<Contest[]> {
+    return await this.contestRepository.find({
+      relations: {
+        event: { sport: true, teamA: true, teamB: true },
+      },
+    });
+  }
+
+  async findActiveContestsWithDetails(): Promise<Partial<Contest>[]> {
+    const contests = await this.contestRepository.find({
+      where: [
+        { status: ContestStatus.OPEN },
+        { status: ContestStatus.LIVE },
+      ],
+      relations: ['event', 'featuredVideos'], // Include event and featured videos
+    });
+
+    // Map the contests to include only the requested fields and limit featured videos to 3
+    return contests.map(contest => ({
+      id: contest.id,
+      name: contest.name,
+      description: contest.description,
+      entryFee: contest.entryFee,
+      event: contest.event, // Includes full event details (sport, teams, etc.)
+      featuredVideos: contest.featuredVideos.slice(0, 3), // Limit to 3 featured videos
+      status: contest.status,
+    }));
   }
 }

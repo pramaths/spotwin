@@ -89,24 +89,6 @@ export class ContestsController {
     }
   }
 
-  @Get()
-  @ApiOperation({ summary: 'Get all contests' })
-  @ApiResponse({
-    status: 200,
-    description: 'All contests retrieved',
-    type: [Contest],
-  })
-  async findAll() {
-    try {
-      return await this.contestsService.findAll();
-    } catch (error) {
-      throw new HttpException(
-        error.message || 'Failed to retrieve contests',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
   @Get(':id')
   @ApiOperation({ summary: 'Get a contest by ID' })
   @ApiParam({ name: 'id', type: String, description: 'Contest ID (UUID)' })
@@ -305,6 +287,56 @@ export class ContestsController {
     } catch (error) {
       throw new HttpException(
         error.message || 'Failed to answer video',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Get all contests' })
+  @ApiResponse({
+    status: 200,
+    description: 'All contests retrieved',
+    type: [Contest],
+  })
+  async findAll() {
+    try {
+      return await this.contestsService.findAll();
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Failed to retrieve contests',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get('active')
+  @ApiOperation({ summary: 'Get all active contests (OPEN or LIVE) with limited details' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns all active contests with event, description, name, entry fee, and up to 3 featured videos',
+    type: [Contest],
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'No active contests found',
+  })
+  async findActiveContests() {
+    try {
+      const contests = await this.contestsService.findActiveContestsWithDetails();
+      if (!contests.length) {
+        throw new HttpException(
+          'No active contests (OPEN or LIVE) found',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      return contests;
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        error.message || 'Failed to retrieve active contests',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
