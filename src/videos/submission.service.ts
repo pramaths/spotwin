@@ -160,7 +160,7 @@ export class SubmissionService {
       contestId: submission.contestId,
       question: submission.question,
       status: submission.status,
-      teams: `${submission.contest.event.teamA} VS ${submission.contest.event.teamB}`,
+      teams: `${submission.contest.event.teamA.name} VS ${submission.contest.event.teamB.name}`,
       eventImage: submission.contest.event.eventImageUrl,
       eventName: submission.contest.event.title,
       contestName: submission.contest.name,

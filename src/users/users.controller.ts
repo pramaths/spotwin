@@ -147,7 +147,7 @@ export class UserController {
   }
 
 
-  @Get('user/:publicAddress')
+  @Get('address/:publicAddress')
   @ApiOperation({ summary: 'Get a user by public address' })
   @ApiParam({ name: 'publicAddress', description: 'User public blockchain address' })
   async findByPublicAddress(@Param('publicAddress') publicAddress: string): Promise<User> {

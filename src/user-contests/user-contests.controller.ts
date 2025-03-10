@@ -21,20 +21,6 @@ import { UserStreak } from './entities/user-streak.entity';
 export class UserContestsController {
   constructor(private readonly userContestsService: UserContestsService) {}
 
-  @Post()
-  @ApiOperation({ summary: 'Join a contest' })
-  @ApiResponse({
-    status: 201,
-    description: 'Successfully joined the contest',
-    type: UserContest,
-  })
-  create(
-    @Body() createUserContestDto: CreateUserContestDto,
-    @GetUser() user: User,
-  ) {
-    return this.userContestsService.create(createUserContestDto, user);
-  }
-
   @Get()
   @ApiOperation({ summary: 'Get all user contests' })
   @ApiResponse({

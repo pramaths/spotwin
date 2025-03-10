@@ -103,16 +103,11 @@ export class UserService {
     }
   }
 
-  /**
-   * Find a user by public address
-   * @param publicAddress User public blockchain address
-   * @returns User with the specified public address
-   */
   async findByPublicAddress(publicAddress: string): Promise<User> {
     try {
       this.logger.log(`Fetching user with public address: ${publicAddress}`);
       const user = await this.userRepository.findOne({
-        where: { publicAddress },
+        where: { publicAddress: publicAddress },
       });
       if (!user) {
         this.logger.warn(`User with public address ${publicAddress} not found`);

@@ -512,8 +512,10 @@ export class ContestsService implements OnModuleInit {
       where: [{ status: ContestStatus.OPEN }, { status: ContestStatus.LIVE }],
       relations: ['event', 'featuredVideos'], // Include event and featured videos
     });
+    if (!contests.length) {
+      return [];
+    }
 
-    // Map the contests to include only the requested fields and limit featured videos to 3
     return contests.map((contest) => ({
       id: contest.id,
       name: contest.name,
