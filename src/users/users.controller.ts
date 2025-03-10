@@ -65,21 +65,6 @@ export class UserController {
     return await this.userService.findOne(id);
   }
 
-  @Get('address/find')
-  @ApiOperation({ summary: 'Get a user by public address' })
-  @ApiQuery({ name: 'address', description: 'User public blockchain address' })
-  @ApiResponse({ 
-    status: HttpStatus.OK, 
-    description: 'Returns the user with the specified public address',
-    type: User
-  })
-  @ApiResponse({ 
-    status: HttpStatus.NOT_FOUND, 
-    description: 'User with the specified public address not found' 
-  })
-  async findByPublicAddress(@Query('address') address: string): Promise<User> {
-    return await this.userService.findByPublicAddress(address);
-  }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update a user' })
@@ -159,5 +144,13 @@ export class UserController {
   })
   async activateUser(@Param('id') id: string): Promise<User> {
     return await this.userService.activateUser(id);
+  }
+
+
+  @Get('user/:publicAddress')
+  @ApiOperation({ summary: 'Get a user by public address' })
+  @ApiParam({ name: 'publicAddress', description: 'User public blockchain address' })
+  async findByPublicAddress(@Param('publicAddress') publicAddress: string): Promise<User> {
+    return await this.userService.findByPublicAddress(publicAddress);
   }
 }
