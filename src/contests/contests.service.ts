@@ -258,7 +258,6 @@ export class ContestsService implements OnModuleInit {
     }
 
     contest.status = ContestStatus.COMPLETED;
-    contest.selectedVideoId = selectedVideoId;
     await this.contestRepository.save(contest);
 
     const winners: Winner[] = leaderboardEntries.map((entry) => {
@@ -289,10 +288,10 @@ export class ContestsService implements OnModuleInit {
     return await this.contestRepository.find({
       relations: {
         event: { sport: true, teamA: true, teamB: true },
-        userContests: true,
-        transactions: true,
-        leaderboards: true,
-        payouts: true,
+        // userContests: true,
+        // transactions: true,
+        // leaderboards: true,
+        // payouts: true,
       },
     });
   }
