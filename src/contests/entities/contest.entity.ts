@@ -72,6 +72,14 @@ export class Contest {
   solanaContestId: string;
 
   @ApiProperty({
+    description: 'The Solana contest public key (PDA)',
+    example: '5Xb...xyz',
+    nullable: true,
+  })
+  @Column({ nullable: true })
+  contestPublicKey: string;
+
+  @ApiProperty({
     description: 'The event associated with the contest',
     type: () => Event,
   })
