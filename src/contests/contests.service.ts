@@ -74,6 +74,7 @@ export class ContestsService implements OnModuleInit {
     const contest = this.contestRepository.create({
       ...createContestDto,
       event,
+      contestPublicKey: createContestDto.contestPublicKey,
     });
 
     return await this.contestRepository.save(contest);
@@ -521,6 +522,7 @@ export class ContestsService implements OnModuleInit {
       event: contest.event, // Includes full event details (sport, teams, etc.)
       featuredVideos: contest.featuredVideos.slice(0, 3), // Limit to 3 featured videos
       status: contest.status,
+      contestPublicKey: contest.contestPublicKey,
     }));
   }
 }

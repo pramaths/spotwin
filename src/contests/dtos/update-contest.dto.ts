@@ -48,4 +48,13 @@ export class UpdateContestDto {
   @IsUUID()
   @IsOptional()
   eventId?: string;
+
+  @ApiProperty({
+    description: 'The Solana contest public key (PDA)',
+    example: '5Xb...xyz',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  contestPublicKey?: string;
 }
