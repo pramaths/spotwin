@@ -52,9 +52,13 @@ export class ContestsService implements OnModuleInit {
         'https://api.devnet.solana.com',
       'confirmed',
     );
-    const keypair = await getKeypairFromFile(
-      '/home/ritikbhatt020/.config/solana/id.json',
-    );
+    const keypairPath = this.configService.get<string>('SOLANA_KEYPAIR_PATH');
+    if (!keypairPath) {
+      throw new Error(
+        'SOLANA_KEYPAIR_PATH is not defined in the environment variables',
+      );
+    }
+    const keypair = await getKeypairFromFile(keypairPath); // Use env variable
     const wallet = new Wallet(keypair);
     this.sdk = new Shoot9SDK(connection, wallet);
   }
@@ -504,15 +508,12 @@ export class ContestsService implements OnModuleInit {
 
   async findActiveContestsWithDetails(): Promise<Partial<Contest>[]> {
     const contests = await this.contestRepository.find({
-      where: [
-        { status: ContestStatus.OPEN },
-        { status: ContestStatus.LIVE },
-      ],
+      where: [{ status: ContestStatus.OPEN }, { status: ContestStatus.LIVE }],
       relations: ['event', 'featuredVideos'], // Include event and featured videos
     });
 
     // Map the contests to include only the requested fields and limit featured videos to 3
-    return contests.map(contest => ({
+    return contests.map((contest) => ({
       id: contest.id,
       name: contest.name,
       description: contest.description,

@@ -4,7 +4,7 @@ import {
   OnModuleInit,
   OnModuleDestroy,
   Inject,
-  BadRequestException 
+  BadRequestException,
 } from '@nestjs/common';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { Program, AnchorProvider, Wallet, BN } from '@coral-xyz/anchor';
@@ -62,9 +62,13 @@ export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
 
   private async initializeSolanaProgram() {
     try {
-      const keypair = await getKeypairFromFile(
-        '/home/ritikbhatt020/.config/solana/id.json',
-      );
+      const keypairPath = this.configService.get<string>('SOLANA_KEYPAIR_PATH');
+      if (!keypairPath) {
+        throw new Error(
+          'SOLANA_KEYPAIR_PATH is not defined in the environment variables',
+        );
+      }
+      const keypair = await getKeypairFromFile(keypairPath);
       const wallet = new Wallet(keypair);
       const provider = new AnchorProvider(this.connection, wallet, {
         commitment: 'confirmed',
@@ -210,7 +214,9 @@ export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
 
         let user = await this.userService.findByPublicAddress(userPubkey);
         if (!user) {
-          throw new BadRequestException('User not found with the provided public address');
+          throw new BadRequestException(
+            'User not found with the provided public address',
+          );
         }
 
         // Create an entry in the user_contests table
