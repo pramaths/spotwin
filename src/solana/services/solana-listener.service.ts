@@ -63,7 +63,7 @@ export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
   private async initializeSolanaProgram() {
     try {
       const keypair = await getKeypairFromFile(
-        'C:/Users/prama/Desktop//9shoot-backend/src/keypairs/admin-keypair.json',
+        '/home/ritikbhatt020/.config/solana/id.json',
       );
       const wallet = new Wallet(keypair);
       const provider = new AnchorProvider(this.connection, wallet, {
