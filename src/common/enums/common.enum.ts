@@ -13,3 +13,9 @@ export enum ContestStatus {
   COMPLETED = 'COMPLETED', // Contest has ended, results are finalized
   CANCELLED = 'CANCELLED', // Contest got canceled (e.g., not enough participants)
 }
+
+export enum VideoSubmissionStatus {
+  PENDING = 'PENDING',   // Video is submitted and awaiting review
+  APPROVED = 'APPROVED', // Video has been approved for use
+  REJECTED = 'REJECTED', // Video has been rejected
+}

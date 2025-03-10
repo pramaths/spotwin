@@ -18,6 +18,7 @@ import { SolanaModule } from './solana/solana.module';
 import { LeaderboardsModule } from './leaderboards/leaderboards.module';
 import { PayoutsModule } from './payouts/payouts.module';
 import { PredictionsModule } from './predictions/predictions.module';
+import { AuthorizedCreatorsModule } from './authorized_creators/authorized-creators.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { PredictionsModule } from './predictions/predictions.module';
     PredictionsModule,
     LeaderboardsModule,
     PayoutsModule,
+    AuthorizedCreatorsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

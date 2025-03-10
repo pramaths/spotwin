@@ -6,6 +6,7 @@ import { CreateVideoSubmissionDto } from './dto/create-video-submission.dto';
 import { UpdateVideoSubmissionDto } from './dto/update-video-submission.dto';
 import { S3Service } from '../aws/s3.service';
 import { VideoService } from '../aws/video.service';
+import { VideoSubmissionStatus } from 'src/common/enums/common.enum';
 
 @Injectable()
 export class SubmissionService {
@@ -41,7 +42,7 @@ export class SubmissionService {
       userId: dto.userId,
       contestId: dto.contestId,
       question: dto.question,
-      isApproved: false
+      status: VideoSubmissionStatus.PENDING,
     });
 
     return this.videoSubmissionRepository.save(submission);
@@ -81,7 +82,7 @@ export class SubmissionService {
     
     if (dto.contestId) submission.contestId = dto.contestId;
     if (dto.question) submission.question = dto.question;
-    if (dto.isApproved !== undefined) submission.isApproved = dto.isApproved;
+    if (dto.status !== undefined) submission.status = dto.status;
     
     return this.videoSubmissionRepository.save(submission);
   }
