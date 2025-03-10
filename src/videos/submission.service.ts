@@ -5,6 +5,7 @@ import { VideoSubmission } from './entities/video-submission.entity';
 import { CreateVideoSubmissionDto } from './dto/create-video-submission.dto';
 import { UpdateVideoSubmissionDto } from './dto/update-video-submission.dto';
 import { S3Service } from '../aws/s3.service';
+import { VideoService } from '../aws/video.service';
 
 @Injectable()
 export class SubmissionService {
@@ -12,6 +13,7 @@ export class SubmissionService {
     @InjectRepository(VideoSubmission)
     private readonly videoSubmissionRepository: Repository<VideoSubmission>,
     private readonly s3Service: S3Service,
+    private readonly videoService: VideoService,
   ) {}
 
   async create(dto: CreateVideoSubmissionDto): Promise<VideoSubmission> {
@@ -27,9 +29,11 @@ export class SubmissionService {
       throw new BadRequestException('Question is required');
     }
 
-    // Upload video and thumbnail to S3
+    // Upload the video file to S3
     const videoUrl = await this.s3Service.uploadFile(dto.videoFile);
-    const thumbnailUrl = await this.s3Service.uploadFile(dto.thumbnailFile);
+    
+    // Extract thumbnail from the video and upload it to S3
+    const thumbnailUrl = await this.videoService.extractThumbnail(dto.videoFile);
 
     const submission = this.videoSubmissionRepository.create({
       videoUrl,

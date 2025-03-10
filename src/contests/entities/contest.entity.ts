@@ -72,14 +72,6 @@ export class Contest {
   solanaContestId: string;
 
   @ApiProperty({
-    description: 'The ID of the selected video for batching (if applicable)',
-    example: '123e4567-e89b-12d3-a456-426614174002',
-    nullable: true,
-  })
-  @Column({ nullable: true })
-  selectedVideoId: string;
-
-  @ApiProperty({
     description: 'The event associated with the contest',
     type: () => Event,
   })
