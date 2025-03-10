@@ -8,10 +8,12 @@ import { FeaturedService } from './featured.service';
 import { VideoSubmission } from './entities/video-submission.entity';
 import { FeaturedVideo } from './entities/featured-video.entity';
 import { S3Module } from '../aws/s3.module';
+import { User } from '../users/entities/users.entity';
+import { Contest } from '../contests/entities/contest.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([VideoSubmission, FeaturedVideo]),
+    TypeOrmModule.forFeature([VideoSubmission, FeaturedVideo, User, Contest]),
     ConfigModule,
     S3Module,
   ],
