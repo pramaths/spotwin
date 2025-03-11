@@ -44,6 +44,14 @@ export class FeaturedVideo {
   })
   @Column()
   videoUrl: string;
+  
+  @ApiProperty({
+    description: 'The question associated with this featured video',
+    example: 'Will this shot go in?',
+  })
+  @Column()
+  question: string
+
 
   @ApiProperty({
     description: 'The URL of the thumbnail image',

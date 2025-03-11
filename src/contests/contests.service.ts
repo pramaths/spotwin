@@ -510,7 +510,7 @@ export class ContestsService implements OnModuleInit {
   async findActiveContestsWithDetails(): Promise<Partial<Contest>[]> {
     const contests = await this.contestRepository.find({
       where: [{ status: ContestStatus.OPEN }, { status: ContestStatus.LIVE }],
-      relations: ['event', 'event.teamA', 'event.teamB', 'featuredVideos'], // Include event and featured videos
+      relations: ['event', 'event.teamA', 'event.teamB', 'featuredVideos'],
     });
     if (!contests.length) {
       return [];

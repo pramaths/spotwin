@@ -45,6 +45,7 @@ export class FeaturedService {
       videoUrl: submission.videoUrl,
       thumbnailUrl: submission.thumbnailUrl,
       userId: submission.userId,
+      question: submission.question,
       contestId,
       correctOutcome,
     });
