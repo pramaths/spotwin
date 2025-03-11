@@ -13,7 +13,7 @@ import { User } from '../../users/entities/users.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Entity('leaderboards')
-@Index(['contestId', 'rank']) // Index for efficient sorting and querying by contest and rank
+@Index(['contestId', 'rank'])
 export class Leaderboard {
   @ApiProperty({
     description: 'Unique identifier for the leaderboard entry',

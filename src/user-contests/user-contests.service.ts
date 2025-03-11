@@ -180,7 +180,7 @@ export class UserContestsService {
   async findOne(id: string): Promise<UserContest> {
     const userContest = await this.userContestRepository.findOne({
       where: { id },
-      relations: ['user', 'contest','contest.event', 'contest.event.teamA', 'contest.event.teamB'],
+      relations: ['user', 'contest'],
     });
 
     if (!userContest) {
@@ -190,10 +190,12 @@ export class UserContestsService {
     return userContest;
   }
 
-  async findByUser(userId: string): Promise<UserContest[]> {
-    return this.userContestRepository.find({
+  async findByUser(userId: string): Promise<any[]> {
+    const userContests = await this.userContestRepository.find({
       where: { user: { id: userId } },
-      relations: ['contest', 'bets', 'predictions'],
+      relations: ['contest', 'contest.event', 'contest.event.teamA', 'contest.event.teamB'],
     });
+
+    return userContests.map(data => data.contest);
   }
 }
