@@ -23,6 +23,8 @@ import { Contest } from './entities/contest.entity';
 import { VideoSubmission } from '../videos/entities/video-submission.entity';
 import { OutcomeType } from '../common/enums/outcome-type.enum';
 import { FeaturedVideo } from 'src/videos/entities/featured-video.entity';
+import { Roles } from '../common/decorators/roles.decorator';
+import { UserRole } from '../common/enums/roles.enum';
 
 @ApiTags('contests')
 @Controller('contests')
@@ -63,6 +65,7 @@ export class ContestsController {
   }
 
   @Post()
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Create a new contest' })
   @ApiBody({ type: CreateContestDto })
   @ApiResponse({
@@ -87,6 +90,7 @@ export class ContestsController {
   }
 
   @Post(':id/resolve')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Resolve a contest and calculate results' })
   @ApiParam({ name: 'id', description: 'Contest ID' })
   @ApiBody({
@@ -139,6 +143,7 @@ export class ContestsController {
   }
 
   @Put(':id')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Update a contest by ID' })
   @ApiParam({ name: 'id', type: String, description: 'Contest ID (UUID)' })
   @ApiBody({ type: UpdateContestDto })
@@ -159,6 +164,7 @@ export class ContestsController {
   }
 
   @Delete(':id')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Delete a contest by ID' })
   @ApiParam({ name: 'id', type: String, description: 'Contest ID (UUID)' })
   @ApiResponse({ status: 200, description: 'Contest deleted' })
@@ -196,6 +202,7 @@ export class ContestsController {
   }
 
   @Post(':contestId/select-videos')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Select videos for a contest' })
   @ApiParam({ name: 'contestId', description: 'Contest ID' })
   @ApiBody({
@@ -225,6 +232,7 @@ export class ContestsController {
   }
 
   @Post('videos/:videoId/approve')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Approve a video submission for a contest' })
   @ApiParam({ name: 'videoId', description: 'Video Submission ID' })
   @ApiBody({
@@ -254,6 +262,7 @@ export class ContestsController {
   }
 
   @Post('videos/:videoId/reject')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Reject a video submission for a contest' })
   @ApiParam({ name: 'videoId', description: 'Video Submission ID' })
   @ApiBody({
@@ -283,6 +292,7 @@ export class ContestsController {
   }
 
   @Post('videos/:videoId/answer')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Set the answer for a featured video in a contest' })
   @ApiParam({ name: 'videoId', description: 'Featured Video ID' })
   @ApiBody({

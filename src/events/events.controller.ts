@@ -38,6 +38,8 @@ import { EventsService } from './events.service';
 import { PaginatedResultDto } from '../common/dto/paginated-result.dto';
 import { EventStatus } from '../common/enums/common.enum';
 import { Contest } from '../contests/entities/contest.entity';
+import { Roles } from '../common/decorators/roles.decorator';
+import { UserRole } from '../common/enums/roles.enum';
 
 @ApiTags('Events')
 @Controller('events')
@@ -156,6 +158,7 @@ export class EventsController {
   })
   @UseInterceptors(FileInterceptor('file'))
   @Post()
+  @Roles(UserRole.ADMIN)
   async create(
     @Body() createEventDto: CreateEventDto,
     @UploadedFile() file: Express.Multer.File,
@@ -222,6 +225,7 @@ export class EventsController {
     },
   })
   @Patch(':id')
+  @Roles(UserRole.ADMIN)
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateEventDto: UpdateEventDto,
@@ -289,6 +293,7 @@ export class EventsController {
   @ApiResponse({ status: 404, description: 'Event not found' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
   @Patch(':id/status')
+  @Roles(UserRole.ADMIN)
   async updateStatus(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateEventStatusDto: UpdateEventStatusDto,
@@ -350,6 +355,7 @@ export class EventsController {
     description: 'Event not found',
   })
   @Delete(':id')
+  @Roles(UserRole.ADMIN)
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<{ message: string }> {
