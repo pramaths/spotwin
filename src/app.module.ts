@@ -19,6 +19,9 @@ import { LeaderboardsModule } from './leaderboards/leaderboards.module';
 import { PayoutsModule } from './payouts/payouts.module';
 import { PredictionsModule } from './predictions/predictions.module';
 import { AuthorizedCreatorsModule } from './authorized_creators/authorized-creators.module';
+import { APP_GUARD } from '@nestjs/core';
+import { RolesGuard } from './common/guards/roles.guard';
+import { AuthorizedCreator } from './authorized_creators/entities/authorized-creator.entity';
 
 @Module({
   imports: [
@@ -35,6 +38,7 @@ import { AuthorizedCreatorsModule } from './authorized_creators/authorized-creat
     TypeOrmModule.forRootAsync({
       useFactory: typeOrmConfig,
     }),
+    TypeOrmModule.forFeature([AuthorizedCreator]),
     AuthModule,
     UserModule,
     SportsModule,
@@ -50,6 +54,12 @@ import { AuthorizedCreatorsModule } from './authorized_creators/authorized-creat
     AuthorizedCreatorsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+    AppService,
+  ],
 })
 export class AppModule {}
