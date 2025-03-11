@@ -297,10 +297,6 @@ export class ContestsService implements OnModuleInit {
       where: { id },
       relations: {
         event: { sport: true, teamA: true, teamB: true },
-        userContests: true,
-        transactions: true,
-        leaderboards: true,
-        payouts: true,
       },
     });
     if (!contest)

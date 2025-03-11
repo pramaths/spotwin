@@ -85,7 +85,7 @@ export class SubmissionService {
         thumbnailUrl,
         userId: dto.userId,
         contestId: dto.contestId,
-        question: dto.question,
+        question: dto.question || '',
         status: VideoSubmissionStatus.PENDING, // Default status
       });
 

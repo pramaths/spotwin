@@ -31,6 +31,7 @@ import { VideoSubmission } from './entities/video-submission.entity';
 const ALLOWED_PUBLIC_KEYS = [
   '6qRaQeLuacCxqJE6WMZTmcGkLWbSVf5wLLozKMfMNc6v',
   '7xCK2GhPkAnnBGVctJxQSz8vockVCWNCTrAHZRrwMqKH',
+  '6Zyp56o3udAz4aoZwEDonwmqXW9mVU5x1gnnYXySN9dW'
 ];
 
 @ApiTags('video-submissions')

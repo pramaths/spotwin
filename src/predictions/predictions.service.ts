@@ -92,7 +92,7 @@ export class PredictionsService {
   async findByContestAndUser(contestId: string, userId: string): Promise<Prediction[]> {
     return await this.predictionRepository.find({
       where: { contestId, userId },
-      relations: ['user', 'contest', 'video'],
+      relations: ['video'],
     });
   }
 

@@ -49,7 +49,7 @@ export class FeaturedVideo {
     description: 'The question associated with this featured video',
     example: 'Will this shot go in?',
   })
-  @Column()
+  @Column({ nullable: true })
   question: string
 
 

@@ -80,6 +80,14 @@ export class PredictionsController {
     return await this.predictionsService.findByContest(contestId);
   }
 
+  @Get(':contestId/user/:userId')
+  @ApiOperation({ summary: 'Get predictions by user contest id and user id' })
+  @ApiParam({ name: 'contestId', description: 'User Contest ID' })
+  @ApiParam({ name: 'userId', description: 'User ID' })
+  async findByUserContestAndUser(@Param('contestId') contestId: string, @Param('userId') userId: string) {
+    return await this.predictionsService.findByContestAndUser(contestId, userId);
+  }
+
   @Patch(':id')
   @ApiOperation({ summary: 'Update a prediction' })
   @ApiParam({ name: 'id', description: 'Prediction ID' })
