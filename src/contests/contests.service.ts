@@ -521,6 +521,8 @@ export class ContestsService implements OnModuleInit {
       featuredVideos: contest.featuredVideos.slice(0, 3), // Limit to 3 featured videos
       status: contest.status,
       contestPublicKey: contest.contestPublicKey,
+      contestCreator: contest.contestCreator,
+      solanaContestId: contest.solanaContestId,
     }));
   }
 }
