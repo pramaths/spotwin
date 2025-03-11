@@ -90,7 +90,7 @@ export class FeaturedService {
   async getFeaturedByContest(contestId: string): Promise<FeaturedVideo[]> {
     return this.featuredVideoRepository.find({
       where: { contestId },
-      relations: ['submission', 'user', 'contest'],
+      // relations: [, 'user', 'contest'],
     });
   }
 }

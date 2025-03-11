@@ -9,7 +9,8 @@ import {
 } from 'typeorm';
 import { FeaturedVideo } from '../../videos/entities/featured-video.entity';
 import { OutcomeType } from '../../common/enums/outcome-type.enum';
-import { UserContest } from '../../user-contests/entities/user-contest.entity';
+import { User } from '../../users/entities/users.entity';
+import { Contest } from '../../contests/entities/contest.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Entity('predictions')
@@ -22,19 +23,34 @@ export class Prediction {
   id: string;
 
   @ApiProperty({
-    description: 'The user contest associated with this prediction',
-    type: () => UserContest,
+    description: 'The user associated with this prediction',
+    type: () => User,
   })
-  @ManyToOne(() => UserContest, (userContest) => userContest.predictions)
-  @JoinColumn({ name: 'userContestId' })
-  userContest: UserContest;
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'userId' })
+  user: User;
 
   @ApiProperty({
-    description: 'The ID of the user contest',
-    example: '123e4567-e89b-12d3-a456-426614174001',
+    description: 'The ID of the user',
+    example: '123e4567-e89b-12d3-a456-426614174003',
   })
   @Column()
-  userContestId: string;
+  userId: string;
+
+  @ApiProperty({
+    description: 'The contest associated with this prediction',
+    type: () => Contest,
+  })
+  @ManyToOne(() => Contest)
+  @JoinColumn({ name: 'contestId' })
+  contest: Contest;
+
+  @ApiProperty({
+    description: 'The ID of the contest',
+    example: '123e4567-e89b-12d3-a456-426614174004',
+  })
+  @Column()
+  contestId: string;
 
   @ApiProperty({
     description: 'The video associated with this prediction',
@@ -66,15 +82,6 @@ export class Prediction {
   })
   @Column({ type: 'boolean', nullable: true })
   isCorrect: boolean;
-
-  @ApiProperty({
-    description: 'The position of the prediction (1-9)',
-    example: 5,
-    minimum: 1,
-    maximum: 9,
-  })
-  @Column({ type: 'int', default: 0 })
-  position: number;
 
   @ApiProperty({
     description: 'The date when the prediction was created',

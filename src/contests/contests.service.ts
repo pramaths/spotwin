@@ -122,7 +122,7 @@ export class ContestsService implements OnModuleInit {
       const userContest = userContests.find((uc) => uc.user.id === user.id);
       if (!userContest) continue;
 
-      const predictions = await this.predictionsService.findByUserContest(
+      const predictions = await this.predictionsService.findByContest(
         userContest.id,
       );
       if (predictions.length !== 9)

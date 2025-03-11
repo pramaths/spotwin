@@ -28,9 +28,6 @@ export class UserContest {
   @OneToMany(() => Bet, (bet) => bet.userContest)
   bets: Bet[];
 
-  @OneToMany(() => Prediction, (prediction) => prediction.userContest)
-  predictions: Prediction[];
-
   @Column('decimal', { precision: 10, scale: 2 })
   entryFee: number;
 

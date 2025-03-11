@@ -18,14 +18,17 @@ export class PredictionsService {
   ) {}
 
   async create(createPredictionDto: CreatePredictionDto): Promise<Prediction> {
-    // Fetch existing predictions for this user contest
+    // Fetch existing predictions for this user and contest
     const existingPredictions = await this.predictionRepository.find({
-      where: { userContestId: createPredictionDto.userContestId },
-      relations: ['userContest', 'userContest.contest'],
+      where: { 
+        userId: createPredictionDto.userId,
+        contestId: createPredictionDto.contestId 
+      },
+      relations: ['contest'],
     });
 
     // Check if contest is open
-    const contest = existingPredictions[0]?.userContest.contest;
+    const contest = existingPredictions[0]?.contest;
     if (contest && contest.status !== ContestStatus.OPEN) {
       throw new BadRequestException(
         'Predictions can only be made while the contest is open',
@@ -37,14 +40,6 @@ export class PredictionsService {
       throw new BadRequestException(
         'User already has the maximum number of predictions (9) for this contest',
       );
-    }
-
-    // Check if position is already taken
-    const existingPosition = existingPredictions.find(
-      (p) => p.position === createPredictionDto.position,
-    );
-    if (existingPosition) {
-      throw new BadRequestException('Position already taken for this contest');
     }
 
     // Check if videoId is already used
@@ -63,24 +58,14 @@ export class PredictionsService {
 
   async findAll(): Promise<Prediction[]> {
     return await this.predictionRepository.find({
-      relations: [
-        'userContest',
-        'userContest.user',
-        'userContest.contest',
-        'video',
-      ],
+      relations: ['user', 'contest', 'video'],
     });
   }
 
   async findOne(id: string): Promise<Prediction> {
     const prediction = await this.predictionRepository.findOne({
       where: { id },
-      relations: [
-        'userContest',
-        'userContest.user',
-        'userContest.contest',
-        'video',
-      ],
+      relations: ['user', 'contest', 'video'],
     });
 
     if (!prediction) {
@@ -90,16 +75,24 @@ export class PredictionsService {
     return prediction;
   }
 
-  async findByUserContest(userContestId: string): Promise<Prediction[]> {
+  async findByContest(contestId: string): Promise<Prediction[]> {
     return await this.predictionRepository.find({
-      where: { userContestId },
-      relations: [
-        'userContest',
-        'userContest.user',
-        'userContest.contest',
-        'video',
-      ],
-      order: { position: 'ASC' },
+      where: { contestId },
+      relations: ['user', 'contest', 'video'],
+    });
+  }
+
+  async findByUser(userId: string): Promise<Prediction[]> {
+    return await this.predictionRepository.find({
+      where: { userId },
+      relations: ['user', 'contest', 'video'],
+    });
+  }
+
+  async findByContestAndUser(contestId: string, userId: string): Promise<Prediction[]> {
+    return await this.predictionRepository.find({
+      where: { contestId, userId },
+      relations: ['user', 'contest', 'video'],
     });
   }
 
@@ -109,30 +102,19 @@ export class PredictionsService {
   ): Promise<Prediction> {
     const prediction = await this.findOne(id);
 
-    // If updating position or videoId, validate uniqueness
-    if (updatePredictionDto.position || updatePredictionDto.videoId) {
-      const existingPredictions = await this.findByUserContest(
-        prediction.userContestId,
+    // If updating videoId, validate uniqueness
+    if (updatePredictionDto.videoId) {
+      const existingPredictions = await this.findByContestAndUser(
+        prediction.contestId,
+        prediction.userId
       );
-      if (updatePredictionDto.position) {
-        const positionTaken = existingPredictions.some(
-          (p) => p.position === updatePredictionDto.position && p.id !== id,
+      const videoTaken = existingPredictions.some(
+        (p) => p.videoId === updatePredictionDto.videoId && p.id !== id,
+      );
+      if (videoTaken) {
+        throw new BadRequestException(
+          'This video is already predicted on for this contest',
         );
-        if (positionTaken) {
-          throw new BadRequestException(
-            'Position already taken for this contest',
-          );
-        }
-      }
-      if (updatePredictionDto.videoId) {
-        const videoTaken = existingPredictions.some(
-          (p) => p.videoId === updatePredictionDto.videoId && p.id !== id,
-        );
-        if (videoTaken) {
-          throw new BadRequestException(
-            'This video is already predicted on for this contest',
-          );
-        }
       }
     }
 
