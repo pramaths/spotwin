@@ -76,8 +76,16 @@ export class Contest {
     example: '5Xb...xyz',
     nullable: true,
   })
-  @Column({ nullable: true })
+  @Column()
   contestPublicKey: string;
+  
+  @ApiProperty({
+    description: 'The creator of the contest',
+    example: '5Xb...xyz',
+    nullable: true,
+  })
+  @Column()
+  contestCreator: string;
 
   @ApiProperty({
     description: 'The event associated with the contest',

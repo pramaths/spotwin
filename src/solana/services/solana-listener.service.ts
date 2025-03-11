@@ -23,7 +23,7 @@ import { CreateBetDto } from '../../bets/dto/create-bet.dto';
 import { CreateTransactionDto } from '../../transactions/dto/create-transaction.dto';
 import { TransactionType } from '../../common/enums/transaction-type.enum';
 import { CreateUserContestDto } from '../../user-contests/dto/create-user-contest.dto';
-import { getConnection } from 'typeorm'; // Import getConnection for transaction management
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
@@ -43,6 +43,7 @@ export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
     @Inject(UserService) private userService: UserService,
     @Inject(UserContestsService)
     private userContestsService: UserContestsService,
+    private dataSource: DataSource,
   ) {
     this.connection = new Connection(
       this.configService.get<string>('SOLANA_RPC_URL') ||
@@ -139,13 +140,13 @@ export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
 
           if (eventData) {
             switch (eventData.name) {
-              case 'ContestCreated':
+              case 'contestCreated':
                 await this.handleContestCreated(eventData.data);
                 break;
-              case 'ContestEntered':
+              case 'contestEntered':
                 await this.handleContestEntered(eventData.data, logs.signature);
                 break;
-              case 'ContestResolved':
+              case 'contestResolved':
                 this.handleContestResolved(eventData.data);
                 break;
               default:
@@ -188,7 +189,7 @@ export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
     });
 
     try {
-      await getConnection().transaction(async (manager) => {
+      await this.dataSource.transaction(async (manager) => {
         const solanaContestId = event.contestId.toString();
         const userPubkey = event.user.toString();
         const entryFee = Number(event.amount) / 1_000_000_000;

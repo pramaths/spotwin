@@ -47,4 +47,13 @@ export class CreateContestDto {
   @IsString()
   @IsOptional()
   contestPublicKey?: string;
+
+  @ApiProperty({
+    description: 'The creator of the contest',
+    example: '5Xb...xyz',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  contestCreator?: string;
 }

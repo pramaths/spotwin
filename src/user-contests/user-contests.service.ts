@@ -180,7 +180,7 @@ export class UserContestsService {
   async findOne(id: string): Promise<UserContest> {
     const userContest = await this.userContestRepository.findOne({
       where: { id },
-      relations: ['user', 'contest', 'bets', 'predictions'],
+      relations: ['user', 'contest','contest.event', 'contest.event.teamA', 'contest.event.teamB'],
     });
 
     if (!userContest) {

@@ -8,16 +8,12 @@ import {
 } from '@nestjs/swagger';
 import { UserContestsService } from './user-contests.service';
 import { CreateUserContestDto } from './dto/create-user-contest.dto';
-import { JwtAuthGuard } from '../auth/strategies/jwt.strategy';
-import { GetUser } from '../auth/decorators/get-user.decorator';
 import { User } from '../users/entities/users.entity';
 import { UserContest } from './entities/user-contest.entity';
 import { UserStreak } from './entities/user-streak.entity';
 
 @ApiTags('user-contests')
 @Controller('user-contests')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
 export class UserContestsController {
   constructor(private readonly userContestsService: UserContestsService) {}
 
