@@ -12,6 +12,9 @@ export const typeOrmConfig = (): TypeOrmModuleOptions => {
     password: config.database.password,
     database: config.database.name,
     entities: [join(__dirname, '../**/*.entity.{ts,js}')],
+    ssl: config.database.ssl ? {
+      rejectUnauthorized: false // Important for AWS RDS connections
+    } : false,
     // logging: process.env.NODE_ENV !== 'production',
     // In production, you'd want to disable synchronize
     synchronize: process.env.NODE_ENV !== 'production',

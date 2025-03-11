@@ -7,6 +7,7 @@ export default () => ({
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
     name: process.env.DB_NAME,
+    ssl: process.env.DB_SSL === 'true',
   },
   aws: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
