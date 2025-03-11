@@ -20,6 +20,8 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { Payout } from './entities/payout.entity';
+import { Roles } from '../common/decorators/roles.decorator';
+import { UserRole } from '../common/enums/roles.enum';
 
 @ApiTags('payouts')
 @Controller('payouts')
@@ -27,6 +29,7 @@ export class PayoutsController {
   constructor(private readonly payoutsService: PayoutsService) {}
 
   @Post()
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Create a new payout' })
   @ApiBody({ type: CreatePayoutDto })
   @ApiResponse({
@@ -126,6 +129,7 @@ export class PayoutsController {
   }
 
   @Put(':id')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Update a payout' })
   @ApiParam({ name: 'id', description: 'Payout ID' })
   @ApiBody({ type: UpdatePayoutDto })
@@ -150,6 +154,7 @@ export class PayoutsController {
   }
 
   @Delete(':id')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Delete a payout' })
   @ApiParam({ name: 'id', description: 'Payout ID' })
   @ApiResponse({

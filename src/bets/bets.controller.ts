@@ -12,6 +12,8 @@ import { CreateBetDto } from './dto/create-bet.dto';
 import { UpdateBetDto } from './dto/update-bet.dto';
 import { ApiTags, ApiOperation, ApiParam, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { Bet } from './entities/bets.entity';
+import { Roles } from '../common/decorators/roles.decorator';
+import { UserRole } from '../common/enums/roles.enum';
 
 @ApiTags('bets')
 @Controller('bets')
@@ -19,6 +21,7 @@ export class BetsController {
   constructor(private readonly betsService: BetsService) {}
 
   @Post()
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Create a new contest entry' })
   @ApiBody({ type: CreateBetDto })
   @ApiResponse({
@@ -68,6 +71,7 @@ export class BetsController {
   }
 
   @Patch(':id')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Update a contest entry' })
   @ApiParam({ name: 'id', description: 'Bet ID' })
   @ApiBody({ type: UpdateBetDto })
@@ -83,6 +87,7 @@ export class BetsController {
   }
 
   @Delete(':id')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Delete a contest entry' })
   @ApiParam({ name: 'id', description: 'Bet ID' })
   @ApiResponse({

@@ -28,6 +28,8 @@ import { CreateTeamDto } from './dto/create-team.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
 import { GetTeamsQueryDto } from './dto/get-teams-query.dto';
 import { TeamResponseDto } from './dto/team-response.dto';
+import { Roles } from '../common/decorators/roles.decorator';
+import { UserRole } from '../common/enums/roles.enum';
 
 @ApiTags('teams')
 @Controller('teams')
@@ -35,6 +37,7 @@ export class TeamsController {
   constructor(private readonly teamsService: TeamsService) {}
 
   @Post()
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Create a new team' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -89,6 +92,7 @@ export class TeamsController {
   }
 
   @Patch(':id')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Update a team partially' })
   @ApiParam({ name: 'id', description: 'Team ID' })
   @ApiConsumes('multipart/form-data')
@@ -122,6 +126,7 @@ export class TeamsController {
   }
 
   @Put(':id')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Replace a team completely' })
   @ApiParam({ name: 'id', description: 'Team ID' })
   @ApiConsumes('multipart/form-data')
@@ -155,6 +160,7 @@ export class TeamsController {
   }
 
   @Delete(':id')
+  @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a team' })
   @ApiParam({ name: 'id', description: 'Team ID' })

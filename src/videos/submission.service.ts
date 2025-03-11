@@ -33,27 +33,33 @@ export class SubmissionService {
   async create(dto: CreateVideoSubmissionDto): Promise<VideoSubmission> {
     try {
       const userExists = await this.userRepository.findOne({
-        where: { id: dto.userId }
+        where: { id: dto.userId },
       });
-      
+
       if (!userExists) {
-        this.logger.error(`User with ID ${dto.userId} not found when creating video submission`);
+        this.logger.error(
+          `User with ID ${dto.userId} not found when creating video submission`,
+        );
         throw new Error(`User with ID ${dto.userId} not found`);
       }
-      
+
       const contestExists = await this.contestRepository.findOne({
-        where: { id: dto.contestId }
+        where: { id: dto.contestId },
       });
-      
+
       if (!contestExists) {
-        this.logger.error(`Contest with ID ${dto.contestId} not found when creating video submission`);
+        this.logger.error(
+          `Contest with ID ${dto.contestId} not found when creating video submission`,
+        );
         throw new Error(`Contest with ID ${dto.contestId} not found`);
       }
-      
-      this.logger.log(`Creating video submission with userId: ${dto.userId}, contestId: ${dto.contestId}`);
-      
+
+      this.logger.log(
+        `Creating video submission with userId: ${dto.userId}, contestId: ${dto.contestId}`,
+      );
+
       this.logger.debug(`Full submission DTO: ${JSON.stringify(dto)}`);
-      
+
       if (!dto.contestId) {
         throw new BadRequestException('Contest ID is required');
       }
@@ -64,16 +70,6 @@ export class SubmissionService {
 
       if (!dto.question) {
         throw new BadRequestException('Question is required');
-      }
-
-      // Check if user has already submitted a video for this contest
-      const existingSubmission = await this.videoSubmissionRepository.findOne({
-        where: { userId: dto.userId, contestId: dto.contestId },
-      });
-      if (existingSubmission) {
-        throw new BadRequestException(
-          `User ${dto.userId} has already submitted a video for contest ${dto.contestId}`,
-        );
       }
 
       // Upload the video file to S3
@@ -99,6 +95,15 @@ export class SubmissionService {
       this.logger.error(`Error stack: ${error.stack}`);
       throw error;
     }
+  }
+
+  async findOneByUserAndContest(
+    userId: string,
+    contestId: string,
+  ): Promise<VideoSubmission | null> {
+    return this.videoSubmissionRepository.findOne({
+      where: { userId, contestId },
+    });
   }
 
   async findAll(): Promise<VideoSubmission[]> {
@@ -153,7 +158,13 @@ export class SubmissionService {
   async findByUser(userId: string): Promise<any[]> {
     const submissions = await this.videoSubmissionRepository.find({
       where: { userId },
-      relations: ['user', 'contest', 'contest.event', 'contest.event.teamA', 'contest.event.teamB'], // Include related user and contest details
+      relations: [
+        'user',
+        'contest',
+        'contest.event',
+        'contest.event.teamA',
+        'contest.event.teamB',
+      ],
     });
     const simplifiedDetails = submissions.map((submission) => ({
       id: submission.id,

@@ -23,6 +23,8 @@ import {
   ApiConsumes,
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Roles } from '../decorators/roles.decorator';
+import { UserRole } from '../enums/roles.enum';
 
 @ApiTags('sports')
 @Controller('sports')
@@ -30,6 +32,7 @@ export class SportsController {
   constructor(private readonly sportsService: SportsService) {}
 
   @Post()
+  @Roles(UserRole.ADMIN)
   @UseInterceptors(FileInterceptor('image'))
   @ApiOperation({ summary: 'Create a new sport' })
   @ApiConsumes('multipart/form-data')
@@ -116,6 +119,7 @@ export class SportsController {
   }
 
   @Patch(':id')
+  @Roles(UserRole.ADMIN)
   @UseInterceptors(FileInterceptor('image'))
   @ApiOperation({ summary: 'Update a sport' })
   @ApiConsumes('multipart/form-data')
@@ -171,6 +175,7 @@ export class SportsController {
   }
 
   @Delete(':id')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Delete a sport' })
   @ApiParam({ name: 'id', description: 'Sport ID' })
   @ApiResponse({ status: 200, description: 'Sport successfully deleted' })

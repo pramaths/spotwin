@@ -25,12 +25,4 @@ export class UpdateSportDto {
   })
   @IsString()
   imageUrl?: string;
-
-  @ApiProperty({
-    required: false,
-    example: true,
-    description: 'Whether the sport is active',
-  })
-  @IsBoolean()
-  isActive?: boolean;
 }

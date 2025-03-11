@@ -11,6 +11,7 @@ import {
   HttpException,
   HttpStatus,
   Query,
+  Headers,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { SubmissionService } from './submission.service';
@@ -26,6 +27,11 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { VideoSubmission } from './entities/video-submission.entity';
+
+const ALLOWED_PUBLIC_KEYS = [
+  '6qRaQeLuacCxqJE6WMZTmcGkLWbSVf5wLLozKMfMNc6v',
+  '7xCK2GhPkAnnBGVctJxQSz8vockVCWNCTrAHZRrwMqKH',
+];
 
 @ApiTags('video-submissions')
 @Controller('submission')
@@ -71,6 +77,7 @@ export class SubmissionController {
     files: {
       video?: Express.Multer.File[];
     },
+    @Headers('x-public-key') xPublicKey: string,
   ) {
     try {
       if (!files.video) {
@@ -84,6 +91,22 @@ export class SubmissionController {
         ...createVideoSubmissionDto,
         videoFile: files.video[0],
       };
+
+      // Skip the one-video-per-user-per-contest check for allowed public keys
+      if (!ALLOWED_PUBLIC_KEYS.includes(xPublicKey)) {
+        const existingSubmission =
+          await this.submissionService.findOneByUserAndContest(
+            dto.userId,
+            dto.contestId,
+          );
+        if (existingSubmission) {
+          throw new HttpException(
+            `User ${dto.userId} has already submitted a video for contest ${dto.contestId}`,
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
       return await this.submissionService.create(dto);
     } catch (error) {
       if (error instanceof HttpException) {

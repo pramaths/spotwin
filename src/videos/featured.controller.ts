@@ -19,6 +19,8 @@ import {
 import { FeaturedVideo } from './entities/featured-video.entity';
 import { CreateFeaturedVideoDto } from './dto/create-featured-video.dto';
 import { OutcomeType } from '../common/enums/outcome-type.enum';
+import { Roles } from '../common/decorators/roles.decorator';
+import { UserRole } from '../common/enums/roles.enum';
 
 @ApiTags('featured-videos')
 @Controller('featured')
@@ -26,6 +28,7 @@ export class FeaturedController {
   constructor(private readonly featuredService: FeaturedService) {}
 
   @Post()
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Feature a video for a contest' })
   @ApiResponse({
     status: 201,
@@ -58,6 +61,7 @@ export class FeaturedController {
   }
 
   @Post(':id/outcome')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Set the correct outcome for a featured video' })
   @ApiParam({ name: 'id', description: 'Featured Video ID' })
   @ApiBody({
@@ -102,6 +106,7 @@ export class FeaturedController {
   }
 
   @Delete(':id')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Unfeature a video' })
   @ApiParam({ name: 'id', description: 'Featured Video ID' })
   @ApiResponse({
