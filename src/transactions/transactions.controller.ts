@@ -18,6 +18,8 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { ParseUUIDPipe } from '@nestjs/common';
+import { Roles } from '../common/decorators/roles.decorator';
+import { UserRole } from '../common/enums/roles.enum';
 
 @ApiTags('transactions')
 @Controller('transactions')
@@ -25,6 +27,7 @@ export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
   @Post()
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Create a new transaction' })
   @ApiBody({
     type: CreateTransactionDto,
@@ -63,6 +66,7 @@ export class TransactionsController {
   }
 
   @Patch(':id')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Update a transaction' })
   @ApiParam({ name: 'id', description: 'Transaction UUID' })
   @ApiBody({
@@ -87,6 +91,7 @@ export class TransactionsController {
   }
 
   @Delete(':id')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Delete a transaction' })
   @ApiParam({ name: 'id', description: 'Transaction UUID' })
   @ApiResponse({ status: 200, description: 'Transaction successfully deleted' })

@@ -20,6 +20,8 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { Leaderboard } from './entities/leaderboard.entity';
+import { Roles } from '../common/decorators/roles.decorator';
+import { UserRole } from '../common/enums/roles.enum';
 
 @ApiTags('leaderboards')
 @Controller('leaderboards')
@@ -27,6 +29,7 @@ export class LeaderboardsController {
   constructor(private readonly leaderboardsService: LeaderboardsService) {}
 
   @Post()
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Create a new leaderboard entry' })
   @ApiBody({ type: CreateLeaderboardDto })
   @ApiResponse({
@@ -132,6 +135,7 @@ export class LeaderboardsController {
   }
 
   @Put(':id')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Update a leaderboard entry' })
   @ApiParam({ name: 'id', description: 'Leaderboard ID' })
   @ApiBody({ type: UpdateLeaderboardDto })
@@ -156,6 +160,7 @@ export class LeaderboardsController {
   }
 
   @Delete(':id')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Delete a leaderboard entry' })
   @ApiParam({ name: 'id', description: 'Leaderboard ID' })
   @ApiResponse({
