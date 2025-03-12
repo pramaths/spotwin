@@ -24,8 +24,7 @@ async function bootstrap() {
     app.enableCors({
       origin: process.env.NODE_ENV === 'production' 
         ? ['https://9shootsshhr2332jferere.vercel.app', 'https://9shoot.fun'] 
-        // : ['http://localhost:3000', 'http://localhost:8081'],
-        : ['https://9shootsshhr2332jferere.vercel.app'],
+        : ['https://9shootsshhr2332jferere.vercel.app', 'http://localhost:3000', 'http://localhost:8081'],
       credentials: true,
       allowedHeaders: ['Authorization', 'Content-Type', 'x-public-key'],
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
