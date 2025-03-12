@@ -46,8 +46,7 @@ export class SolanaListenerService implements OnModuleInit, OnModuleDestroy {
     private dataSource: DataSource,
   ) {
     this.connection = new Connection(
-      this.configService.get<string>('SOLANA_RPC_URL') ||
-        'https://api.devnet.solana.com',
+        'https://rpc.mainnet-alpha.sonic.game',
       'confirmed',
     );
   }
