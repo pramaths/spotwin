@@ -18,14 +18,18 @@ export class PredictionsService {
   ) {}
 
   async create(createPredictionDto: CreatePredictionDto): Promise<Prediction> {
-    // Fetch existing predictions for this user and contest
     const existingPredictions = await this.predictionRepository.find({
       where: { 
         userId: createPredictionDto.userId,
         contestId: createPredictionDto.contestId 
       },
-      relations: ['contest'],
     });
+
+    if (existingPredictions.length >= 9) {
+      throw new BadRequestException(
+        'User already has the maximum number of predictions (9) for this contest',
+      );
+    }  
 
     // Check if contest is open
     const contest = existingPredictions[0]?.contest;
@@ -35,14 +39,6 @@ export class PredictionsService {
       );
     }
 
-    // Check maximum predictions (9)
-    if (existingPredictions.length >= 9) {
-      throw new BadRequestException(
-        'User already has the maximum number of predictions (9) for this contest',
-      );
-    }
-
-    // Check if videoId is already used
     const videoAlreadyPredicted = existingPredictions.some(
       (p) => p.videoId === createPredictionDto.videoId,
     );
@@ -134,5 +130,19 @@ export class PredictionsService {
     const prediction = await this.findOne(id);
     prediction.isCorrect = isCorrect;
     return await this.predictionRepository.save(prediction);
+  }
+
+  async removeByVideoAndUser(videoId: string, userId: string): Promise<void> {
+    console.log('videoId', videoId);
+    console.log('userId', userId);
+    const prediction = await this.predictionRepository.findOne({
+      where: { videoId, userId },
+    });
+
+    if (!prediction) {
+      throw new NotFoundException(`Prediction with video ID ${videoId} not found for user ${userId}`);
+    }
+
+    await this.predictionRepository.remove(prediction);
   }
 }
