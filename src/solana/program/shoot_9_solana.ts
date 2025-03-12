@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/shoot_9_solana.json`.
  */
 export type Shoot9Solana = {
-  address: 'AS39cyPiYMfcthVhdJhAq1Bc3jjVoo4a7VRcvFvQuEMP';
+  address: '8x6gwoJY88dG9aJ27wJ79nLcRw6bkZEUKJxfM5CPg6NS';
   metadata: {
     name: 'shoot9Solana';
     version: '0.1.0';
