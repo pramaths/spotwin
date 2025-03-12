@@ -8,6 +8,7 @@ import * as cookieParser from 'cookie-parser';
 import { repl } from '@nestjs/core';
 import { Logger } from '@nestjs/common';
 import * as morgan from 'morgan';
+import * as bodyParser from 'body-parser';
 
 declare const module: any;
 
@@ -18,7 +19,8 @@ async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
       logger: ['error', 'warn', 'log', 'verbose', 'debug'],
     });
-
+    app.use(bodyParser.json({ limit: '50mb' }));
+    app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
     app.use(cookieParser());
     app.use(helmet());
     app.enableCors({
