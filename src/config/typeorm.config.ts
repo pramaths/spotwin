@@ -4,6 +4,8 @@ import { join } from 'path';
 
 export const typeOrmConfig = (): TypeOrmModuleOptions => {
   const config = configuration();
+  const isProduction = process.env.NODE_ENV === 'production';
+  
   return {
     type: 'postgres',
     host: config.database.host,
@@ -15,10 +17,8 @@ export const typeOrmConfig = (): TypeOrmModuleOptions => {
     ssl: config.database.ssl ? {
       rejectUnauthorized: false // Important for AWS RDS connections
     } : false,
-    // logging: process.env.NODE_ENV !== 'production',
-    // In production, you'd want to disable synchronize
-    synchronize: process.env.NODE_ENV !== 'production',
-    // For migrations:
-    // migrations: [join(__dirname, '../migrations/*.{ts,js}')],
+    synchronize: process.env.TYPEORM_SYNCHRONIZE === 'true' || (!isProduction && process.env.TYPEORM_SYNCHRONIZE !== 'false'),
+    migrationsRun: process.env.TYPEORM_MIGRATIONS_RUN === 'true' || (isProduction && process.env.TYPEORM_MIGRATIONS_RUN !== 'false'),
+    migrations: [join(__dirname, '../migrations/*.{ts,js}')],
   };
 };

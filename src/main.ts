@@ -22,10 +22,13 @@ async function bootstrap() {
     app.use(cookieParser());
     app.use(helmet());
     app.enableCors({
-      origin: ['http://localhost:3000', 'http://localhost:8081'],
+      origin: process.env.NODE_ENV === 'production' 
+        ? ['https://ggggggtuitugtuhhtrtu.vercel.app', 'https://9shoot.fun'] 
+        : ['http://localhost:3000', 'http://localhost:8081'],
       credentials: true,
       allowedHeaders: ['Authorization', 'Content-Type', 'x-public-key'],
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+      maxAge: 86400, // 24 hours in seconds - caching preflight requests
     });
     app.useGlobalPipes(
       new ValidationPipe({
