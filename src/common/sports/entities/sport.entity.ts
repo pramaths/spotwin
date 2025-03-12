@@ -13,14 +13,6 @@ export class Sport {
   name: string;
 
   @ApiProperty({
-    example: 'A team sport played with a spherical ball',
-    description: 'Description of the sport',
-    required: false,
-  })
-  @Column({ nullable: true })
-  description?: string;
-
-  @ApiProperty({
     example: 'https://example.com/football.jpg',
     description: 'URL to the sport image',
   })
