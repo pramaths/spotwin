@@ -27,6 +27,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { VideoSubmission } from './entities/video-submission.entity';
+import { memoryStorage } from 'multer';
 
 const ALLOWED_PUBLIC_KEYS = [
   '6qRaQeLuacCxqJE6WMZTmcGkLWbSVf5wLLozKMfMNc6v',
@@ -70,7 +71,12 @@ export class SubmissionController {
     FileFieldsInterceptor([
       { name: 'video', maxCount: 1 },
       { name: 'thumbnail', maxCount: 1 },
-    ]),
+    ], {
+      limits: {
+        fileSize: 100 * 1024 * 1024, // 100MB limit
+      },
+      storage: memoryStorage(), // Use memory storage for processing
+    }),
   )
   async create(
     @Body() createVideoSubmissionDto: CreateVideoSubmissionDto,
@@ -87,7 +93,10 @@ export class SubmissionController {
           HttpStatus.BAD_REQUEST,
         );
       }
-
+      
+      // Log file size for debugging
+      console.log(`Received video file size: ${files.video[0].size} bytes`);
+      
       const dto = {
         ...createVideoSubmissionDto,
         videoFile: files.video[0],

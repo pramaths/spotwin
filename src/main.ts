@@ -18,11 +18,16 @@ async function bootstrap() {
   } else {
     const app = await NestFactory.create(AppModule, {
       logger: ['error', 'warn', 'log', 'verbose', 'debug'],
+      bodyParser: false,
     });
-    app.use(bodyParser.json({ limit: '50mb' }));
-    app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
+    app.use(bodyParser.json({ limit: '100mb' }));
+    app.use(bodyParser.urlencoded({ extended: true, limit: '100mb' }));
     app.use(cookieParser());
     app.use(helmet());
+    app.use(bodyParser.raw({ 
+      type: 'application/octet-stream',
+      limit: '100mb'
+    }));
     app.enableCors({
       origin: process.env.NODE_ENV === 'production' 
         ? ['https://9shootsshhr2332jferere.vercel.app', 'https://9shoot.fun'] 
@@ -74,7 +79,7 @@ async function bootstrap() {
     });
 
     const PORT = process.env.PORT ?? 8000;
-    await app.listen(process.env.PORT, () => {
+    await app.listen(PORT, '0.0.0.0', () => {
       Logger.log(`Server is running on port ${PORT}`);
       Logger.log(`API Documentation: http://localhost:${PORT}/api`);
     });
