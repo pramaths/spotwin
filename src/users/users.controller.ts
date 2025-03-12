@@ -90,30 +90,6 @@ export class UserController {
     return await this.userService.update(id, updateUserDto);
   }
 
-  @Patch(':id/wallet')
-  @ApiOperation({ summary: 'Update a user\'s wallet address' })
-  @ApiParam({ name: 'id', description: 'User ID' })
-  @ApiBody({ type: UpdateWalletDto })
-  @ApiResponse({ 
-    status: HttpStatus.OK, 
-    description: 'User wallet has been successfully updated',
-    type: User
-  })
-  @ApiResponse({ 
-    status: HttpStatus.NOT_FOUND, 
-    description: 'User with the specified ID not found' 
-  })
-  @ApiResponse({ 
-    status: HttpStatus.BAD_REQUEST, 
-    description: 'Invalid input data or user with this public address already exists' 
-  })
-  async updateWallet(
-    @Param('id') id: string,
-    @Body() updateWalletDto: UpdateWalletDto,
-  ): Promise<User> {
-    return await this.userService.updateWallet(id, updateWalletDto);
-  }
-
   @Patch(':id/deactivate')
   @ApiOperation({ summary: 'Deactivate a user account' })
   @ApiParam({ name: 'id', description: 'User ID' })
