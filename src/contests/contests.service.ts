@@ -512,38 +512,35 @@ export class ContestsService implements OnModuleInit {
 
   async findAll(): Promise<Contest[]> {
     this.logger.debug('Finding all active contests');
-    console.log('findAll');
-    return await this.contestRepository.find({
-      where: [
-        { 
-          status: ContestStatus.OPEN,
-          event: { 
-            status: EventStatus.LIVE // This doesn't work as expected
-          },
-        },
-        { 
-          status: ContestStatus.OPEN,
-          event: { 
-            status: EventStatus.OPEN // Need a separate condition
-          },
-        },
-        { 
-          status: ContestStatus.LIVE,
-          event: { 
-            status: EventStatus.LIVE
-          },
-        },
-        { 
-          status: ContestStatus.LIVE,
-          event: { 
-            status: EventStatus.OPEN
-          },
-        },
-      ],
+    console.log('findAll - starting diagnostic');
+    
+    // First, get all contests without filtering to see what's in the database
+    const allContests = await this.contestRepository.find({
       relations: {
         event: { sport: true, teamA: true, teamB: true },
       },
     });
+    
+    console.log(`Total contests in database: ${allContests.length}`);
+    
+    // Log the statuses to see what we're working with
+    const contestStatuses = allContests.map(c => c.status);
+    const eventStatuses = allContests.map(c => c.event?.status).filter(Boolean);
+    
+    console.log('Contest statuses in DB:', [...new Set(contestStatuses)]);
+    console.log('Event statuses in DB:', [...new Set(eventStatuses)]);
+    
+    // Now apply the filter in memory to see if it works
+    const filteredContests = allContests.filter(contest => 
+      (contest.status === ContestStatus.OPEN || contest.status === ContestStatus.LIVE) &&
+      contest.event && 
+      (contest.event.status === 'UPCOMING' || contest.event.status === 'LIVE')
+    );
+    
+    console.log(`Filtered contests count: ${filteredContests.length}`);
+    
+    // Return the filtered results for now
+    return filteredContests;
   }
 
   async findActiveContestsWithDetails(): Promise<Partial<Contest>[]> {
