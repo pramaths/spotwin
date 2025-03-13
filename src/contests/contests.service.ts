@@ -515,12 +515,30 @@ export class ContestsService implements OnModuleInit {
     console.log('findAll');
     return await this.contestRepository.find({
       where: [
-        { status: ContestStatus.OPEN ,
-          event: { status: EventStatus.LIVE || EventStatus.OPEN },
+        { 
+          status: ContestStatus.OPEN,
+          event: { 
+            status: EventStatus.LIVE // This doesn't work as expected
+          },
         },
-        { status: ContestStatus.LIVE,
-          event: { status: EventStatus.LIVE || EventStatus.OPEN },
-         },
+        { 
+          status: ContestStatus.OPEN,
+          event: { 
+            status: EventStatus.OPEN // Need a separate condition
+          },
+        },
+        { 
+          status: ContestStatus.LIVE,
+          event: { 
+            status: EventStatus.LIVE
+          },
+        },
+        { 
+          status: ContestStatus.LIVE,
+          event: { 
+            status: EventStatus.OPEN
+          },
+        },
       ],
       relations: {
         event: { sport: true, teamA: true, teamB: true },
