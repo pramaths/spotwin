@@ -28,6 +28,7 @@ import Shoot9SDK, { Winner } from '../solana/program/contract-sdk';
 import { VideoSubmission } from '../videos/entities/video-submission.entity';
 import { FeaturedVideo } from '../videos/entities/featured-video.entity';
 import { OutcomeType } from '../common/enums/outcome-type.enum';
+import { EventStatus } from '../common/enums/common.enum';
 
 @Injectable()
 export class ContestsService implements OnModuleInit {
@@ -514,8 +515,12 @@ export class ContestsService implements OnModuleInit {
     console.log('findAll');
     return await this.contestRepository.find({
       where: [
-        { status: ContestStatus.OPEN },
-        { status: ContestStatus.LIVE }
+        { status: ContestStatus.OPEN ,
+          event: { status: EventStatus.LIVE || EventStatus.OPEN },
+        },
+        { status: ContestStatus.LIVE,
+          event: { status: EventStatus.LIVE || EventStatus.OPEN },
+         },
       ],
       relations: {
         event: { sport: true, teamA: true, teamB: true },
