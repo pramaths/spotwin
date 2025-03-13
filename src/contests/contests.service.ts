@@ -496,6 +496,7 @@ export class ContestsService implements OnModuleInit {
   }
 
   async findAll(): Promise<Contest[]> {
+    console.log('findAll');
     return await this.contestRepository.find({
       where: [
         { status: ContestStatus.OPEN },
