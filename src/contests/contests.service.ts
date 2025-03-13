@@ -497,6 +497,7 @@ export class ContestsService implements OnModuleInit {
 
   async findAll(): Promise<Contest[]> {
     return await this.contestRepository.find({
+      where: { status: ContestStatus.OPEN || ContestStatus.LIVE },
       relations: {
         event: { sport: true, teamA: true, teamB: true },
       },
