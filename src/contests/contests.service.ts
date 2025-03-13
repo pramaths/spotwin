@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   OnModuleInit,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -31,6 +32,7 @@ import { OutcomeType } from '../common/enums/outcome-type.enum';
 @Injectable()
 export class ContestsService implements OnModuleInit {
   private sdk: Shoot9SDK;
+  private readonly logger = new Logger(ContestsService.name);
 
   constructor(
     @InjectRepository(Contest)
@@ -61,12 +63,14 @@ export class ContestsService implements OnModuleInit {
     const keypair = await getKeypairFromFile(keypairPath); // Use env variable
     const wallet = new Wallet(keypair);
     this.sdk = new Shoot9SDK(connection, wallet);
+    this.logger.log('ContestsService initialized');
   }
 
   async createContest(
     eventId: string,
     createContestDto: CreateContestDto,
   ): Promise<Contest> {
+    this.logger.log(`Creating contest for event ${eventId}`);
     const event = await this.eventsService.findOne(eventId);
     if (!event)
       throw new NotFoundException(`Event with ID ${eventId} not found`);
@@ -84,6 +88,7 @@ export class ContestsService implements OnModuleInit {
     contestId: string,
     selectedVideoId: string,
   ): Promise<void> {
+    this.logger.log(`Resolving contest ${contestId} with selected video ${selectedVideoId}`);
     const contest = await this.contestRepository.findOne({
       where: { id: contestId },
       relations: ['userContests', 'userContests.user'],
@@ -293,6 +298,7 @@ export class ContestsService implements OnModuleInit {
   }
 
   async findOne(id: string): Promise<Contest> {
+    this.logger.debug(`Finding contest with ID ${id}`);
     const contest = await this.contestRepository.findOne({
       where: { id },
       relations: {
@@ -305,6 +311,7 @@ export class ContestsService implements OnModuleInit {
   }
 
   async findBySolanaContestId(solanaContestId: string): Promise<Contest> {
+    this.logger.debug(`Finding contest with Solana contest ID ${solanaContestId}`);
     const contest = await this.contestRepository.findOne({
       where: { solanaContestId },
       relations: {
@@ -326,6 +333,7 @@ export class ContestsService implements OnModuleInit {
     id: string,
     updateContestDto: UpdateContestDto,
   ): Promise<Contest> {
+    this.logger.log(`Updating contest ${id}`);
     const contest = await this.findOne(id);
     Object.assign(contest, updateContestDto);
     await this.contestRepository.save(contest);
@@ -333,6 +341,7 @@ export class ContestsService implements OnModuleInit {
   }
 
   async remove(id: string): Promise<void> {
+    this.logger.log(`Removing contest ${id}`);
     const result = await this.contestRepository.delete(id);
     if (result.affected === 0)
       throw new NotFoundException(`Contest with ID ${id} not found`);
@@ -340,6 +349,7 @@ export class ContestsService implements OnModuleInit {
 
   // New Contest Video Methods
   async getContestVideos(contestId: string): Promise<VideoSubmission[]> {
+    this.logger.debug(`Getting videos for contest ${contestId}`);
     const contest = await this.findOne(contestId);
     return this.submissionService.findByContestId(contestId);
   }
@@ -348,6 +358,7 @@ export class ContestsService implements OnModuleInit {
     videoId: string,
     contestId: string,
   ): Promise<VideoSubmission> {
+    this.logger.log(`Approving video ${videoId} for contest ${contestId}`);
     const submission = await this.submissionService.findOne(videoId);
     if (submission.contestId !== contestId) {
       throw new BadRequestException(
@@ -381,6 +392,7 @@ export class ContestsService implements OnModuleInit {
     videoId: string,
     contestId: string,
   ): Promise<VideoSubmission> {
+    this.logger.log(`Rejecting video ${videoId} for contest ${contestId}`);
     const submission = await this.submissionService.findOne(videoId);
     if (submission.contestId !== contestId) {
       throw new BadRequestException(
@@ -408,6 +420,7 @@ export class ContestsService implements OnModuleInit {
     contestId: string,
     videoIds: string[],
   ): Promise<FeaturedVideo[]> {
+    this.logger.log(`Selecting ${videoIds.length} videos for contest ${contestId}`);
     const contest = await this.findOne(contestId);
     if (videoIds.length > 30) {
       throw new BadRequestException(
@@ -456,6 +469,7 @@ export class ContestsService implements OnModuleInit {
     answer: 'yes' | 'no',
     question: string,
   ): Promise<FeaturedVideo> {
+    this.logger.log(`Answering video ${videoId} for contest ${contestId} with ${answer}`);
     const submission = await this.submissionService.findOne(videoId);
     if (!submission || submission.contestId !== contestId) {
       throw new BadRequestException(
@@ -496,6 +510,7 @@ export class ContestsService implements OnModuleInit {
   }
 
   async findAll(): Promise<Contest[]> {
+    this.logger.debug('Finding all active contests');
     console.log('findAll');
     return await this.contestRepository.find({
       where: [
@@ -509,6 +524,7 @@ export class ContestsService implements OnModuleInit {
   }
 
   async findActiveContestsWithDetails(): Promise<Partial<Contest>[]> {
+    this.logger.debug('Finding active contests with details');
     const contests = await this.contestRepository.find({
       where: [{ status: ContestStatus.OPEN }, { status: ContestStatus.LIVE }],
       relations: ['event', 'event.teamA', 'event.teamB', 'featuredVideos'],
