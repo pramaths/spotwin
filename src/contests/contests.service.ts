@@ -49,7 +49,7 @@ export class ContestsService implements OnModuleInit {
   async onModuleInit() {
     const connection = new Connection(
       this.configService.get<string>('SOLANA_RPC_URL') ||
-        'https://api.testnet.v1.sonic.game',
+        'https://rpc.mainnet-alpha.sonic.game',
       'confirmed',
     );
     const keypairPath = this.configService.get<string>('SOLANA_KEYPAIR_PATH');
