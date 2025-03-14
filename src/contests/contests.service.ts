@@ -546,6 +546,14 @@ export class ContestsService implements OnModuleInit {
     });
   }
 
+  async findAllAdmin(): Promise<Contest[]> {
+    return await this.contestRepository.find({
+      relations: {
+        event: { sport: true, teamA: true, teamB: true },
+      },
+    });
+  }
+
   async findActiveContestsWithDetails(): Promise<Partial<Contest>[]> {
     this.logger.debug('Finding active contests with details');
     const contests = await this.contestRepository.find({
