@@ -126,6 +126,24 @@ export class ContestsController {
     }
   }
 
+  @Get('/admin')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Get all contests for admin' })
+  @ApiResponse({
+    status: 200,
+    description: 'All contests retrieved',
+  })
+  async findAllAdmin() {
+    try {
+      return await this.contestsService.findAllAdmin();
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Failed to retrieve contests',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+  
   @Get(':id')
   @ApiOperation({ summary: 'Get a contest by ID' })
   @ApiParam({ name: 'id', type: String, description: 'Contest ID (UUID)' })
@@ -345,24 +363,6 @@ export class ContestsController {
   async findAll() {
     try {
       return await this.contestsService.findAll();
-    } catch (error) {
-      throw new HttpException(
-        error.message || 'Failed to retrieve contests',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  @Get('/admin')
-  @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'Get all contests for admin' })
-  @ApiResponse({
-    status: 200,
-    description: 'All contests retrieved',
-  })
-  async findAllAdmin() {
-    try {
-      return await this.contestsService.findAllAdmin();
     } catch (error) {
       throw new HttpException(
         error.message || 'Failed to retrieve contests',
