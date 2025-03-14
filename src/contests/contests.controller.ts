@@ -127,7 +127,6 @@ export class ContestsController {
   }
 
   @Get('/admin')
-  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get all contests for admin' })
   @ApiResponse({
     status: 200,
@@ -143,7 +142,7 @@ export class ContestsController {
       );
     }
   }
-  
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a contest by ID' })
   @ApiParam({ name: 'id', type: String, description: 'Contest ID (UUID)' })
