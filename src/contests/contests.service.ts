@@ -52,7 +52,7 @@ export class ContestsService implements OnModuleInit {
   async onModuleInit() {
     const connection = new Connection(
       this.configService.get<string>('SOLANA_RPC_URL') ||
-        'https://rpc.mainnet-alpha.sonic.game',
+        'https://api.testnet.sonic.game',
       'confirmed',
     );
     const keypairPath = this.configService.get<string>('SOLANA_KEYPAIR_PATH');
@@ -87,18 +87,16 @@ export class ContestsService implements OnModuleInit {
 
   async resolveContest(
     contestId: string,
-    selectedVideoId: string,
   ): Promise<void> {
-    this.logger.log(`Resolving contest ${contestId} with selected video ${selectedVideoId}`);
     const contest = await this.contestRepository.findOne({
       where: { id: contestId },
       relations: ['userContests', 'userContests.user'],
     });
     if (!contest)
       throw new NotFoundException(`Contest with ID ${contestId} not found`);
-    if (contest.status !== ContestStatus.OPEN)
+    if (contest.status !== ContestStatus.COMPLETED)
       throw new BadRequestException(
-        'Contest is not open and cannot be resolved',
+        'Contest is not completed and cannot be resolved',
       );
 
     const featuredVideos =
@@ -115,100 +113,135 @@ export class ContestsService implements OnModuleInit {
         'All featured videos must have a correct outcome set before resolving',
       );
 
+    const featuredVideoMap = new Map<string, FeaturedVideo>();
+    for (const video of featuredVideos) {
+      featuredVideoMap.set(video.id, video);
+    }
+
     const userContests = contest.userContests;
-    const users = userContests.map((uc) => uc.user);
-
-    const userScores: {
-      userId: string;
-      correctAnswers: number;
-      tiebreakerScore: number;
-      predictedSelectedVideo: boolean;
-    }[] = [];
-    for (const user of users) {
-      const userContest = userContests.find((uc) => uc.user.id === user.id);
-      if (!userContest) continue;
-
-      const predictions = await this.predictionsService.findByContest(
-        userContest.id,
-      );
-      if (predictions.length !== 9)
-        throw new BadRequestException(
-          `User ${user.id} must have exactly 9 predictions for contest ${contestId}`,
-        );
-
+    const userMap = new Map<string, any>();
+    for (const uc of userContests) {
+      userMap.set(uc.user.id, uc.user);
+    }
+    
+    // Batch fetch all predictions for all user contests
+    const allPredictions = [];
+    const userContestIds = userContests.map(uc => uc.id);
+    for (const userContestId of userContestIds) {
+      const userPredictions = await this.predictionsService.findByContest(userContestId);
+      allPredictions.push(...userPredictions);
+    }
+    
+    // Group predictions by user ID using a Map
+    const predictionsByUser = new Map<string, any[]>();
+    for (const prediction of allPredictions) {
+      if (!predictionsByUser.has(prediction.userId)) {
+        predictionsByUser.set(prediction.userId, []);
+      }
+      predictionsByUser.get(prediction.userId).push(prediction);
+    }
+    
+    // Prepare batch updates for predictions
+    const predictionUpdates = [];
+    
+    // Calculate scores for each user
+    const userScores = [];
+    for (const [userId, userPredictions] of predictionsByUser.entries()) {
+      if (userPredictions.length !== 9) {
+        this.logger.warn(`User ${userId} has ${userPredictions.length} predictions instead of 9 for contest ${contestId}`);
+        continue;
+      }
+      
       let correctAnswers = 0;
       let tiebreakerScore = 0;
       let predictedSelectedVideo = false;
-
-      for (const prediction of predictions) {
-        const featuredVideo = featuredVideos.find(
-          (v) => v.id === prediction.videoId,
-        );
-        if (!featuredVideo)
+      
+      // Check each prediction against featured videos
+      for (const prediction of userPredictions) {
+        const featuredVideo = featuredVideoMap.get(prediction.videoId);
+        if (!featuredVideo) {
           throw new NotFoundException(
             `Featured video ${prediction.videoId} not found`,
           );
-
-        const isCorrect =
-          prediction.prediction === featuredVideo.correctOutcome;
-        prediction.isCorrect = isCorrect;
-        await this.predictionsService.updatePredictionResult(
-          prediction.id,
-          isCorrect,
-        );
-
+        }
+        
+        // Check if user predicted a video they uploaded
+        if (featuredVideo.user.id === userId) {
+          predictedSelectedVideo = true;
+        }
+        
+        // Check if prediction is correct
+        const isCorrect = prediction.prediction === featuredVideo.correctOutcome;
+        
+        // Queue prediction update instead of immediate update
+        predictionUpdates.push({
+          id: prediction.id,
+          isCorrect
+        });
+        
+        // Update scores
         if (isCorrect) {
           correctAnswers++;
           tiebreakerScore +=
             featuredVideo.numberOfBets > 0 ? 1 / featuredVideo.numberOfBets : 1;
         }
-        if (prediction.videoId === selectedVideoId)
-          predictedSelectedVideo = true;
       }
-
+      
       userScores.push({
-        userId: user.id,
+        userId,
         correctAnswers,
         tiebreakerScore,
         predictedSelectedVideo,
       });
     }
-
+    
+    // Batch update all predictions
+    await Promise.all(
+      predictionUpdates.map(update => 
+        this.predictionsService.updatePredictionResult(update.id, update.isCorrect)
+      )
+    );
+    
+    // Sort users by score and tiebreaker
     userScores.sort((a, b) => {
       if (a.correctAnswers !== b.correctAnswers)
         return b.correctAnswers - a.correctAnswers;
       return b.tiebreakerScore - a.tiebreakerScore;
     });
-
+    
+    // Create leaderboard entries
     const leaderboardEntries = [];
     let currentRank = 1;
+    let prevScore = null;
+    let prevTiebreaker = null;
+    
     for (let i = 0; i < userScores.length; i++) {
       const userScore = userScores[i];
-      if (
-        i > 0 &&
-        userScore.correctAnswers === userScores[i - 1].correctAnswers &&
-        userScore.tiebreakerScore === userScores[i - 1].tiebreakerScore
-      ) {
-        leaderboardEntries.push({
-          userId: userScore.userId,
-          contestId,
-          score: userScore.correctAnswers,
-          rank: currentRank,
-        });
-      } else {
+      
+      // Only increment rank if score or tiebreaker is different
+      if (i > 0 && 
+          (userScore.correctAnswers !== prevScore || 
+           userScore.tiebreakerScore !== prevTiebreaker)) {
         currentRank = i + 1;
-        leaderboardEntries.push({
-          userId: userScore.userId,
-          contestId,
-          score: userScore.correctAnswers,
-          rank: currentRank,
-        });
       }
+      
+      leaderboardEntries.push({
+        userId: userScore.userId,
+        contestId,
+        score: userScore.correctAnswers,
+        rank: currentRank,
+      });
+      
+      prevScore = userScore.correctAnswers;
+      prevTiebreaker = userScore.tiebreakerScore;
     }
 
-    for (const entry of leaderboardEntries)
-      await this.leaderboardsService.create(entry);
+    // Batch create leaderboard entries
+    await Promise.all(
+      leaderboardEntries.map(entry => this.leaderboardsService.create(entry))
+    );
 
+    // Batch slot assignments
     const batchSlots = [
       { min: 1, max: 1, slot: '1' },
       { min: 2, max: 2, slot: '2' },
@@ -221,64 +254,60 @@ export class ContestsService implements OnModuleInit {
       { min: 201, max: 550, slot: '200-550' },
     ];
 
-    const batchAssignments: { userId: string; batch: string }[] = [];
-    for (let i = 0; i < leaderboardEntries.length; i++) {
-      const rank = leaderboardEntries[i].rank;
-      const userScore = userScores.find(
-        (us) => us.userId === leaderboardEntries[i].userId,
-      )!;
-
-      let batch = 'unassigned';
-      for (const slot of batchSlots) {
-        if (rank >= slot.min && rank <= slot.max) {
-          batch = slot.slot;
-          break;
-        }
+    // Create a map for quick batch lookup
+    const batchSlotMap = new Map();
+    for (const slot of batchSlots) {
+      for (let rank = slot.min; rank <= slot.max; rank++) {
+        batchSlotMap.set(rank, slot.slot);
       }
+    }
 
+    const batchAssignments = [];
+    for (let i = 0; i < leaderboardEntries.length; i++) {
+      const entry = leaderboardEntries[i];
+      const userScore = userScores.find(us => us.userId === entry.userId);
+      const rank = entry.rank;
+      
+      let batch = batchSlotMap.get(rank) || 'unassigned';
+      
       const isTop8 = rank <= 8;
       const isLastRanked = rank === leaderboardEntries.length;
+      
       if (isTop8) {
         batchAssignments.push({ userId: userScore.userId, batch });
       } else if (isLastRanked) {
-        const lowerBatch =
-          batchSlots.find((slot) => slot.min > rank)?.slot || 'unassigned';
-        batchAssignments.push({ userId: userScore.userId, batch: lowerBatch });
+        // Find the next higher batch slot
+        let nextBatch = 'unassigned';
+        for (const slot of batchSlots) {
+          if (slot.min > rank) {
+            nextBatch = slot.slot;
+            break;
+          }
+        }
+        batchAssignments.push({ userId: userScore.userId, batch: nextBatch });
       } else {
         if (userScore.predictedSelectedVideo) {
-          const currentSlotIndex = batchSlots.findIndex(
-            (slot) => slot.slot === batch,
-          );
-          const higherBatch =
-            currentSlotIndex > 0
-              ? batchSlots[currentSlotIndex - 1].slot
-              : batch;
-          batchAssignments.push({
-            userId: userScore.userId,
-            batch: higherBatch,
-          });
+          // Move up one batch if possible
+          const currentIndex = batchSlots.findIndex(slot => slot.slot === batch);
+          const higherBatch = currentIndex > 0 ? batchSlots[currentIndex - 1].slot : batch;
+          batchAssignments.push({ userId: userScore.userId, batch: higherBatch });
         } else {
-          const currentSlotIndex = batchSlots.findIndex(
-            (slot) => slot.slot === batch,
-          );
-          const lowerBatch =
-            batchSlots[currentSlotIndex + 1]?.slot || 'unassigned';
-          batchAssignments.push({
-            userId: userScore.userId,
-            batch: lowerBatch,
-          });
+          // Move down one batch if possible
+          const currentIndex = batchSlots.findIndex(slot => slot.slot === batch);
+          const lowerBatch = batchSlots[currentIndex + 1]?.slot || 'unassigned';
+          batchAssignments.push({ userId: userScore.userId, batch: lowerBatch });
         }
       }
     }
 
+    // Update contest status
     contest.status = ContestStatus.COMPLETED;
     await this.contestRepository.save(contest);
 
+    // Calculate winners and payouts
     const winners: Winner[] = leaderboardEntries.map((entry) => {
-      const user = users.find((u) => u.id === entry.userId)!;
-      const batch = batchAssignments.find(
-        (ba) => ba.userId === entry.userId,
-      )!.batch;
+      const user = userMap.get(entry.userId);
+      const batch = batchAssignments.find(ba => ba.userId === entry.userId)?.batch;
       const basePayout = entry.score * 10;
       const batchMultiplier = batch === '1' ? 2 : batch === '2' ? 1.5 : 1;
       const payoutInSol = basePayout * batchMultiplier;
@@ -291,6 +320,7 @@ export class ContestsService implements OnModuleInit {
         this.sdk.wallet.publicKey.toString(),
     );
 
+    // Uncomment when ready to process on-chain
     // await this.sdk.resolveContest(
     //   Number(contest.solanaContestId),
     //   winners,

@@ -110,10 +110,9 @@ export class ContestsController {
   @ApiResponse({ status: 404, description: 'Contest not found.' })
   async resolveContest(
     @Param('id') contestId: string,
-    @Body('selectedVideoId') selectedVideoId: string,
   ) {
     try {
-      await this.contestsService.resolveContest(contestId, selectedVideoId);
+      await this.contestsService.resolveContest(contestId);
       return {
         message:
           'Contest resolved successfully. Payouts will be processed shortly.',
