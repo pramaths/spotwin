@@ -12,9 +12,6 @@ import { ContestsModule } from './contests/contests.module';
 import { AuthModule } from './auth/auth.module';
 import { SportsModule } from './common/sports/sports.module';
 import { TeamsModule } from './teams/teams.module';
-import { VideosModule } from './videos/videos.module';
-import { PrivyModule } from './privy/privy.module';
-import { SolanaModule } from './solana/solana.module';
 import { LeaderboardsModule } from './leaderboards/leaderboards.module';
 import { PayoutsModule } from './payouts/payouts.module';
 import { PredictionsModule } from './predictions/predictions.module';
@@ -22,7 +19,8 @@ import { AuthorizedCreatorsModule } from './authorized_creators/authorized-creat
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from './common/guards/roles.guard';
 import { AuthorizedCreator } from './authorized_creators/entities/authorized-creator.entity';
-
+import { QuestionsModule } from './questions/questions.module';
+import { MatchesModule } from './matches/match.module';
 @Module({
   imports: [
     ThrottlerModule.forRoot([
@@ -45,13 +43,12 @@ import { AuthorizedCreator } from './authorized_creators/entities/authorized-cre
     TeamsModule,
     EventsModule,
     ContestsModule,
-    VideosModule,
-    PrivyModule,
-    SolanaModule,
     PredictionsModule,
     LeaderboardsModule,
     PayoutsModule,
     AuthorizedCreatorsModule,
+    QuestionsModule,
+    MatchesModule,
   ],
   controllers: [AppController],
   providers: [

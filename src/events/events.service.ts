@@ -48,32 +48,15 @@ export class EventsService {
         );
       }
 
-      const teamA = await this.teamsService.findOne(createEventDto.teamAId);
-      if (!teamA) {
-        throw new NotFoundException(
-          `Team A with ID ${createEventDto.teamAId} not found`,
-        );
-      }
-
-      const teamB = await this.teamsService.findOne(createEventDto.teamBId);
-      if (!teamB) {
-        throw new NotFoundException(
-          `Team B with ID ${createEventDto.teamBId} not found`,
-        );
-      }
-
       const event = this.eventRepository.create({
         ...createEventDto,
         eventImageUrl,
         sport,
-        teamA: { id: teamA.id },
-        teamB: { id: teamB.id },
       });
 
       await this.eventRepository.save(event);
       return event;
     } catch (error) {
-      // If there's an error after uploading the image, we should consider cleaning up the uploaded file
       this.logger.error(`Error creating event: ${error.message}`, error.stack);
       throw error;
     }
@@ -82,7 +65,7 @@ export class EventsService {
   async findOne(id: string): Promise<Event> {
     const event = await this.eventRepository.findOne({
       where: { id },
-      relations: ['contests', 'teamA', 'teamB', 'sport'],
+      relations: ['contests',  'sport'],
     });
     return event;
   }
@@ -92,7 +75,7 @@ export class EventsService {
       skip: (page - 1) * limit,
       take: limit,
       order: { createdAt: 'DESC' },
-      relations: ['teamA', 'teamB', 'sport'],
+      relations: [ 'sport'],
     });
 
     return PaginatedResultDto.create(items, page, limit, totalItems);
@@ -101,7 +84,7 @@ export class EventsService {
   async update(id: string, updateEventDto: UpdateEventDto) {
     const event = await this.eventRepository.findOne({ 
       where: { id },
-      relations: ['teamA', 'teamB', 'sport'] 
+      relations: [ 'sport'] 
     });
     
     if (!event) {
@@ -113,7 +96,6 @@ export class EventsService {
       this.validateStatusTransition(event.status, updateEventDto.status);
     }
 
-    // Handle sportId update if provided
     if (updateEventDto.sportId) {
       const sport = await this.sportsService.findOne(updateEventDto.sportId);
       if (!sport) {
@@ -124,45 +106,14 @@ export class EventsService {
       event.sport = sport;
       delete updateEventDto.sportId;
     }
-
-    // Handle teamAId update if provided
-    if (updateEventDto.teamAId) {
-      const teamA = await this.teamsService.findOne(updateEventDto.teamAId);
-      if (!teamA) {
-        throw new NotFoundException(
-          `Team A with ID ${updateEventDto.teamAId} not found`,
-        );
-      }
-      event.teamA = { id: teamA.id } as any;
-      delete updateEventDto.teamAId;
-    }
-
-    // Handle teamBId update if provided
-    if (updateEventDto.teamBId) {
-      const teamB = await this.teamsService.findOne(updateEventDto.teamBId);
-      if (!teamB) {
-        throw new NotFoundException(
-          `Team B with ID ${updateEventDto.teamBId} not found`,
-        );
-      }
-      event.teamB = { id: teamB.id } as any;
-      delete updateEventDto.teamBId;
-    }
-
     Object.assign(event, updateEventDto);
     return await this.eventRepository.save(event);
   }
 
-  /**
-   * Updates only the status of an event
-   * @param id The ID of the event to update
-   * @param updateEventStatusDto The DTO containing the new status
-   * @returns The updated event
-   */
   async updateStatus(id: string, updateEventStatusDto: UpdateEventStatusDto): Promise<Event> {
     const event = await this.eventRepository.findOne({ 
       where: { id },
-      relations: ['teamA', 'teamB', 'sport'] 
+      relations: [ 'sport'] 
     });
     
     if (!event) {
@@ -189,11 +140,6 @@ export class EventsService {
     return await this.eventRepository.remove(event);
   }
 
-  /**
-   * Validates that the event status transition follows the correct flow:
-   * UPCOMING -> OPEN -> LIVE -> COMPLETED
-   * Special statuses like CANCELLED and SUSPENDED can be set from any status
-   */
   private validateStatusTransition(currentStatus: EventStatus, newStatus: EventStatus): void {
     // Special statuses that can be set from any status
     if (newStatus === EventStatus.CANCELLED || newStatus === EventStatus.SUSPENDED) {
@@ -217,21 +163,17 @@ export class EventsService {
     }
   }
 
-  /**
-   * Get all contests for a specific event
-   * @param eventId The ID of the event
-   * @returns Array of contests belonging to the event
-   */
-  async getEventContests(eventId: string) {
+
+  async getEventMatches(eventId: string) {
     const event = await this.eventRepository.findOne({
       where: { id: eventId },
-      relations: ['contests', 'contests.event'],
+      relations: ['matches'],
     });
 
     if (!event) {
       throw new NotFoundException(`Event with ID ${eventId} not found`);
     }
 
-    return event.contests;
+    return event.matches;
   }
 }

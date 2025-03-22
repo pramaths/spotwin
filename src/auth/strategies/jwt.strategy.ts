@@ -5,14 +5,12 @@ import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from '../../users/users.service';
 import { AuthGuard } from '@nestjs/passport';
-import { PrivyService } from '../../privy/privy.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private readonly configService: ConfigService,
     private readonly userService: UserService,
-    private readonly privyService: PrivyService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([

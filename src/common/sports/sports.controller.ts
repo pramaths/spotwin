@@ -33,7 +33,7 @@ export class SportsController {
 
   @Post()
   @Roles(UserRole.ADMIN)
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(FileInterceptor('imageFile'))
   @ApiOperation({ summary: 'Create a new sport' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -41,11 +41,7 @@ export class SportsController {
       type: 'object',
       properties: {
         name: { type: 'string', example: 'Cricket' },
-        description: {
-          type: 'string',
-          example: 'A team sport played with a ball',
-        },
-        image: {
+        imageFile: {
           type: 'string',
           format: 'binary',
         },
@@ -133,10 +129,6 @@ export class SportsController {
       type: 'object',
       properties: {
         name: { type: 'string', example: 'Cricket' },
-        description: {
-          type: 'string',
-          example: 'A team sport played with a ball',
-        },
         image: {
           type: 'string',
           format: 'binary',

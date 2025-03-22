@@ -5,20 +5,22 @@ import { ContestsService } from './contests.service';
 import { ContestsController } from './contests.controller';
 import { EventsModule } from '../events/events.module';
 import { PredictionsModule } from '../predictions/predictions.module';
-import { VideosModule } from '../videos/videos.module';
 import { LeaderboardsModule } from '../leaderboards/leaderboards.module';
 import { UserContestsModule } from '../user-contests/user-contests.module';
 import { ConfigModule } from '@nestjs/config';
+import { QuestionsModule } from '../questions/questions.module';
+import { MatchesModule } from '../matches/match.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Contest]),
     EventsModule,
     PredictionsModule,
-    VideosModule,
     LeaderboardsModule,
     UserContestsModule,
     ConfigModule,
+    QuestionsModule,
+    MatchesModule,
   ],
   providers: [ContestsService],
   controllers: [ContestsController],

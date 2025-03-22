@@ -32,7 +32,7 @@ async function bootstrap() {
       origin: process.env.NODE_ENV === 'production' 
         ? ['https://9shootsshhr2332jferere.vercel.app', 'https://9shoot.fun'] 
         : ['https://9shootsshhr2332jferere.vercel.app', 'http://localhost:3000', 'http://localhost:8081'],
-      allowedHeaders: ['Authorization', 'Content-Type', 'x-public-key'],
+      allowedHeaders: ['Authorization', 'Content-Type', 'x-phone-number'],
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
       maxAge: 86400, // 24 hours in seconds - caching preflight requests
     });

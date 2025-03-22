@@ -14,7 +14,6 @@ import { UserService } from './users.service';
 import { User } from './entities/users.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UpdateWalletDto } from './dto/update-wallet.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -122,11 +121,4 @@ export class UserController {
     return await this.userService.activateUser(id);
   }
 
-
-  @Get('address/:publicAddress')
-  @ApiOperation({ summary: 'Get a user by public address' })
-  @ApiParam({ name: 'publicAddress', description: 'User public blockchain address' })
-  async findByPublicAddress(@Param('publicAddress') publicAddress: string): Promise<User> {
-    return await this.userService.findByPublicAddress(publicAddress);
-  }
 }

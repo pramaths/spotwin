@@ -4,16 +4,25 @@ import {
   Unique,
   CreateDateColumn,
   Column,
+  OneToOne,
+  JoinColumn
 } from 'typeorm';
-
+import { User } from '../../users/entities/users.entity';
 @Entity()
 @Unique(['user'])
 export class AuthorizedCreator {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ length: 44, unique: true })
-  user: string;
+  @Column({ unique: true , type: 'uuid' })
+  userId: string;
+
+  @Column({ unique: true })
+  phoneNumber: string;
+
+  @OneToOne(() => User)
+  @JoinColumn({ name: 'user' })
+  user: User;
 
   @CreateDateColumn()
   createdAt: Date;

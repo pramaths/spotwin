@@ -7,14 +7,14 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Event } from '../../events/entities/events.entity';
+import { Match } from '../../matches/entities/match.entity';
 import { UserContest } from '../../user-contests/entities/user-contest.entity';
 import { Leaderboard } from '../../leaderboards/entities/leaderboard.entity';
 import { Transaction } from '../../transactions/entities/transaction.entity';
 import { Payout } from '../../payouts/entities/payout.entity';
-import { FeaturedVideo } from '../../videos/entities/featured-video.entity';
 import { ContestStatus } from '../../common/enums/common.enum';
 import { ApiProperty } from '@nestjs/swagger';
+import { Question } from '../../questions/entities/questions.entity';
 
 @Entity('contests')
 export class Contest {
@@ -42,18 +42,10 @@ export class Contest {
 
   @ApiProperty({
     description: 'The currency used for the entry fee',
-    example: 'SOL',
+    example: 'INR',
   })
-  @Column({ default: 'SOL' })
+  @Column({ default: 'INR' })
   currency: string;
-
-  @ApiProperty({
-    description: 'The description of the contest',
-    example: 'A contest to predict basketball shot outcomes.',
-    nullable: true,
-  })
-  @Column({ nullable: true })
-  description?: string;
 
   @ApiProperty({
     description: 'The status of the contest',
@@ -62,41 +54,18 @@ export class Contest {
   })
   @Column({ type: 'enum', enum: ContestStatus, default: ContestStatus.OPEN })
   status: ContestStatus;
-
-  @ApiProperty({
-    description: 'The Solana contest ID (on-chain identifier)',
-    example: '1',
-    nullable: true,
-  })
-  @Column({ nullable: true })
-  solanaContestId: string;
-
-  @ApiProperty({
-    description: 'The Solana contest public key (PDA)',
-    example: '5Xb...xyz',
-    nullable: true,
-  })
-  @Column()
-  contestPublicKey: string;
   
-  @ApiProperty({
-    description: 'The creator of the contest',
-    example: '5Xb...xyz',
-    nullable: true,
-  })
-  @Column()
-  contestCreator: string;
 
   @ApiProperty({
-    description: 'The event associated with the contest',
-    type: () => Event,
+    description: 'The match associated with the contest',
+    type: () => Match,
   })
-  @ManyToOne(() => Event, (event) => event.contests, { nullable: false })
-  event: Event;
+  @ManyToOne(() => Match, (match) => match.contests, { nullable: true })
+  match: Match;
 
-  @ApiProperty({ description: 'The featured videos associated with this contest', type: () => [FeaturedVideo] })
-  @OneToMany(() => FeaturedVideo, (featuredVideo) => featuredVideo.contest)
-  featuredVideos: FeaturedVideo[];
+  @ApiProperty({ description: 'The featured videos associated with this contest', type: () => [Question] })
+  @OneToMany(() => Question, (Question) => Question.contest)
+  Questions: Question[];
 
   @ApiProperty({
     description: 'When the contest was created',

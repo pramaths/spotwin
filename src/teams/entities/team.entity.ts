@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { Event } from '../../events/entities/events.entity';
+import { Match } from '../../matches/entities/match.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Entity('teams')
@@ -33,9 +33,9 @@ export class Team {
   @Column({ nullable: true })
   country?: string;
 
-  @OneToMany(() => Event, (event) => event.teamA)
-  eventsAsTeamA: Event[];
+  @OneToMany(() => Match, (match) => match.teamA)
+  matchesAsTeamA: Match[];
 
-  @OneToMany(() => Event, (event) => event.teamB)
-  eventsAsTeamB: Event[];
+  @OneToMany(() => Match, (match) => match.teamB)
+  matchesAsTeamB: Match[];
 }

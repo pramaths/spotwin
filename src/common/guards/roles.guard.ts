@@ -20,28 +20,22 @@ export class RolesGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
-    // If no roles are required, allow access
     if (!requiredRoles || requiredRoles.length === 0) {
       return true;
     }
 
     const request = context.switchToHttp().getRequest();
-    const userPublicKey = request.headers['x-public-key'];
+    const userPhoneNumber = request.headers['x-phone-number'];
 
-    // If no public key provided, deny access
-    if (!userPublicKey) {
-      throw new UnauthorizedException('Missing x-public-key header');
+    if (!userPhoneNumber) {
+      throw new UnauthorizedException('Missing x-phone-number header');
     }
 
-    // Check if the user is an authorized creator (admin)
     const isAuthorizedCreator = await this.authorizedCreatorRepository.findOne({
-      where: { user: userPublicKey },
+      where: { phoneNumber: userPhoneNumber },
     });
 
-    // If the user is an authorized creator, they have admin role
     const userRole = isAuthorizedCreator ? UserRole.ADMIN : UserRole.USER;
-
-    // Check if the user's role is in the required roles
     return requiredRoles.some((role) => role === userRole);
   }
 }

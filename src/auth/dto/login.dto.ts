@@ -3,18 +3,11 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginDto {
   @ApiProperty({
-    description: 'The Twitter username of the user',
-    example: 'batman',
+    description: 'The phone number of the user',
+    example: '+2348123456789',
   })
   @IsString()
   @IsNotEmpty()
-  twitterUsername: string;
+  phoneNumber: string;
 
-  @ApiProperty({
-    description: 'The wallet address of the user',
-    example: '0x1234567890abcdef',
-  })
-  @IsString()
-  @IsNotEmpty()
-  address: string;
 }

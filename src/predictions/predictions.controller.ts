@@ -147,23 +147,23 @@ export class PredictionsController {
   @ApiResponse({ status: 404, description: 'Prediction not found.' })
   async remove(@Param('id') id: string) {
     await this.predictionsService.remove(id);
-    return; // No content response
+    return; 
   }
 
-  @Delete('video/:videoId/user/:userId')
-  @ApiOperation({ summary: 'Delete a prediction by video id and user id' })
-  @ApiParam({ name: 'videoId', description: 'Video ID' })
+  @Delete('question/:questionId/user/:userId')
+  @ApiOperation({ summary: 'Delete a prediction by question id and user id' })
+  @ApiParam({ name: 'questionId', description: 'Question ID' })
   @ApiParam({ name: 'userId', description: 'User ID' })
   @ApiResponse({
     status: 204,
     description: 'The prediction has been successfully deleted.',
   })
   @ApiResponse({ status: 404, description: 'Prediction not found.' })
-  async removeByVideoAndUser(
-    @Param('videoId') videoId: string,
+  async removeByQuestionAndUser(
+    @Param('questionId') questionId: string,
     @Param('userId') userId: string,
   ) {
-    await this.predictionsService.removeByVideoAndUser(videoId, userId);
+    await this.predictionsService.removeByQuestionAndUser(questionId, userId);
     return; // No content response
   }
 

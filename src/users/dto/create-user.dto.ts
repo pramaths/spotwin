@@ -3,15 +3,6 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateUserDto {
   @ApiProperty({
-    description: 'User DID token for authentication',
-    example: 'did:ethr:0x1234567890abcdef',
-    required: false
-  })
-  @IsString()
-  @IsOptional()
-  didToken?: string;
-
-  @ApiProperty({
     description: 'Unique username for the user',
     example: 'john_doe',
     required: true
@@ -21,31 +12,13 @@ export class CreateUserDto {
   username: string;
 
   @ApiProperty({
-    description: 'Full name of the user',
-    example: 'John Doe',
+    description: 'Phone number of the user',
+    example: '+1234567890',
     required: true
   })
   @IsString()
   @IsNotEmpty()
-  name: string;
-
-  @ApiProperty({
-    description: 'Twitter username of the user',
-    example: 'batman',
-    required: false
-  })
-  @IsString()
-  @IsOptional()
-  twitterUsername?: string;
-
-  @ApiProperty({
-    description: 'Public blockchain address of the user',
-    example: '0x1234567890abcdef1234567890abcdef12345678',
-    required: true
-  })
-  @IsString()
-  @IsNotEmpty()
-  publicAddress: string;
+  phoneNumber: string;
 
   @ApiProperty({
     description: 'Profile image URL',
@@ -57,15 +30,6 @@ export class CreateUserDto {
   imageUrl: string;
 
   @ApiProperty({
-    description: 'User biography',
-    example: 'Blockchain enthusiast and sports fan',
-    required: false
-  })
-  @IsString()
-  @IsOptional()
-  bio?: string;
-
-  @ApiProperty({
     description: 'Whether the user account is active',
     example: true,
     default: true,
@@ -74,13 +38,4 @@ export class CreateUserDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
-
-  @ApiProperty({
-    description: 'Email address of the user',
-    example: 'john.doe@example.com',
-    required: false
-  })
-  @IsEmail()
-  @IsOptional()
-  email?: string;
 }

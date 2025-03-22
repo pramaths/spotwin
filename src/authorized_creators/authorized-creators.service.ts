@@ -23,7 +23,7 @@ export class AuthorizedCreatorsService {
     createDto: CreateAuthorizedCreatorDto,
   ): Promise<AuthorizedCreator> {
     const creator = new AuthorizedCreator();
-    creator.user = createDto.user;
+    creator.userId = createDto.userId;
 
     try {
       return await this.authorizedCreatorRepository.save(creator);
@@ -36,11 +36,11 @@ export class AuthorizedCreatorsService {
     }
   }
 
-  async removeAuthorizedCreator(user: string): Promise<void> {
-    const result = await this.authorizedCreatorRepository.delete({ user });
+  async removeAuthorizedCreator(userId: string): Promise<void> {
+    const result = await this.authorizedCreatorRepository.delete({ userId });
 
     if (result.affected === 0) {
-      throw new NotFoundException(`Creator with address ${user} not found`);
+      throw new NotFoundException(`Creator with address ${userId} not found`);
     }
   }
 }

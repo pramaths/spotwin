@@ -15,4 +15,11 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     required: false
   })
   totalContestsWon?: number;
+
+  @ApiProperty({
+    description: 'Optional field to update username',
+    example: 'batman',
+    required: false
+  })
+  username?: string;
 }

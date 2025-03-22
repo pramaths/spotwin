@@ -5,11 +5,11 @@ import { ApiProperty } from '@nestjs/swagger';
 export class CreatePredictionDto {
 
   @ApiProperty({
-    description: 'The ID of the video',
+    description: 'The ID of the question',
     example: '123e4567-e89b-12d3-a456-426614174001',
   })
   @IsNotEmpty()
-  videoId: string;
+  questionId: string;
 
   @ApiProperty({
     description: 'The prediction outcome (YES or NO)',

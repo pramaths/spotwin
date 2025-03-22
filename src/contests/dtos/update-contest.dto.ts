@@ -22,15 +22,6 @@ export class UpdateContestDto {
   name?: string;
 
   @ApiProperty({
-    description: "The description of the contest",
-    example: "A contest where two teams compete against each other in basketball",
-    required: false
-  })
-  @IsString()
-  @IsOptional()
-  description?: string;
-
-  @ApiProperty({
     description: "The status of the contest",
     enum: ContestStatus,
     example: ContestStatus.OPEN,
@@ -41,20 +32,11 @@ export class UpdateContestDto {
   status?: ContestStatus;
 
   @ApiProperty({
-    description: "The ID of the event the contest belongs to",
+    description: "The ID of the match the contest belongs to",
     example: "077e38f3-6275-4c68-920f-3a7de8ba9bbf",
     required: false
   })
   @IsUUID()
   @IsOptional()
-  eventId?: string;
-
-  @ApiProperty({
-    description: 'The Solana contest public key (PDA)',
-    example: '5Xb...xyz',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  contestPublicKey?: string;
+  matchId?: string;
 }

@@ -7,7 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { FeaturedVideo } from '../../videos/entities/featured-video.entity';
+import { Question } from '../../questions/entities/questions.entity';
 import { OutcomeType } from '../../common/enums/outcome-type.enum';
 import { User } from '../../users/entities/users.entity';
 import { Contest } from '../../contests/entities/contest.entity';
@@ -54,18 +54,18 @@ export class Prediction {
 
   @ApiProperty({
     description: 'The video associated with this prediction',
-    type: () => FeaturedVideo,
+    type: () => Question,
   })
-  @ManyToOne(() => FeaturedVideo)
-  @JoinColumn({ name: 'videoId' })
-  video: FeaturedVideo;
+  @ManyToOne(() => Question)
+  @JoinColumn({ name: 'questionId' })
+  question: Question;
 
   @ApiProperty({
-    description: 'The ID of the video',
+    description: 'The ID of the question',
     example: '123e4567-e89b-12d3-a456-426614174002',
   })
   @Column()
-  videoId: string;
+  questionId: string;
 
   @ApiProperty({
     description: 'The prediction outcome (YES or NO)',

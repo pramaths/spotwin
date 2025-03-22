@@ -20,11 +20,10 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { Contest } from './entities/contest.entity';
-import { VideoSubmission } from '../videos/entities/video-submission.entity';
 import { OutcomeType } from '../common/enums/outcome-type.enum';
-import { FeaturedVideo } from 'src/videos/entities/featured-video.entity';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../common/enums/roles.enum';
+import { Question } from '../questions/entities/questions.entity';
 
 @ApiTags('contests')
 @Controller('contests')
@@ -78,7 +77,7 @@ export class ContestsController {
   async create(@Body() createContestDto: CreateContestDto) {
     try {
       return await this.contestsService.createContest(
-        createContestDto.eventId,
+        createContestDto.matchId,
         createContestDto,
       );
     } catch (error) {
@@ -204,7 +203,7 @@ export class ContestsController {
   @ApiResponse({
     status: 200,
     description: 'Return all video submissions for the contest',
-    type: [VideoSubmission],
+    type: [Question],
   })
   async getContestVideos(@Param('contestId') contestId: string) {
     try {
@@ -217,97 +216,7 @@ export class ContestsController {
     }
   }
 
-  @Post(':contestId/select-videos')
-  @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'Select videos for a contest' })
-  @ApiParam({ name: 'contestId', description: 'Contest ID' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: { videoIds: { type: 'array', items: { type: 'string' } } },
-      required: ['videoIds'],
-    },
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Videos selected successfully',
-    type: [FeaturedVideo],
-  })
-  async selectVideos(
-    @Param('contestId') contestId: string,
-    @Body('videoIds') videoIds: string[],
-  ) {
-    try {
-      return await this.contestsService.selectVideos(contestId, videoIds);
-    } catch (error) {
-      throw new HttpException(
-        error.message || 'Failed to select videos',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  @Post('videos/:videoId/approve')
-  @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'Approve a video submission for a contest' })
-  @ApiParam({ name: 'videoId', description: 'Video Submission ID' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: { contestId: { type: 'string' } },
-      required: ['contestId'],
-    },
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Video approved successfully',
-    type: VideoSubmission,
-  })
-  async approveVideo(
-    @Param('videoId') videoId: string,
-    @Body('contestId') contestId: string,
-  ) {
-    try {
-      return await this.contestsService.approveVideo(videoId, contestId);
-    } catch (error) {
-      throw new HttpException(
-        error.message || 'Failed to approve video',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  @Post('videos/:videoId/reject')
-  @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'Reject a video submission for a contest' })
-  @ApiParam({ name: 'videoId', description: 'Video Submission ID' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: { contestId: { type: 'string' } },
-      required: ['contestId'],
-    },
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Video rejected successfully',
-    type: VideoSubmission,
-  })
-  async rejectVideo(
-    @Param('videoId') videoId: string,
-    @Body('contestId') contestId: string,
-  ) {
-    try {
-      return await this.contestsService.rejectVideo(videoId, contestId);
-    } catch (error) {
-      throw new HttpException(
-        error.message || 'Failed to reject video',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  @Post('videos/:videoId/answer')
+  @Post('questions/:questionId/answer')
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Set the answer for a featured video in a contest' })
   @ApiParam({ name: 'videoId', description: 'Featured Video ID' })
@@ -328,20 +237,18 @@ export class ContestsController {
   @ApiResponse({
     status: 200,
     description: 'Video answered successfully',
-    type: FeaturedVideo,
+    type: Question,
   })
   async answerVideo(
-    @Param('videoId') videoId: string,
+    @Param('questionId') questionId: string,
     @Body('contestId') contestId: string,
     @Body('answer') answer: 'yes' | 'no',
-    @Body('question') question: string,
   ) {
     try {
       return await this.contestsService.answerVideo(
-        videoId,
+        questionId,
         contestId,
         answer,
-        question,
       );
     } catch (error) {
       throw new HttpException(

@@ -39,12 +39,12 @@ export class PredictionsService {
       );
     }
 
-    const videoAlreadyPredicted = existingPredictions.some(
-      (p) => p.videoId === createPredictionDto.videoId,
+    const questionAlreadyPredicted = existingPredictions.some(
+      (p) => p.questionId === createPredictionDto.questionId,
     );
-    if (videoAlreadyPredicted) {
+    if (questionAlreadyPredicted) {
       throw new BadRequestException(
-        'This video has already been predicted on for this contest',
+        'This question has already been predicted on for this contest',
       );
     }
 
@@ -54,14 +54,14 @@ export class PredictionsService {
 
   async findAll(): Promise<Prediction[]> {
     return await this.predictionRepository.find({
-      relations: ['user', 'contest', 'video'],
+      relations: ['user', 'contest', 'question'],
     });
   }
 
   async findOne(id: string): Promise<Prediction> {
     const prediction = await this.predictionRepository.findOne({
       where: { id },
-      relations: ['user', 'contest', 'video'],
+      relations: ['user', 'contest', 'question'],
     });
 
     if (!prediction) {
@@ -74,21 +74,21 @@ export class PredictionsService {
   async findByContest(contestId: string): Promise<Prediction[]> {
     return await this.predictionRepository.find({
       where: { contestId },
-      relations: ['user', 'contest', 'video'],
+      relations: ['user', 'contest', 'question'],
     });
   }
 
   async findByUser(userId: string): Promise<Prediction[]> {
     return await this.predictionRepository.find({
       where: { userId },
-      relations: ['user', 'contest', 'video'],
+      relations: ['user', 'contest', 'question'],
     });
   }
 
   async findByContestAndUser(contestId: string, userId: string): Promise<Prediction[]> {
     return await this.predictionRepository.find({
       where: { contestId, userId },
-      relations: ['video'],
+      relations: ['question'],
     });
   }
 
@@ -98,18 +98,17 @@ export class PredictionsService {
   ): Promise<Prediction> {
     const prediction = await this.findOne(id);
 
-    // If updating videoId, validate uniqueness
-    if (updatePredictionDto.videoId) {
+    if (updatePredictionDto.questionId) {
       const existingPredictions = await this.findByContestAndUser(
         prediction.contestId,
         prediction.userId
       );
-      const videoTaken = existingPredictions.some(
-        (p) => p.videoId === updatePredictionDto.videoId && p.id !== id,
+      const questionTaken = existingPredictions.some(
+        (p) => p.questionId === updatePredictionDto.questionId && p.id !== id,
       );
-      if (videoTaken) {
+      if (questionTaken) {
         throw new BadRequestException(
-          'This video is already predicted on for this contest',
+          'This question is already predicted on for this contest',
         );
       }
     }
@@ -132,15 +131,15 @@ export class PredictionsService {
     return await this.predictionRepository.save(prediction);
   }
 
-  async removeByVideoAndUser(videoId: string, userId: string): Promise<void> {
-    console.log('videoId', videoId);
+  async removeByQuestionAndUser(questionId: string, userId: string): Promise<void> {
+    console.log('questionId', questionId);
     console.log('userId', userId);
     const prediction = await this.predictionRepository.findOne({
-      where: { videoId, userId },
+      where: { questionId, userId },
     });
 
     if (!prediction) {
-      throw new NotFoundException(`Prediction with video ID ${videoId} not found for user ${userId}`);
+      throw new NotFoundException(`Prediction with question ID ${questionId} not found for user ${userId}`);
     }
 
     await this.predictionRepository.remove(prediction);

@@ -6,11 +6,11 @@ import { OutcomeType } from '../../common/enums/outcome-type.enum';
 export class UpdatePredictionDto extends PartialType(CreatePredictionDto) {
 
   @ApiProperty({
-    description: 'The ID of the video',
+    description: 'The ID of the question',
     example: '123e4567-e89b-12d3-a456-426614174001',
     required: false,
   })
-  videoId?: string;
+  questionId?: string;
 
   @ApiProperty({
     description: 'The prediction outcome (YES or NO)',

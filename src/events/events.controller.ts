@@ -37,9 +37,9 @@ import { UpdateEventStatusDto } from './dtos/update-event-status.dto';
 import { EventsService } from './events.service';
 import { PaginatedResultDto } from '../common/dto/paginated-result.dto';
 import { EventStatus } from '../common/enums/common.enum';
-import { Contest } from '../contests/entities/contest.entity';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../common/enums/roles.enum';
+import { Match } from '../matches/entities/match.entity';
 
 @ApiTags('Events')
 @Controller('events')
@@ -313,32 +313,32 @@ export class EventsController {
     }
   }
 
-  @ApiOperation({ summary: 'Get all contests for a specific event' })
+  @ApiOperation({ summary: 'Get all matches for a specific event' })
   @ApiParam({ name: 'id', type: 'string', description: 'Event ID (UUID)' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Contests retrieved successfully',
-    type: [Contest],
+    description: 'matches retrieved successfully',
+    type: [Match],
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Event not found',
   })
-  @Get(':id/contests')
-  async getEventContests(@Param('id', ParseUUIDPipe) id: string) {
+  @Get(':id/matches')
+  async getEventMatches(@Param('id', ParseUUIDPipe) id: string) {
     try {
-      this.logger.log(`Retrieving contests for event with id: ${id}`);
-      return await this.eventsService.getEventContests(id);
+      this.logger.log(`Retrieving matches for event with id: ${id}`);
+      return await this.eventsService.getEventMatches(id);
     } catch (error) {
       this.logger.error(
-        `Failed to retrieve contests for event ${id}: ${error.message}`,
+        `Failed to retrieve matches for event ${id}: ${error.message}`,
         error.stack,
       );
       if (error instanceof HttpException) {
         throw error;
       }
       throw new HttpException(
-        error.message || 'Failed to retrieve contests for event',
+        error.message || 'Failed to retrieve matches for event',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

@@ -1,15 +1,13 @@
 import { Injectable, UnauthorizedException, Logger, NotFoundException } from '@nestjs/common';
-import { PrivyService } from '../privy/privy.service';
 import { UserService } from '../users/users.service';
 import { Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
-
+import { generateUsername } from 'unique-username-generator';
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
   constructor(
-    private privyService: PrivyService,
     private userService: UserService,
     private jwtService: JwtService,
   ) {}
@@ -17,51 +15,30 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     this.logger.debug('Login request received', { loginDto });
     try {
-      // Try to find user by Twitter username or wallet address
       let user;
       let privyUser;
 
-      if (loginDto.twitterUsername) {
+      if (loginDto.phoneNumber) {
         try {
-          user = await this.userService.findByTwitterUsername(loginDto.twitterUsername);
+          user = await this.userService.findByPhonenumber(loginDto.phoneNumber);
           this.logger.log('User found in database by Twitter username', { userId: user.id });
         } catch (error) {
           if (error instanceof NotFoundException) {
-            // If not in our database, try to get from Privy
             this.logger.log('User not found in database, checking Privy');
-            privyUser = await this.privyService.getUserByTwitterUsername(loginDto.twitterUsername);
           } else {
             throw error;
           }
         }
-      } else if (loginDto.address) {
-        try {
-          // First check if user exists in our database
-          user = await this.userService.findByPublicAddress(loginDto.address);
-          this.logger.log('User found in database by wallet address', { userId: user.id });
-        } catch (error) {
-          if (error instanceof NotFoundException) {
-            // If not in our database, try to get from Privy
-            this.logger.log('User not found in database, checking Privy');
-            privyUser = await this.privyService.getUserByWalletAddress(loginDto.address);
-          } else {
-            throw error;
-          }
-        }
-      } else {
+      }else {
         throw new Error('Twitter username or wallet address is required');
       }
 
-      // If user not found in our database but found in Privy, create a new user
       if (!user && privyUser) {
         this.logger.log('Creating new user from Privy data', { privyUser });
         user = await this.userService.create({
-          email: privyUser.email || `${privyUser.twitterUsername}@twitter.com`,
-          publicAddress: privyUser.walletAddress,
-          username: privyUser.twitterUsername,
-          name: privyUser.name || privyUser.twitterUsername || '',
+          username: generateUsername(),
           imageUrl: privyUser.imageUrl || '',
-          twitterUsername: privyUser.twitterUsername,
+          phoneNumber: privyUser.phoneNumber,
         });
         this.logger.log('User created successfully', { userId: user.id });
       }
@@ -70,11 +47,9 @@ export class AuthService {
         throw new Error('User not found');
       }
 
-      // Generate JWT token
       const payload = {
         sub: user.id,
         email: user.email,
-        publicAddress: user.publicAddress,
         twitterUsername: user.twitterUsername,
       };
 
@@ -95,8 +70,8 @@ export class AuthService {
     return { message: 'Logout successful' };
   }
 
-  async getUser(userId: string) {
-    const user = await this.userService.findByEmail(userId);
+  async getUser(phoneNumber: string) {
+    const user = await this.userService.findByPhonenumber(phoneNumber);
     if (!user) {
       throw new UnauthorizedException('User not found');
     }

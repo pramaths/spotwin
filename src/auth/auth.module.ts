@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { PrivyModule } from '../privy/privy.module';
 import { UserModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { PassportModule } from '@nestjs/passport';
@@ -10,7 +9,6 @@ import { JwtStrategy, JwtAuthGuard } from './strategies/jwt.strategy';
 
 @Module({
   imports: [
-    PrivyModule,
     UserModule,
     PassportModule,
     JwtModule.registerAsync({

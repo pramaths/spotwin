@@ -19,3 +19,10 @@ export enum VideoSubmissionStatus {
   APPROVED = 'APPROVED', // Video has been approved for use
   REJECTED = 'REJECTED', // Video has been rejected
 }
+
+export enum QuestionLevel {
+  EASY = 'EASY',
+  MEDIUM = 'MEDIUM',
+  HARD = 'HARD',
+}
+

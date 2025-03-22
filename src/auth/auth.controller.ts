@@ -15,7 +15,6 @@ import {
   import { LoginDto } from './dto/login.dto';
   import { JwtAuthGuard } from './strategies/jwt.strategy';
   import { JwtService } from '@nestjs/jwt';
-  import { PrivyService } from '../privy/privy.service';
   import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 
   @ApiTags('auth')
@@ -25,7 +24,6 @@ import {
     constructor(
       private readonly authService: AuthService,
       private readonly jwttService: JwtService,
-      private readonly privyService: PrivyService,
     ) {}
   
     @Post('login')

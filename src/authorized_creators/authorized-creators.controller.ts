@@ -10,7 +10,10 @@ import {
 } from '@nestjs/common';
 import { AuthorizedCreatorsService } from './authorized-creators.service';
 import { CreateAuthorizedCreatorDto } from './dtos/create-authorized-creator.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+
+@ApiTags('Authorized Creators')
 @Controller('authorized-creators')
 export class AuthorizedCreatorsController {
   constructor(
