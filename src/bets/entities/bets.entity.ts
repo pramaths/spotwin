@@ -10,7 +10,6 @@ import {
 import { User } from '../../users/entities/users.entity';
 import { Contest } from '../../contests/entities/contest.entity';
 import { Transaction } from '../../transactions/entities/transaction.entity';
-import { UserContest } from '../../user-contests/entities/user-contest.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Entity('bets')
@@ -26,7 +25,7 @@ export class Bet {
     description: 'The contest associated with this entry',
     type: () => Contest,
   })
-  @ManyToOne(() => Contest, (contest) => contest.userContests)
+  @ManyToOne(() => Contest, (contest) => contest.bets)
   @JoinColumn({ name: 'contestId' })
   contest: Contest;
 
@@ -66,21 +65,6 @@ export class Bet {
   })
   @Column()
   transactionId: string;
-
-  @ApiProperty({
-    description: 'The user contest associated with this entry',
-    type: () => UserContest,
-  })
-  @ManyToOne(() => UserContest, (userContest) => userContest.bets)
-  @JoinColumn({ name: 'userContestId' })
-  userContest: UserContest;
-
-  @ApiProperty({
-    description: 'The ID of the user contest',
-    example: '123e4567-e89b-12d3-a456-426614174004',
-  })
-  @Column()
-  userContestId: string;
 
   @ApiProperty({
     description: 'The date when the entry was created',

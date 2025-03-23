@@ -21,96 +21,71 @@ export class UserContestsService {
     private userStreakRepository: Repository<UserStreak>,
     @InjectRepository(Contest)
     private contestRepository: Repository<Contest>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
   ) {}
 
   async create(
     createUserContestDto: CreateUserContestDto,
-    user: User,
-    manager?: any,
   ): Promise<UserContest> {
-    const contest = await (manager
-      ? manager.findOne(Contest, {
-          where: { id: createUserContestDto.contestId },
-        })
-      : this.contestRepository.findOne({
-          where: { id: createUserContestDto.contestId },
-        }));
+    const [contest, user] = await Promise.all([
+      this.contestRepository.findOne({
+        where: { id: createUserContestDto.contestId },
+      }),
+      this.userRepository.findOne({
+        where: { id: createUserContestDto.userId },
+      }),
+    ]);
 
-    if (!contest) {
-      throw new NotFoundException('Contest not found');
+    if (!contest || !user) {
+      throw new NotFoundException('Contest or user not found');
     }
 
     if (contest.status === 'CANCELLED' || contest.status === 'COMPLETED') {
       throw new BadRequestException('Contest is cancelled or completed');
     }
 
-    const existingUserContest = await (manager
-      ? manager.findOne(UserContest, {
-          where: {
-            user: { id: user.id },
-            contest: { id: contest.id },
-          },
-        })
-      : this.userContestRepository.findOne({
-          where: {
-            user: { id: user.id },
-            contest: { id: contest.id },
-          },
-        }));
+    const existingUserContest = await this.userContestRepository.findOne({
+      where: {
+        user: { id: createUserContestDto.userId },
+        contest: { id: contest.id },
+      },
+    });
 
     if (existingUserContest) {
       throw new BadRequestException('User already joined this contest');
     }
 
-    // Create user contest entry
-    const userContest = manager
-      ? manager.create(UserContest, {
-          user,
-          contest,
-          entryFee: createUserContestDto.entryFee,
-        })
-      : this.userContestRepository.create({
-          user,
-          contest,
-          entryFee: createUserContestDto.entryFee,
-        });
-    const savedUserContest = await (manager
-      ? manager.save(userContest)
-      : this.userContestRepository.save(userContest));
+    const userContest = this.userContestRepository.create({
+      user: user,
+      contest: contest,
+      entryFee: contest.entryFee,
+    });
+    user.points -= contest.entryFee;
+    await this.userRepository.save(user);
 
-    // Update streak
-    await this.updateStreak(user, savedUserContest.joinedAt, manager);
+    const savedUserContest = await this.userContestRepository.save(userContest);
+
+    await this.updateStreak(user, savedUserContest.joinedAt);
 
     return savedUserContest;
   }
 
-  async updateStreak(user: User, joinDate: Date, manager?: any): Promise<void> {
-    const userStreak = await (manager
-      ? manager.findOne(UserStreak, { where: { userId: user.id } })
-      : this.userStreakRepository.findOne({ where: { userId: user.id } }));
+  async updateStreak(user: User, joinDate: Date): Promise<void> {
+    const userStreak = await this.userStreakRepository.findOne({ where: { userId: user.id } });
 
     const joinDay = startOfDay(joinDate); // Normalize to start of the day
 
     if (!userStreak) {
       // First streak entry for the user
-      const newStreak = manager
-        ? manager.create(UserStreak, {
-            user,
-            userId: user.id,
-            currentStreak: 1,
-            highestStreak: 1,
-            lastJoinedDate: joinDay,
-          })
-        : this.userStreakRepository.create({
-            user,
-            userId: user.id,
-            currentStreak: 1,
-            highestStreak: 1,
-            lastJoinedDate: joinDay,
-          });
-      await (manager
-        ? manager.save(newStreak)
-        : this.userStreakRepository.save(newStreak));
+      const newStreak = this.userStreakRepository.create({
+        user,
+        userId: user.id,
+        currentStreak: 1,
+        highestStreak: 1,
+        lastJoinedDate: joinDay,
+      });
+      await this.userStreakRepository.save(newStreak);
       return;
     }
 
@@ -137,9 +112,7 @@ export class UserContestsService {
     userStreak.lastJoinedDate = joinDay;
     userStreak.highestStreak = Math.max(userStreak.highestStreak, newStreak);
 
-    await (manager
-      ? manager.save(userStreak)
-      : this.userStreakRepository.save(userStreak));
+    await this.userStreakRepository.save(userStreak);
   }
 
   async getStreak(userId: string): Promise<UserStreak> {
@@ -193,7 +166,7 @@ export class UserContestsService {
   async findByUser(userId: string): Promise<any[]> {
     const userContests = await this.userContestRepository.find({
       where: { user: { id: userId } },
-      relations: ['contest', 'contest.event', 'contest.event.teamA', 'contest.event.teamB'],
+      relations: ['contest', 'contest.match', 'contest.match.teamA', 'contest.match.teamB', 'contest.match.event'],
     });
 
     return userContests.map(data => data.contest);

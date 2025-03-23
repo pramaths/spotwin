@@ -21,6 +21,8 @@ import { RolesGuard } from './common/guards/roles.guard';
 import { AuthorizedCreator } from './authorized_creators/entities/authorized-creator.entity';
 import { QuestionsModule } from './questions/questions.module';
 import { MatchesModule } from './matches/match.module';
+import { ReferralsModule } from './referrals/referrals.module';
+
 @Module({
   imports: [
     ThrottlerModule.forRoot([
@@ -49,6 +51,7 @@ import { MatchesModule } from './matches/match.module';
     AuthorizedCreatorsModule,
     QuestionsModule,
     MatchesModule,
+    ReferralsModule,
   ],
   controllers: [AppController],
   providers: [

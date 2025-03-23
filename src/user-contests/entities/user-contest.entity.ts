@@ -9,8 +9,6 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/users.entity';
 import { Contest } from '../../contests/entities/contest.entity';
-import { Bet } from '../../bets/entities/bets.entity';
-import { Prediction } from '../../predictions/entities/prediction.entity';
 
 @Entity('user_contests')
 export class UserContest {
@@ -24,9 +22,6 @@ export class UserContest {
   @ManyToOne(() => Contest, (contest) => contest.userContests)
   @JoinColumn({ name: 'contestId' })
   contest: Contest;
-
-  @OneToMany(() => Bet, (bet) => bet.userContest)
-  bets: Bet[];
 
   @Column('decimal', { precision: 10, scale: 2 })
   entryFee: number;

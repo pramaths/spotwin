@@ -15,6 +15,7 @@ import { Payout } from '../../payouts/entities/payout.entity';
 import { ContestStatus } from '../../common/enums/common.enum';
 import { ApiProperty } from '@nestjs/swagger';
 import { Question } from '../../questions/entities/questions.entity';
+import { Bet } from '../../bets/entities/bets.entity';
 
 @Entity('contests')
 export class Contest {
@@ -55,7 +56,6 @@ export class Contest {
   @Column({ type: 'enum', enum: ContestStatus, default: ContestStatus.OPEN })
   status: ContestStatus;
   
-
   @ApiProperty({
     description: 'The match associated with the contest',
     type: () => Match,
@@ -108,4 +108,11 @@ export class Contest {
   })
   @OneToMany(() => Payout, (payout) => payout.contest)
   payouts: Payout[];
+
+  @ApiProperty({
+    description: 'The bets associated with this contest',
+    type: () => [Bet],
+  })
+  @OneToMany(() => Bet, (bet) => bet.contest)
+  bets: Bet[];
 }

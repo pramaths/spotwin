@@ -5,6 +5,8 @@ import {
   OneToMany,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { UserContest } from '../../user-contests/entities/user-contest.entity';
 import { Leaderboard } from '../../leaderboards/entities/leaderboard.entity';
@@ -30,11 +32,30 @@ export class User {
   @Column()
   imageUrl: string;
 
+  @Column({ default: 100 })
+  points: number;
+
   @Column({ nullable: true })
   totalContests: number;
 
   @Column({ nullable: true })
   totalContestsWon: number;
+
+  @Column({ nullable: true })
+  expoPushToken: string;
+
+  @Column({ nullable: true, unique: true })
+  referralCode: string;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'referrerId' })
+  referrer: User;
+
+  @Column({ nullable: true })
+  referrerId: string;
+
+  @OneToMany(() => User, user => user.referrer)
+  referrals: User[];
 
   @OneToMany(() => UserContest, (userContest) => userContest.user)
   userContests: UserContest[];

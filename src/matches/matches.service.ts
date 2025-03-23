@@ -6,13 +6,15 @@ import { CreateMatchDto } from './dto/create-match.dto';
 import { Event } from 'src/events/entities/events.entity';
 import { TeamsService } from 'src/teams/teams.service';
 import { EventStatus } from '../common/enums/common.enum';
-
+import { Contest } from 'src/contests/entities/contest.entity';
 export class MatchesService {
   constructor(
     @InjectRepository(Match)
     private matchRepository: Repository<Match>,
     @InjectRepository(Event)
     private eventRepository: Repository<Event>,
+    @InjectRepository(Contest)
+    private contestRepository: Repository<Contest>,
     private teamsService: TeamsService,
   ) {}
 
@@ -58,6 +60,20 @@ export class MatchesService {
   async getAllMatches(): Promise<Match[]> {
     return this.matchRepository.find({
       relations: ['teamA', 'teamB', 'contests', 'event','event.sport']
+    });
+  }
+
+  async getMatchesByEventId(eventId: string): Promise<Match[]> {
+    return this.matchRepository.find({
+      where: { event: { id: eventId } },
+      relations: ['teamA', 'teamB', 'contests', 'event','event.sport']
+    });
+  }
+
+  async getContestsByMatchId(matchId: string): Promise<Contest[]> {
+    return this.contestRepository.find({
+      where: { match: { id: matchId } },
+      relations: ['match', 'match.teamA', 'match.teamB', 'match.event', 'match.event.sport']
     });
   }
 

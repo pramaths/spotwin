@@ -22,4 +22,11 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     required: false
   })
   username?: string;
+
+  @ApiProperty({
+    description: 'Optional field to update Expo push token',
+    example: 'Expo push token',
+    required: false
+  })
+  expoPushToken?: string;
 }

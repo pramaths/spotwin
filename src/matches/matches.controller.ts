@@ -3,6 +3,7 @@ import { MatchesService } from './matches.service';
 import { CreateMatchDto } from './dto/create-match.dto';
 import { Match } from './entities/match.entity';
 import { ApiTags, ApiOperation, ApiResponse, ApiCreatedResponse } from '@nestjs/swagger';
+import { Contest } from 'src/contests/entities/contest.entity';
 
 @ApiTags('matches')
 @Controller('matches')
@@ -59,4 +60,28 @@ export class MatchesController {
     async getAllMatches(): Promise<Match[]> {
         return this.matchesService.getAllMatches();
     }
+
+    @Get('event/:id')
+    @ApiOperation({ summary: 'Get all matches by event ID' })
+    @ApiResponse({ 
+        status: 200, 
+        description: 'Return all matches by event ID',
+        type: [Match]
+    })
+    async getMatchesByEventId(@Param('id', ParseUUIDPipe) id: string): Promise<Match[]> {
+        return this.matchesService.getMatchesByEventId(id);
+    }
+
+    @Get(':id/contests')
+    @ApiOperation({ summary: 'Get all contests by match ID' })
+    @ApiResponse({ 
+        status: 200, 
+        description: 'Return all contests by match ID',
+        type: [Contest]
+    })
+    async getContestsByMatchId(@Param('id', ParseUUIDPipe) id: string): Promise<Contest[]> {
+        return this.matchesService.getContestsByMatchId(id);
+    }
+    
+
 }

@@ -69,4 +69,15 @@ export class UserContestsController {
       );
     }
   }
+
+  @Post('join')
+  @ApiOperation({ summary: 'Create a new user contest' })
+  @ApiResponse({
+    status: 201,
+    description: 'Returns the created user contest',
+    type: UserContest,
+  })
+  async create(@Body() createUserContestDto: CreateUserContestDto) {
+    return this.userContestsService.create(createUserContestDto);
+  }
 }

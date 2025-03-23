@@ -14,10 +14,40 @@ export class UserService {
     private readonly userRepository: Repository<User>,
   ) {}
 
+  private generateReferralCode(): string {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let result = '';
+    const charactersLength = characters.length;
+    
+    // Generate a 6-character string
+    for (let i = 0; i < 6; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    
+    return result;
+  }
+
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
       this.logger.log(`Creating new user with name: ${createUserDto.username}`);
       const user = this.userRepository.create(createUserDto);
+      
+      let referralCode;
+      let isUnique = false;
+      
+      while (!isUnique) {
+        referralCode = this.generateReferralCode();
+        const existingUser = await this.userRepository.findOne({ 
+          where: { referralCode } 
+        });
+        
+        if (!existingUser) {
+          isUnique = true;
+        }
+      }
+      
+      user.referralCode = referralCode;
+      
       return await this.userRepository.save(user);
     } catch (error) {
       this.logger.error(`Failed to create user: ${error.message}`, error.stack);
@@ -125,4 +155,22 @@ export class UserService {
       throw new InternalServerErrorException('Failed to activate user');
     }
   }
+
+  async updateExpoPushToken(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+    const user = await this.findOne(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.expoPushToken = updateUserDto.expoPushToken;
+    return await this.userRepository.save(user);
+  }
+
+  async getUserBalance(id: string): Promise<Number> {
+    const user = await this.findOne(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user.points;
+  }
+  
 }

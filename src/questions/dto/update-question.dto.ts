@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-
+import { OutcomeType } from '../../common/enums/outcome-type.enum';
 export class UpdateQuestionDto {
   @ApiProperty({
     description: 'The question text',
@@ -18,6 +18,6 @@ export class UpdateQuestionDto {
   })
   @IsOptional()
   @IsString()
-  answer?: string;
+  outcome?: OutcomeType;
 }
 

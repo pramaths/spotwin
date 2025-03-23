@@ -121,4 +121,24 @@ export class UserController {
     return await this.userService.activateUser(id);
   }
 
+  @Post(':id/expo-push-token')
+  @ApiOperation({ summary: 'Update a user\'s Expo push token' })
+  @ApiParam({ name: 'id', description: 'User ID' })
+  @ApiBody({ type: UpdateUserDto })
+  async updateExpoPushToken(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto): Promise<User> {
+    return await this.userService.updateExpoPushToken(id, updateUserDto);
+  }
+
+  @Get(':id/balance')
+  @ApiOperation({ summary: 'Get a user\'s balance' })
+  @ApiParam({ name: 'id', description: 'User ID' })
+  @ApiResponse({ 
+    status: HttpStatus.OK, 
+    description: 'Returns the user\'s balance',
+    type: Number
+  })
+  async getUserBalance(@Param('id') id: string): Promise<{ balance: number }> {
+    const balance = await this.userService.getUserBalance(id);
+    return { balance: balance as number };
+  }
 }

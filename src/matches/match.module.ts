@@ -6,10 +6,11 @@ import { TeamsModule } from '../teams/teams.module';
 import { MatchesService } from './matches.service';
 import { MatchesController } from './matches.controller';
 import { Event } from 'src/events/entities/events.entity';
-import { Team } from 'src/teams/entities/team.entity';
+import { Team } from 'src/teams/entities/team.entity';  
 import { EventsModule } from 'src/events/events.module';
+import { Contest } from 'src/contests/entities/contest.entity';
 @Module({
-  imports: [TypeOrmModule.forFeature([Match, Event, Team]), SportsModule, TeamsModule, EventsModule],
+  imports: [TypeOrmModule.forFeature([Match, Event, Team, Contest]), SportsModule, TeamsModule, EventsModule],
   providers: [MatchesService],
   controllers: [MatchesController],
   exports: [MatchesService],

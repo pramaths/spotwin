@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Question } from './entities/questions.entity';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { OutcomeType } from '../common/enums/outcome-type.enum';
+import { UpdateQuestionDto } from './dto/update-question.dto';
 
 @Injectable()
 export class QuestionsService {
@@ -37,5 +38,19 @@ export class QuestionsService {
     const question = await this.findOne(questionId);
     question.outcome = outcome;
     return this.questionRepository.save(question);
+  }
+
+  async update(id: string, updateQuestionDto: UpdateQuestionDto): Promise<Question> {
+    const question = await this.findOne(id);
+    Object.assign(question, updateQuestionDto);
+    return this.questionRepository.save(question);
+  }
+
+  async remove(id: string): Promise<void> {
+    await this.questionRepository.delete(id);
+  }
+
+  async getQuestionsByContestId(contestId: string): Promise<Question[]> {
+      return this.questionRepository.find({ where: { contestId } });
   }
 }

@@ -388,7 +388,7 @@ export class ContestsService {
     this.logger.debug('Finding active contests with details');
     const contests = await this.contestRepository.find({
       where: [{ status: ContestStatus.OPEN }, { status: ContestStatus.LIVE }],
-      relations: ['match', 'match', 'match.teamA', 'match.teamB', 'featuredVideos'],
+      relations: ['match', 'match', 'match.teamA', 'match.teamB', 'Questions', 'match.event', 'match.event.sport'],
     });
     if (!contests.length) {
       return [];
@@ -398,9 +398,11 @@ export class ContestsService {
       id: contest.id,
       name: contest.name,
       entryFee: contest.entryFee,
-      match: contest.match, // Includes full event details (sport, teams, etc.)
-      Questions: contest.Questions.slice(0, 3), // Limit to 3 questions
+      match: contest.match, 
+      questions: contest.Questions.slice(0, 3), 
       status: contest.status,
+      event: contest.match.event,
+      sport: contest.match.event.sport,
     }));
   }
 }

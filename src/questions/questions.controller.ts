@@ -26,4 +26,25 @@ export class QuestionsController {
   findAll() {
     return this.questionsService.findAll();
   }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.questionsService.findOne(id);
+  }
+
+  @Put(':id')
+  update(@Param('id') id: string, @Body() updateQuestionDto: UpdateQuestionDto) { 
+    return this.questionsService.update(id, updateQuestionDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.questionsService.remove(id);
+}
+
+  @Get('/contest/:id')
+  async getQuestionsByContestId(@Param('id') id: string) {
+    return this.questionsService.getQuestionsByContestId(id);
+  }
+
 }

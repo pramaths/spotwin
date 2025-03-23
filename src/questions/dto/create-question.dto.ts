@@ -1,5 +1,6 @@
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { QuestionLevel } from '../../common/enums/common.enum';
 
 export class CreateQuestionDto {
   @ApiProperty({
@@ -18,4 +19,12 @@ export class CreateQuestionDto {
   @IsNotEmpty()
   @IsString()
   contestId: string;
+
+  @ApiProperty({
+    description: 'The difficulty level of the question',
+    example: QuestionLevel.EASY,
+  })
+  @IsNotEmpty()
+  @IsString()
+  difficultyLevel: QuestionLevel;
 }
