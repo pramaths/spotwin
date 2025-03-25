@@ -12,7 +12,7 @@ import {
   import { ApiProperty } from '@nestjs/swagger';
   import { EventStatus } from '../../common/enums/common.enum';
   
-  export class UpdateEventDto {
+  export class UpdateMatchDto {
     @ApiProperty({
       example: 'World Cup Finals 2024',
       description: 'Title of the event',
@@ -30,15 +30,6 @@ import {
     @IsString()
     @IsOptional()
     description?: string;
-  
-    @ApiProperty({
-      example: '550e8400-e29b-41d4-a716-446655440000',
-      description: 'Unique identifier for the sport',
-      required: false,
-    })
-    @IsNumber()
-    @IsOptional()
-    sportId?: string;
   
     @ApiProperty({
       example: '2024-07-01T15:00:00Z',
@@ -77,14 +68,14 @@ import {
     teamBId?: string;
   
     @ApiProperty({
-      example: EventStatus.OPEN,
+      example: EventStatus.UPCOMING,
       enum: EventStatus,
       enumName: 'EventStatus',
-      description: 'Current status of the event. Status flow must follow: UPCOMING → OPEN → LIVE → COMPLETED',
+      description: 'Current status of the event. Status flow must follow: UPCOMING → LIVE → COMPLETED',
       required: false,
     })
     @IsEnum(EventStatus, {
-      message: 'Status must be one of: UPCOMING, OPEN, LIVE, COMPLETED, CANCELLED, SUSPENDED',
+      message: 'Status must be one of: UPCOMING, LIVE, COMPLETED, CANCELLED',
     })
     @IsOptional()
     status?: EventStatus;

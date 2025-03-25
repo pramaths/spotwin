@@ -141,4 +141,12 @@ export class UserController {
     const balance = await this.userService.getUserBalance(id);
     return { balance: balance as number };
   }
+
+
+  @Patch(':id/referral-code-used')
+  @ApiOperation({ summary: 'Update a user\'s referral code used' })
+  @ApiParam({ name: 'id', description: 'User ID' })
+  async updateReferralCodeUsed(@Param('id') id: string, @Body() referralcode: string): Promise<User> {
+    return await this.userService.updateReferralCodeUsed(id, referralcode);
+  }
 }

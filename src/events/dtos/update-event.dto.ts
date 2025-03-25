@@ -57,14 +57,14 @@ export class UpdateEventDto {
   endDate?: Date;
 
   @ApiProperty({
-    example: EventStatus.OPEN,
+    example: EventStatus.UPCOMING,
     enum: EventStatus,
     enumName: 'EventStatus',
-    description: 'Current status of the event. Status flow must follow: UPCOMING → OPEN → LIVE → COMPLETED',
+    description: 'Current status of the event. Status flow must follow: UPCOMING → LIVE → COMPLETED',
     required: false,
   })
   @IsEnum(EventStatus, {
-    message: 'Status must be one of: UPCOMING, OPEN, LIVE, COMPLETED, CANCELLED, SUSPENDED',
+    message: 'Status must be one of: UPCOMING, LIVE, COMPLETED, CANCELLED',
   })
   @IsOptional()
   status?: EventStatus;

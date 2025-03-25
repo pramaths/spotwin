@@ -142,18 +142,16 @@ export class EventsService {
 
   private validateStatusTransition(currentStatus: EventStatus, newStatus: EventStatus): void {
     // Special statuses that can be set from any status
-    if (newStatus === EventStatus.CANCELLED || newStatus === EventStatus.SUSPENDED) {
+    if (newStatus === EventStatus.CANCELLED) {
       return;
     }
 
     // Define valid transitions
     const validTransitions = {
-      [EventStatus.UPCOMING]: [EventStatus.OPEN],
-      [EventStatus.OPEN]: [EventStatus.LIVE],
+      [EventStatus.UPCOMING]: [EventStatus.LIVE],
       [EventStatus.LIVE]: [EventStatus.COMPLETED],
       [EventStatus.COMPLETED]: [], // Cannot transition from COMPLETED to any other status
       [EventStatus.CANCELLED]: [], // Cannot transition from CANCELLED to any other status
-      [EventStatus.SUSPENDED]: [EventStatus.UPCOMING, EventStatus.OPEN, EventStatus.LIVE], // Can resume to previous states
     };
 
     if (!validTransitions[currentStatus].includes(newStatus)) {

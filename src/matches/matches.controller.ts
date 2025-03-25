@@ -1,10 +1,10 @@
-import { Controller, Get, Post, Body, Param, NotFoundException, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, NotFoundException, ParseUUIDPipe, Patch } from '@nestjs/common';
 import { MatchesService } from './matches.service';
 import { CreateMatchDto } from './dto/create-match.dto';
 import { Match } from './entities/match.entity';
 import { ApiTags, ApiOperation, ApiResponse, ApiCreatedResponse } from '@nestjs/swagger';
 import { Contest } from 'src/contests/entities/contest.entity';
-
+import { UpdateMatchDto } from './dto/update-match.dto';
 @ApiTags('matches')
 @Controller('matches')
 export class MatchesController {
@@ -83,5 +83,14 @@ export class MatchesController {
         return this.matchesService.getContestsByMatchId(id);
     }
     
-
+    @Patch(':id')
+    @ApiOperation({ summary: 'Update a match by ID' })
+    @ApiResponse({ 
+        status: 200, 
+        description: 'The match has been successfully updated.',
+        type: Match
+    })
+    async updateMatch(@Param('id', ParseUUIDPipe) id: string, @Body() updateMatchDto: UpdateMatchDto): Promise<Match> {
+        return this.matchesService.updateMatch(id, updateMatchDto);
+    }
 }

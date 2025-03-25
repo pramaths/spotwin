@@ -135,7 +135,6 @@ export class UserContestsService {
       : Infinity;
 
     if (diffDays > 1) {
-      // Reset streak if more than one day has passed since the last join
       userStreak.currentStreak = 0;
       userStreak.lastJoinedDate = null;
       await this.userStreakRepository.save(userStreak);

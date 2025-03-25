@@ -341,32 +341,12 @@ export class ContestsService {
   }
 
   async findAll(): Promise<Contest[]> {
-    this.logger.debug('Finding all active contests');
-    console.log('findAll');
     return await this.contestRepository.find({
       where: [
         {
           status: ContestStatus.OPEN,
           match: {
-            status: EventStatus.LIVE // This doesn't work as expected
-          },
-        },
-        {
-          status: ContestStatus.OPEN,
-          match: {
-            status: EventStatus.OPEN // Need a separate condition
-          },
-        },
-        {
-          status: ContestStatus.LIVE,
-          match: {
-            status: EventStatus.LIVE
-          },
-        },
-        {
-          status: ContestStatus.LIVE,
-          match: {
-            status: EventStatus.OPEN
+            status: EventStatus.LIVE 
           },
         },
       ],
@@ -387,7 +367,7 @@ export class ContestsService {
   async findActiveContestsWithDetails(): Promise<Partial<Contest>[]> {
     this.logger.debug('Finding active contests with details');
     const contests = await this.contestRepository.find({
-      where: [{ status: ContestStatus.OPEN }, { status: ContestStatus.LIVE }],
+      where: [{ status: ContestStatus.OPEN }],
       relations: ['match', 'match', 'match.teamA', 'match.teamB', 'Questions', 'match.event', 'match.event.sport'],
     });
     if (!contests.length) {

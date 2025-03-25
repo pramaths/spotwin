@@ -12,10 +12,6 @@ export class UpdateEventStatusDto {
         value: EventStatus.UPCOMING,
         summary: 'Event is scheduled but not yet open for betting/trading',
       },
-      open: {
-        value: EventStatus.OPEN,
-        summary: 'Event is open for trading (e.g., 2 days before the match)',
-      },
       live: {
         value: EventStatus.LIVE,
         summary: 'Event is currently happening',
@@ -27,10 +23,6 @@ export class UpdateEventStatusDto {
       cancelled: {
         value: EventStatus.CANCELLED,
         summary: 'Event got canceled (e.g., rain in cricket)',
-      },
-      suspended: {
-        value: EventStatus.SUSPENDED,
-        summary: 'Temporarily paused (e.g., technical issues, review delays)',
       },
     },
   })

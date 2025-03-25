@@ -173,4 +173,18 @@ export class UserService {
     return user.points;
   }
   
+  async updateReferralCodeUsed(id: string, referralcode: string): Promise<User> {
+    const user = await this.findOne(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const referrer = await this.userRepository.findOne({ where: { referralCode: referralcode } });
+    if (!referrer) {
+      throw new NotFoundException('Referrer not found');
+    }
+    user.referrer = referrer;
+    referrer.referrals.push(user);
+    user.isReferralCodeUsed = true;
+    return await this.userRepository.save(user);
+  }
 }

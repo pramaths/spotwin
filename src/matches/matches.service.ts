@@ -7,6 +7,7 @@ import { Event } from 'src/events/entities/events.entity';
 import { TeamsService } from 'src/teams/teams.service';
 import { EventStatus } from '../common/enums/common.enum';
 import { Contest } from 'src/contests/entities/contest.entity';
+import { UpdateMatchDto } from './dto/update-match.dto';
 export class MatchesService {
   constructor(
     @InjectRepository(Match)
@@ -49,9 +50,6 @@ export class MatchesService {
       where:[ {
         status: EventStatus.LIVE
       },
-      {
-        status: EventStatus.OPEN
-      }
     ],
     relations: ['teamA', 'teamB', 'contests','event','event.sport']
     });
@@ -77,6 +75,13 @@ export class MatchesService {
     });
   }
 
+  async updateMatch(id: string, updateMatchDto: UpdateMatchDto): Promise<Match> {
+    const match = await this.findOne(id);
+    if (!match) {
+      throw new NotFoundException('Match not found');
+    }
+    return this.matchRepository.save({ ...match, ...updateMatchDto });
+  }
   async deleteMatch(id: string): Promise<void> {
     // if (updateEventDto.teamAId) {
     //     const teamA = await this.teamsService.findOne(updateEventDto.teamAId);

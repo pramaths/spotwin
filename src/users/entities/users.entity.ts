@@ -44,6 +44,9 @@ export class User {
   @Column({ nullable: true })
   expoPushToken: string;
 
+  @Column({ default: false })
+  isReferralCodeUsed : boolean;
+
   @Column({ nullable: true, unique: true })
   referralCode: string;
 

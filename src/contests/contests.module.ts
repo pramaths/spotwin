@@ -9,7 +9,7 @@ import { LeaderboardsModule } from '../leaderboards/leaderboards.module';
 import { UserContestsModule } from '../user-contests/user-contests.module';
 import { ConfigModule } from '@nestjs/config';
 import { QuestionsModule } from '../questions/questions.module';
-import { MatchesModule } from '../matches/match.module';
+import { MatchesModule } from '../matches/matches.module';
 
 @Module({
   imports: [

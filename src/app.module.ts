@@ -20,7 +20,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from './common/guards/roles.guard';
 import { AuthorizedCreator } from './authorized_creators/entities/authorized-creator.entity';
 import { QuestionsModule } from './questions/questions.module';
-import { MatchesModule } from './matches/match.module';
+import { MatchesModule } from './matches/matches.module';
 import { ReferralsModule } from './referrals/referrals.module';
 
 @Module({

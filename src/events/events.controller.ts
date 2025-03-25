@@ -210,9 +210,9 @@ export class EventsController {
       },
       updateStatus: {
         summary: 'Update event status',
-        description: 'Status flow must follow: UPCOMING → OPEN → LIVE → COMPLETED',
+        description: 'Status flow must follow: UPCOMING → LIVE → COMPLETED',
         value: {
-          status: EventStatus.OPEN,
+          status: EventStatus.LIVE,
         },
       },
       updateDates: {
