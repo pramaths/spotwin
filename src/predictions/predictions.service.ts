@@ -9,12 +9,14 @@ import { Prediction } from './entities/prediction.entity';
 import { CreatePredictionDto } from './dto/create-prediction.dto';
 import { UpdatePredictionDto } from './dto/update-prediction.dto';
 import { ContestStatus } from '../common/enums/common.enum';
+import { QuestionsService } from '../questions/questions.service';
 
 @Injectable()
 export class PredictionsService {
   constructor(
     @InjectRepository(Prediction)
     private predictionRepository: Repository<Prediction>,
+    private questionsService: QuestionsService,
   ) {}
 
   async create(createPredictionDto: CreatePredictionDto): Promise<Prediction> {
@@ -49,6 +51,7 @@ export class PredictionsService {
     }
 
     const prediction = this.predictionRepository.create(createPredictionDto);
+    await this.questionsService.updateNumberOfPredictions(createPredictionDto.questionId, 1);
     return await this.predictionRepository.save(prediction);
   }
 
@@ -143,5 +146,6 @@ export class PredictionsService {
     }
 
     await this.predictionRepository.remove(prediction);
+    await this.questionsService.updateNumberOfPredictions(questionId, -1);
   }
 }

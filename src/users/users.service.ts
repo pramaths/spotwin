@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { User } from './entities/users.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ExpoPushTokenDto } from './dto/expo-push-token.dto';
 
 @Injectable()
 export class UserService {
@@ -156,13 +157,22 @@ export class UserService {
     }
   }
 
-  async updateExpoPushToken(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    const user = await this.findOne(id);
-    if (!user) {
-      throw new NotFoundException('User not found');
+  async updateExpoPushToken(id: string, expoPushTokenDto: ExpoPushTokenDto): Promise<User> {
+    try {
+      this.logger.log(`Updating Expo push token for user with ID: ${id}`);
+      const user = await this.findOne(id);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      user.expoPushToken = expoPushTokenDto.expoPushToken;
+      return await this.userRepository.save(user);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error(`Failed to update Expo push token: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Failed to update Expo push token');
     }
-    user.expoPushToken = updateUserDto.expoPushToken;
-    return await this.userRepository.save(user);
   }
 
   async getUserBalance(id: string): Promise<Number> {
@@ -173,25 +183,69 @@ export class UserService {
     return user.points;
   }
 
-  async updateReferralCodeUsed(id: string, referralcode: string | null): Promise<User> {
-    const user = await this.findOne(id);
-    console.log(referralcode);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    user.isReferralCodeUsed = true;
-
-    if (typeof referralcode === 'string' && referralcode.trim().length > 0) {
-      referralcode = referralcode.trim();
-      const referrer = await this.userRepository.findOne({ where: { referralCode: referralcode } });
-      if (!referrer) {
-        throw new NotFoundException('Referrer not found');
+  async updateReferralCodeUsed(id: string, referralCode: string | null): Promise<User> {
+    try {
+      this.logger.log(`Updating referral code used for user with ID: ${id}, referral code: ${referralCode}`);
+      
+      const user = await this.findOne(id);
+      if (!user) {
+        throw new NotFoundException('User not found');
       }
-      user.referrer = referrer;
-      referrer.referrals.push(user);
-      return await this.userRepository.save(user);
-    }
-    return await this.userRepository.save(user);
 
+      // Check if user already used a referral code
+      if (user.isReferralCodeUsed) {
+        throw new BadRequestException('User already used a referral code');
+      }
+
+      // Mark as referral code used
+      user.isReferralCodeUsed = true;
+
+      // If a referral code is provided
+      if (typeof referralCode === 'string' && referralCode.trim().length > 0) {
+        referralCode = referralCode.trim();
+        
+        // Don't allow users to use their own referral code
+        if (user.referralCode === referralCode) {
+          throw new BadRequestException('Cannot use your own referral code');
+        }
+
+        // Find the referrer user
+        const referrer = await this.userRepository.findOne({ 
+          where: { referralCode: referralCode },
+          relations: ['referrals']
+        });
+        
+        if (!referrer) {
+          throw new NotFoundException(`Referrer with code ${referralCode} not found`);
+        }
+
+        this.logger.log(`Found referrer with ID: ${referrer.id} for code: ${referralCode}`);
+        
+        // Set the referrer relationship
+        user.referrerId = referrer.id;
+        
+        // Initialize referrals array if it doesn't exist
+        if (!referrer.referrals) {
+          referrer.referrals = [];
+        }
+        
+        // Save the referrer with the updated referrals array
+        await this.userRepository.save(referrer);
+        
+        this.logger.log(`Updated referrer ${referrer.id} with new referral ${user.id}`);
+      }
+
+      // Save and return the updated user
+      const savedUser = await this.userRepository.save(user);
+      this.logger.log(`Updated user ${id} with isReferralCodeUsed=${savedUser.isReferralCodeUsed}, referrerId=${savedUser.referrerId || 'null'}`);
+      
+      return savedUser;
+    } catch (error) {
+      this.logger.error(`Error updating referral code used: ${error.message}`, error.stack);
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to update referral code used');
+    }
   }
 }

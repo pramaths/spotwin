@@ -18,7 +18,7 @@ import {
   import { JwtAuthGuard } from './strategies/jwt.strategy';
   import { JwtService } from '@nestjs/jwt';
   import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiHeader } from '@nestjs/swagger';
-
+  import { UserService } from '../users/users.service';
   @ApiTags('auth')
   @Controller('auth')
   export class AuthController {
@@ -26,6 +26,7 @@ import {
     constructor(
       private readonly authService: AuthService,
       private readonly jwttService: JwtService,
+      private readonly userService: UserService,
     ) {}
   
     @Post('otp')
@@ -148,8 +149,14 @@ import {
       description: 'Unauthorized' 
     })
     async getCurrentUser(@Req() req: Request & { user: any }) {
-      this.logger.log('Getting current user', { user: req.user });
-      return req.user;
+      try {
+        this.logger.log('Getting current user from database', { userId: req.user.sub });
+        const user = await this.userService.findById(req.user.sub);
+        return user;
+      } catch (error) {
+        this.logger.error(`Error fetching user from database: ${error.message}`, error.stack);
+        throw error;
+      }
     }
   
   }

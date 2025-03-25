@@ -53,4 +53,10 @@ export class QuestionsService {
   async getQuestionsByContestId(contestId: string): Promise<Question[]> {
       return this.questionRepository.find({ where: { contestId } });
   }
+
+  async updateNumberOfPredictions(questionId: string, value: number): Promise<Question> {
+    const question = await this.findOne(questionId);
+    question.numberOfBets+= value;
+    return this.questionRepository.save(question);
+  }
 }

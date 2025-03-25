@@ -14,6 +14,8 @@ import { UserService } from './users.service';
 import { User } from './entities/users.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ExpoPushTokenDto } from './dto/expo-push-token.dto';
+import { ReferralCodeDto } from './dto/referral-code.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -124,9 +126,9 @@ export class UserController {
   @Post(':id/expo-push-token')
   @ApiOperation({ summary: 'Update a user\'s Expo push token' })
   @ApiParam({ name: 'id', description: 'User ID' })
-  @ApiBody({ type: UpdateUserDto })
-  async updateExpoPushToken(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto): Promise<User> {
-    return await this.userService.updateExpoPushToken(id, updateUserDto);
+  @ApiBody({ type: ExpoPushTokenDto })
+  async updateExpoPushToken(@Param('id') id: string, @Body() expoPushTokenDto: ExpoPushTokenDto): Promise<User> {
+    return await this.userService.updateExpoPushToken(id, expoPushTokenDto);
   }
 
   @Get(':id/balance')
@@ -146,7 +148,8 @@ export class UserController {
   @Patch(':id/referral-code-used')
   @ApiOperation({ summary: 'Update a user\'s referral code used' })
   @ApiParam({ name: 'id', description: 'User ID' })
-  async updateReferralCodeUsed(@Param('id') id: string, @Body() referralcode: string|null): Promise<User> {
-    return await this.userService.updateReferralCodeUsed(id, referralcode);
+  @ApiBody({ type: ReferralCodeDto })
+  async updateReferralCodeUsed(@Param('id') id: string, @Body() referralCodeDto: ReferralCodeDto): Promise<User> {
+    return await this.userService.updateReferralCodeUsed(id, referralCodeDto.referralCode || null);
   }
 }
