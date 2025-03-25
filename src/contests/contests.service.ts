@@ -367,7 +367,7 @@ export class ContestsService {
   async findActiveContestsWithDetails(): Promise<Partial<Contest>[]> {
     this.logger.debug('Finding active contests with details');
     const contests = await this.contestRepository.find({
-      where: [{ status: ContestStatus.OPEN }],
+      where: [{ status: ContestStatus.OPEN }, { status: ContestStatus.COMPLETED }],
       relations: ['match', 'match', 'match.teamA', 'match.teamB', 'Questions', 'match.event', 'match.event.sport'],
     });
     if (!contests.length) {

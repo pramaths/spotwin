@@ -22,7 +22,7 @@ import {
 import { Leaderboard } from './entities/leaderboard.entity';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../common/enums/roles.enum';
-
+import { LeaderboardResponseDto } from './dto/response.dto';
 @ApiTags('leaderboards')
 @Controller('leaderboards')
 export class LeaderboardsController {
@@ -80,7 +80,7 @@ export class LeaderboardsController {
   @ApiResponse({
     status: 200,
     description: 'Return leaderboard entries for the specified contest',
-    type: [Leaderboard],
+    type: [LeaderboardResponseDto],
   })
   @ApiResponse({ status: 404, description: 'Contest not found or no entries.' })
   async findByContest(@Param('contestId') contestId: string) {

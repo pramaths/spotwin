@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Leaderboard } from './entities/leaderboard.entity';
 import { CreateLeaderboardDto } from './dto/create-leaderboard.dto';
 import { UpdateLeaderboardDto } from './dto/update-leaderboard.dto';
-
+import { LeaderboardResponseDto } from './dto/response.dto';
 @Injectable()
 export class LeaderboardsService {
   constructor(
@@ -55,7 +55,7 @@ export class LeaderboardsService {
     return leaderboard;
   }
 
-  async findByContest(contestId: string): Promise<Leaderboard[]> {
+  async findByContest(contestId: string): Promise<LeaderboardResponseDto[]> {
     const leaderboards = await this.leaderboardRepository.find({
       where: { contestId },
       relations: ['user', 'contest'],
@@ -63,14 +63,37 @@ export class LeaderboardsService {
         rank: 'ASC',
       },
     });
+    const mockLeaderboardData: LeaderboardResponseDto[] = [
+      { id: '1', rank: 1, username: 'pramath',  score: 1250, prize: '0.5 SOL' },
+      { id: '2', rank: 2, username: 'sportsfan',  score: 1100, prize: '0.3 SOL' },
+      { id: '3', rank: 3, username: 'gamemaster',  score: 950, prize: '0.2 SOL' },
+      { id: '4', rank: 4, username: 'player4',  score: 820 },
+      { id: '5', rank: 5, username: 'player5',  score: 780 },
+      { id: '6', rank: 6, username: 'player6',  score: 750 },
+      { id: '7', rank: 7, username: 'player7',  score: 720 },
+      { id: '8', rank: 8, username: 'player8',  score: 690 },
+      { id: '9', rank: 9, username: 'player9',  score: 650 },
+      { id: '10', rank: 10, username: 'player10',  score: 600 },
+    ];
 
     if (leaderboards.length === 0) {
-      throw new NotFoundException(
-        `No leaderboard entries found for contest ID ${contestId}`,
-      );
+      // throw new NotFoundException(
+      //   `No leaderboard entries found for contest ID ${contestId}`,
+      // );
+      
+      return mockLeaderboardData;
     }
 
-    return leaderboards;
+    // return leaderboards.map((data)=>{
+    //   return {
+    //     id: data.id,
+    //     rank: data.rank,
+    //     username: data.user.username,
+    //     score: data.score,
+    //     prize: "IPL Ticket",
+    //   };
+    // });
+    return mockLeaderboardData;
   }
 
   async findByUser(userId: string): Promise<Leaderboard[]> {

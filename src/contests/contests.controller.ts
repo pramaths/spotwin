@@ -24,10 +24,12 @@ import { OutcomeType } from '../common/enums/outcome-type.enum';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../common/enums/roles.enum';
 import { Question } from '../questions/entities/questions.entity';
+import { Logger } from '@nestjs/common';
 
 @ApiTags('contests')
 @Controller('contests')
 export class ContestsController {
+  private readonly logger = new Logger(ContestsController.name);
   constructor(private readonly contestsService: ContestsService) {}
 
   
@@ -46,10 +48,8 @@ export class ContestsController {
     try {
       const contests = await this.contestsService.findActiveContestsWithDetails();
       if (!contests.length) {
-        throw new HttpException(
-          'No active contests (OPEN or LIVE) found',
-          HttpStatus.NOT_FOUND,
-        );
+        this.logger.log('No active contests found');
+        return [];
       }
       return contests;
     } catch (error) {
