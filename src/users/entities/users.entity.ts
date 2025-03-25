@@ -35,10 +35,10 @@ export class User {
   @Column({ default: 100 })
   points: number;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: 0 })
   totalContests: number;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: 0 })
   totalContestsWon: number;
 
   @Column({ nullable: true })

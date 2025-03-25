@@ -146,7 +146,7 @@ export class UserController {
   @Patch(':id/referral-code-used')
   @ApiOperation({ summary: 'Update a user\'s referral code used' })
   @ApiParam({ name: 'id', description: 'User ID' })
-  async updateReferralCodeUsed(@Param('id') id: string, @Body() referralcode: string): Promise<User> {
+  async updateReferralCodeUsed(@Param('id') id: string, @Body() referralcode: string|null): Promise<User> {
     return await this.userService.updateReferralCodeUsed(id, referralcode);
   }
 }

@@ -43,14 +43,14 @@ import {
     async sendOtp(@Body() sendOtpDto: SendOtpDto, @Res() res: Response) {
       try {
         const result = await this.authService.sendOtp(sendOtpDto);
-        this.logger.log('OTP sent successfully');
+        this.logger.log('OTP initiated successfully');
         return res.json(result);
       } catch (error) {
-        this.logger.error(`OTP sending error: ${error.message}`);
+        this.logger.error(`OTP initiating error: ${error.message}`);
         this.logger.error('Full error details:', error);
         
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-          message: 'Error during OTP sending process',
+          message: 'Error during OTP initiation process',
           error: error.message,
         });
       }
@@ -77,9 +77,9 @@ import {
         this.logger.error(`OTP verification error: ${error.message}`);
         this.logger.error('Full error details:', error);
         
-        if (error.message === 'Invalid or expired OTP') {
+        if (error.message === 'Invalid or expired OTP' || error.message === 'Invalid request ID') {
           return res.status(HttpStatus.UNAUTHORIZED).json({
-            message: 'Invalid or expired OTP',
+            message: error.message,
           });
         }
         

@@ -12,18 +12,18 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) {}
+  ) { }
 
   private generateReferralCode(): string {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
     let result = '';
     const charactersLength = characters.length;
-    
+
     // Generate a 6-character string
     for (let i = 0; i < 6; i++) {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
-    
+
     return result;
   }
 
@@ -31,27 +31,27 @@ export class UserService {
     try {
       this.logger.log(`Creating new user with name: ${createUserDto.username}`);
       const user = this.userRepository.create(createUserDto);
-      
+
       let referralCode;
       let isUnique = false;
-      
+
       while (!isUnique) {
         referralCode = this.generateReferralCode();
-        const existingUser = await this.userRepository.findOne({ 
-          where: { referralCode } 
+        const existingUser = await this.userRepository.findOne({
+          where: { referralCode }
         });
-        
+
         if (!existingUser) {
           isUnique = true;
         }
       }
-      
+
       user.referralCode = referralCode;
-      
+
       return await this.userRepository.save(user);
     } catch (error) {
       this.logger.error(`Failed to create user: ${error.message}`, error.stack);
-      if (error.code === '23505') { 
+      if (error.code === '23505') {
         throw new BadRequestException('User with this username, or public address already exists');
       }
       throw new InternalServerErrorException('Failed to create user');
@@ -172,19 +172,26 @@ export class UserService {
     }
     return user.points;
   }
-  
-  async updateReferralCodeUsed(id: string, referralcode: string): Promise<User> {
+
+  async updateReferralCodeUsed(id: string, referralcode: string | null): Promise<User> {
     const user = await this.findOne(id);
+    console.log(referralcode);
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    const referrer = await this.userRepository.findOne({ where: { referralCode: referralcode } });
-    if (!referrer) {
-      throw new NotFoundException('Referrer not found');
-    }
-    user.referrer = referrer;
-    referrer.referrals.push(user);
     user.isReferralCodeUsed = true;
+
+    if (typeof referralcode === 'string' && referralcode.trim().length > 0) {
+      referralcode = referralcode.trim();
+      const referrer = await this.userRepository.findOne({ where: { referralCode: referralcode } });
+      if (!referrer) {
+        throw new NotFoundException('Referrer not found');
+      }
+      user.referrer = referrer;
+      referrer.referrals.push(user);
+      return await this.userRepository.save(user);
+    }
     return await this.userRepository.save(user);
+
   }
 }

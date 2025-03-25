@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException, Logger, NotFoundException } from '@n
 import { UserService } from '../users/users.service';
 import { Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
-import { OtpService } from './otp.service';
+import { OtplessService } from './otpless.service';
 import { SendOtpDto } from './dto/send-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { generateUsername } from 'unique-username-generator';
@@ -13,14 +13,14 @@ export class AuthService {
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
-    private otpService: OtpService,
+    private otplessService: OtplessService,
   ) {}
 
-  async sendOtp(sendOtpDto: SendOtpDto): Promise<{ message: string }> {
+  async sendOtp(sendOtpDto: SendOtpDto): Promise<{ message: string, requestId: string }> {
     this.logger.debug('OTP request received', { phoneNumber: sendOtpDto.phoneNumber });
     try {
-      const message = await this.otpService.sendOtp(sendOtpDto.phoneNumber);
-      return { message };
+      const result = await this.otplessService.initiateOtp(sendOtpDto.phoneNumber);
+      return result;
     } catch (error) {
       this.logger.error('Failed to send OTP', { error });
       throw error;
@@ -28,10 +28,18 @@ export class AuthService {
   }
 
   async verifyOtpAndLogin(verifyOtpDto: VerifyOtpDto) {
-    this.logger.debug('OTP verification request received', { phoneNumber: verifyOtpDto.phoneNumber });
+    this.logger.debug('OTP verification request received', { requestId: verifyOtpDto.requestId });
+    
+    if (!verifyOtpDto.requestId) {
+      throw new UnauthorizedException('Invalid request ID');
+    }
+
+    if (!verifyOtpDto.phoneNumber) {
+      throw new UnauthorizedException('Phone number is required');
+    }
     
     try {
-      const isValid = this.otpService.verifyOtp(verifyOtpDto.phoneNumber, verifyOtpDto.otp);
+      const isValid = await this.otplessService.verifyOtp(verifyOtpDto.requestId, verifyOtpDto.otp);
       
       if (!isValid) {
         throw new UnauthorizedException('Invalid or expired OTP');
