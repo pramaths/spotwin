@@ -21,16 +21,15 @@ import {
     @IsString()
     @IsOptional()
     title?: string;
-  
+
     @ApiProperty({
-      example: 'The ultimate football championship event of the year',
-      description: 'Detailed description of the event',
-      required: false,
+      example: '550e8400-e29b-41d4-a716-446655440111',
+      description: 'Unique identifier for the event',
+      required: true,
     })
-    @IsString()
-    @IsOptional()
-    description?: string;
-  
+    @IsUUID()
+    eventId: string;
+
     @ApiProperty({
       example: '2024-07-01T15:00:00Z',
       description: 'Start date and time of the event',
@@ -38,7 +37,7 @@ import {
     })
     @IsDateString()
     @IsOptional()
-    startDate?: Date;
+    startTime?: Date;
   
     @ApiProperty({
       example: '2024-07-01T18:00:00Z',
@@ -47,7 +46,7 @@ import {
     })
     @IsDateString()
     @IsOptional()
-    endDate?: Date;
+    endTime?: Date;
   
     @ApiProperty({
       example: '550e8400-e29b-41d4-a716-446655440111',

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, NotFoundException, ParseUUIDPipe, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, NotFoundException, ParseUUIDPipe, Patch, Delete } from '@nestjs/common';
 import { MatchesService } from './matches.service';
 import { CreateMatchDto } from './dto/create-match.dto';
 import { Match } from './entities/match.entity';
@@ -114,4 +114,17 @@ export class MatchesController {
     ): Promise<Match> {
         return this.matchesService.updateMatchStatus(id, updateMatchStatusDto.status);
     }
+
+
+    @Delete(':id')
+    @ApiOperation({ summary: 'Delete a match by ID' })
+    @ApiResponse({
+        status: 200,
+        description: 'The match has been successfully deleted.',
+    })
+    async deleteMatch(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+        return this.matchesService.deleteMatch(id);
+    }
+    
+    
 }
