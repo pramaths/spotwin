@@ -192,24 +192,17 @@ export class UserService {
         throw new NotFoundException('User not found');
       }
 
-      // Check if user already used a referral code
       if (user.isReferralCodeUsed) {
         throw new BadRequestException('User already used a referral code');
       }
 
-      // Mark as referral code used
       user.isReferralCodeUsed = true;
 
-      // If a referral code is provided
       if (typeof referralCode === 'string' && referralCode.trim().length > 0) {
-        referralCode = referralCode.trim();
-        
-        // Don't allow users to use their own referral code
+        referralCode = referralCode.trim();        
         if (user.referralCode === referralCode) {
           throw new BadRequestException('Cannot use your own referral code');
         }
-
-        // Find the referrer user
         const referrer = await this.userRepository.findOne({ 
           where: { referralCode: referralCode },
           relations: ['referrals']
@@ -221,21 +214,17 @@ export class UserService {
 
         this.logger.log(`Found referrer with ID: ${referrer.id} for code: ${referralCode}`);
         
-        // Set the referrer relationship
         user.referrerId = referrer.id;
         
-        // Initialize referrals array if it doesn't exist
         if (!referrer.referrals) {
           referrer.referrals = [];
         }
         
-        // Save the referrer with the updated referrals array
         await this.userRepository.save(referrer);
         
         this.logger.log(`Updated referrer ${referrer.id} with new referral ${user.id}`);
       }
 
-      // Save and return the updated user
       const savedUser = await this.userRepository.save(user);
       this.logger.log(`Updated user ${id} with isReferralCodeUsed=${savedUser.isReferralCodeUsed}, referrerId=${savedUser.referrerId || 'null'}`);
       
