@@ -12,7 +12,8 @@ import { CreateContestDto } from './dtos/create-contest.dto';
 import { UpdateContestDto } from './dtos/update-contest.dto';
 import { EventsService } from '../events/events.service';
 import {
-  ContestStatus,
+    ContestStatus,
+    MatchStatus
 } from '../common/enums/common.enum';
 import { PredictionsService } from '../predictions/predictions.service';
 import { LeaderboardsService } from '../leaderboards/leaderboards.service';
@@ -346,7 +347,7 @@ export class ContestsService {
         {
           status: ContestStatus.OPEN,
           match: {
-            status: EventStatus.LIVE 
+            status: MatchStatus.OPEN 
           },
         },
       ],

@@ -10,7 +10,7 @@ import {
   import { Type } from 'class-transformer';
   import { CreateContestDto } from '../../contests/dtos/create-contest.dto';
   import { ApiProperty } from '@nestjs/swagger';
-  import { EventStatus } from '../../common/enums/common.enum';
+  import { MatchStatus } from '../../common/enums/common.enum';
   
   export class UpdateMatchDto {
     @ApiProperty({
@@ -68,17 +68,17 @@ import {
     teamBId?: string;
   
     @ApiProperty({
-      example: EventStatus.UPCOMING,
-      enum: EventStatus,
-      enumName: 'EventStatus',
+      example: MatchStatus.OPEN,
+      enum: MatchStatus,
+      enumName: 'MatchStatus',
       description: 'Current status of the event. Status flow must follow: UPCOMING → LIVE → COMPLETED',
       required: false,
     })
-    @IsEnum(EventStatus, {
-      message: 'Status must be one of: UPCOMING, LIVE, COMPLETED, CANCELLED',
+    @IsEnum(MatchStatus, {
+      message: 'Status must be one of: OPEN, CLOSED, COMPLETED, CANCELLED',
     })
     @IsOptional()
-    status?: EventStatus;
+    status?: MatchStatus;
   
     @ValidateNested({ each: true })
     @Type(() => CreateContestDto)

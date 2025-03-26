@@ -6,7 +6,7 @@ import {
     OneToMany,
   } from 'typeorm';
   import { Contest } from '../../contests/entities/contest.entity';
-  import { EventStatus } from '../../common/enums/common.enum';
+  import { MatchStatus } from '../../common/enums/common.enum';
   import { ApiProperty } from '@nestjs/swagger';
   import { Team } from '../../teams/entities/team.entity';
   import { Event } from '../../events/entities/events.entity';
@@ -42,12 +42,12 @@ import {
     endTime: Date;
   
     @ApiProperty({
-      example: EventStatus.UPCOMING,
-      enum: EventStatus,
+      example: MatchStatus.OPEN,
+      enum: MatchStatus,
       description: 'Current status of the match',
     })
-    @Column({ type: 'enum', enum: EventStatus, default: EventStatus.UPCOMING })
-    status: EventStatus;
+    @Column({ type: 'enum', enum: MatchStatus, default: MatchStatus.OPEN })
+    status: MatchStatus;
   
     @ApiProperty({
       example: '2024-01-01T12:00:00Z',

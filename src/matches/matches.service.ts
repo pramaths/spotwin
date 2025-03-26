@@ -5,7 +5,7 @@ import { Match } from './entities/match.entity';
 import { CreateMatchDto } from './dto/create-match.dto';
 import { Event } from 'src/events/entities/events.entity';
 import { TeamsService } from 'src/teams/teams.service';
-import { EventStatus } from '../common/enums/common.enum';
+import { EventStatus, MatchStatus } from '../common/enums/common.enum';
 import { Contest } from 'src/contests/entities/contest.entity';
 import { UpdateMatchDto } from './dto/update-match.dto';
 export class MatchesService {
@@ -17,29 +17,29 @@ export class MatchesService {
     @InjectRepository(Contest)
     private contestRepository: Repository<Contest>,
     private teamsService: TeamsService,
-  ) {}
+  ) { }
 
   async createMatch(createMatchDto: CreateMatchDto): Promise<Match> {
-    const {eventId, teamAId, teamBId} = createMatchDto;
+    const { eventId, teamAId, teamBId } = createMatchDto;
     const [event, teamA, teamB] = await Promise.all([
       this.eventRepository.findOne({ where: { id: eventId } }),
       this.teamsService.findOne(teamAId),
       this.teamsService.findOne(teamBId),
     ]);
-    if(!event || !teamA || !teamB) {
+    if (!event || !teamA || !teamB) {
       throw new NotFoundException(`Event, Team A or Team B not found`);
     }
     const match = this.matchRepository.create({
-        ...createMatchDto,
-        event,
-        teamA,
-        teamB
+      ...createMatchDto,
+      event,
+      teamA,
+      teamB
     });
     return this.matchRepository.save(match);
   }
 
   async findOne(id: string): Promise<Match> {
-    return this.matchRepository.findOne({ 
+    return this.matchRepository.findOne({
       where: { id },
       relations: ['teamA', 'teamB', 'contests']
     });
@@ -47,24 +47,24 @@ export class MatchesService {
 
   async getAllLiveMatches(): Promise<Match[]> {
     return this.matchRepository.find({
-      where:[ {
-        status: EventStatus.LIVE
+      where: [{ 
+        status: MatchStatus.OPEN
       },
-    ],
-    relations: ['teamA', 'teamB', 'contests','event','event.sport']
+      ],
+      relations: ['teamA', 'teamB', 'contests', 'event', 'event.sport']
     });
   }
-  
+
   async getAllMatches(): Promise<Match[]> {
     return this.matchRepository.find({
-      relations: ['teamA', 'teamB', 'contests', 'event','event.sport']
+      relations: ['teamA', 'teamB', 'contests', 'event', 'event.sport']
     });
   }
 
   async getMatchesByEventId(eventId: string): Promise<Match[]> {
     return this.matchRepository.find({
       where: { event: { id: eventId } },
-      relations: ['teamA', 'teamB', 'contests', 'event','event.sport']
+      relations: ['teamA', 'teamB', 'contests', 'event', 'event.sport']
     });
   }
 
@@ -82,6 +82,19 @@ export class MatchesService {
     }
     return this.matchRepository.save({ ...match, ...updateMatchDto });
   }
+
+
+  async updateMatchStatus(id: string, status: MatchStatus): Promise<Match> {
+    const match = await this.findOne(id);
+    if (!match) {
+      throw new NotFoundException('Match not found');
+    }
+
+    match.status = status;
+    return this.matchRepository.save(match);
+  }
+
+
   async deleteMatch(id: string): Promise<void> {
     // if (updateEventDto.teamAId) {
     //     const teamA = await this.teamsService.findOne(updateEventDto.teamAId);
@@ -93,7 +106,7 @@ export class MatchesService {
     //     event.teamA = { id: teamA.id } as any;
     //     delete updateEventDto.teamAId;
     //   }
-  
+
     //   // Handle teamBId update if provided
     // //   if (updateEventDto.teamBId) {
     // //     const teamB = await this.teamsService.findOne(updateEventDto.teamBId);
