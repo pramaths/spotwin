@@ -150,8 +150,21 @@ import {
     })
     async getCurrentUser(@Req() req: Request & { user: any }) {
       try {
-        this.logger.log('Getting current user from database', { userId: req.user.sub });
-        const user = await this.userService.findById(req.user.sub);
+        this.logger.debug('User object from JWT:', req.user);
+        
+        const userId = req.user.sub || req.user.userId || req.user.id;
+        
+        if (!userId) {
+          throw new Error('User ID not found in JWT payload');
+        }
+        
+        this.logger.log(`Getting current user from database with ID: ${userId}`);
+        const user = await this.userService.findById(userId);
+        
+        if (!user) {
+          throw new Error(`User with ID ${userId} not found`);
+        }
+        
         return user;
       } catch (error) {
         this.logger.error(`Error fetching user from database: ${error.message}`, error.stack);

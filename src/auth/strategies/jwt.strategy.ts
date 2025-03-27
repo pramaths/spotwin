@@ -5,7 +5,7 @@ import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from '../../users/users.service';
 import { AuthGuard } from '@nestjs/passport';
-
+import { User } from '../../users/entities/users.entity';
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   private readonly logger = new Logger(JwtStrategy.name);
@@ -17,11 +17,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('JWT_SECRET') || 'supersecret',
+      secretOrKey: configService.get<string>('JWT_SECRET'),
     });
   }
 
-  async validate(payload: any) {
+  async validate(payload: any): Promise<User> {
     this.logger.debug('Validating JWT payload', { payload });
     const user = await this.userService.findById(payload.sub);
     if (!user) {
