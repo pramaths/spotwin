@@ -21,7 +21,7 @@ export class AuthorizedCreator {
   phoneNumber: string;
 
   @OneToOne(() => User)
-  @JoinColumn({ name: 'user' })
+  @JoinColumn({ name: 'userId' })
   user: User;
 
   @CreateDateColumn()
