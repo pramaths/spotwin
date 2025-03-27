@@ -70,7 +70,7 @@ import {
       example: MatchStatus.OPEN,
       enum: MatchStatus,
       enumName: 'MatchStatus',
-      description: 'Current status of the event. Status flow must follow: UPCOMING → LIVE → COMPLETED',
+      description: 'Current status of the event. Status flow must follow: OPEN → CLOSED → COMPLETED',
       required: false,
     })
     @IsEnum(MatchStatus, {

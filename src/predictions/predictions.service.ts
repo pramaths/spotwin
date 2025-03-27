@@ -32,8 +32,6 @@ export class PredictionsService {
         'User already has the maximum number of predictions (9) for this contest',
       );
     }  
-
-    // Check if contest is open
     const contest = existingPredictions[0]?.contest;
     if (contest && contest.status !== ContestStatus.OPEN) {
       throw new BadRequestException(

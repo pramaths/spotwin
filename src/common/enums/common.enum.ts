@@ -6,7 +6,6 @@ export enum MatchStatus {
 }
 
 export enum ContestStatus {
-  PENDING = 'PENDING',
   OPEN = 'OPEN', 
   CLOSED = 'CLOSED', 
   COMPLETED = 'COMPLETED', 
