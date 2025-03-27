@@ -16,6 +16,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ExpoPushTokenDto } from './dto/expo-push-token.dto';
 import { ReferralCodeDto } from './dto/referral-code.dto';
+import { Roles } from '../common/decorators/roles.decorator';
+import { UserRole } from '../common/enums/roles.enum';
 
 @ApiTags('users')
 @Controller('users')
@@ -23,6 +25,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
+  @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new user' })
   @ApiResponse({ 
@@ -40,6 +43,7 @@ export class UserController {
   }
 
   @Get()
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({ 
     status: HttpStatus.OK, 
