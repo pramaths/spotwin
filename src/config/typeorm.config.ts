@@ -17,8 +17,8 @@ export const typeOrmConfig = (): TypeOrmModuleOptions => {
     ssl: config.database.ssl ? {
       rejectUnauthorized: false // Important for AWS RDS connections
     } : false,
-    synchronize: process.env.TYPEORM_SYNCHRONIZE === 'true' || (!isProduction && process.env.TYPEORM_SYNCHRONIZE !== 'false'),
-    migrationsRun: process.env.TYPEORM_MIGRATIONS_RUN === 'true' || (isProduction && process.env.TYPEORM_MIGRATIONS_RUN !== 'false'),
+    synchronize: true,
+    migrationsRun: true,
     migrations: [join(__dirname, '../migrations/*.{ts,js}')],
     migrationsTableName: 'migrations',
   };
