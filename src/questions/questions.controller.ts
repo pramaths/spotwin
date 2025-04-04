@@ -4,13 +4,15 @@ import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
 import { ApiTags, ApiOperation, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { Question } from './entities/questions.entity';
-
+import { UserRole } from '../common/enums/roles.enum';
+import { Roles } from '../common/decorators/roles.decorator';
 @ApiTags('questions')
 @Controller('questions')
 export class QuestionsController {
   constructor(private readonly questionsService: QuestionsService) {}
 
   @Post()
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Create a new question' })
   @ApiBody({ type: CreateQuestionDto })
   @ApiResponse({
@@ -33,11 +35,13 @@ export class QuestionsController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateQuestionDto: UpdateQuestionDto) { 
+  @Roles(UserRole.ADMIN)
+  async update(@Param('id') id: string, @Body() updateQuestionDto: UpdateQuestionDto) { 
     return this.questionsService.update(id, updateQuestionDto);
   }
 
   @Delete(':id')
+  @Roles(UserRole.ADMIN)
   remove(@Param('id') id: string) {
     return this.questionsService.remove(id);
 }
