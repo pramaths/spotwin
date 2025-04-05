@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, Logger, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { User } from './entities/users.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -235,6 +235,34 @@ export class UserService {
         throw error;
       }
       throw new InternalServerErrorException('Failed to update referral code used');
+    }
+  }
+
+  async addPoints(userIds: string[], points: number){
+    try {
+      this.logger.log(`Adding ${points} points to ${userIds.length} users`);
+      
+      return await this.userRepository.manager.transaction(async transactionalEntityManager => {
+        const users = await transactionalEntityManager.find(User, { 
+          where: { id: In(userIds) } 
+        });
+        
+        if (!users || users.length === 0) {
+          throw new NotFoundException('No users found with the provided IDs');
+        }
+        
+        users.forEach(user => {
+          user.points += points;
+        });
+        
+        return await transactionalEntityManager.save(users);
+      });
+    } catch (error) {
+      this.logger.error(`Failed to add points in batch: ${error.message}`, error.stack);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to add points to users');
     }
   }
 }

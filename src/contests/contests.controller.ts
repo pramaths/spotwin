@@ -196,26 +196,6 @@ export class ContestsController {
     }
   }
 
-  // New Contest Video Endpoints
-  @Get(':contestId/videos')
-  @ApiOperation({ summary: 'Get all video submissions for a contest' })
-  @ApiParam({ name: 'contestId', description: 'Contest ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Return all video submissions for the contest',
-    type: [Question],
-  })
-  async getContestVideos(@Param('contestId') contestId: string) {
-    try {
-      return await this.contestsService.getContestVideos(contestId);
-    } catch (error) {
-      throw new HttpException(
-        error.message || 'Failed to retrieve contest videos',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
   @Post('questions/:questionId/answer')
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Set the answer for a featured video in a contest' })
@@ -242,7 +222,7 @@ export class ContestsController {
   async answerVideo(
     @Param('questionId') questionId: string,
     @Body('contestId') contestId: string,
-    @Body('answer') answer: 'yes' | 'no',
+    @Body('answer') answer: 'YES' | 'NO',
   ) {
     try {
       return await this.contestsService.answerVideo(

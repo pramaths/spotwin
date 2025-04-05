@@ -25,6 +25,7 @@ import { QuestionsService } from '../questions/questions.service';
 import { Question } from '../questions/entities/questions.entity';
 import { Match } from '../matches/entities/match.entity';
 import { MatchesService } from '../matches/matches.service';
+import { QuestionLevel } from '../common/enums/common.enum';
 
 @Injectable()
 export class ContestsService {
@@ -62,6 +63,7 @@ export class ContestsService {
   async resolveContest(
     contestId: string,
   ): Promise<void> {
+    this.logger.log(`Starting to resolve contest with ID: ${contestId}`);
     const contest = await this.contestRepository.findOne({
       where: { id: contestId },
       relations: ['userContests', 'userContests.user'],
@@ -73,37 +75,45 @@ export class ContestsService {
         'Contest is not completed and cannot be resolved',
       );
 
+    this.logger.log(`Found contest: ${JSON.stringify(contest)}`);
+    this.logger.log(`Contest has ${contest.userContests?.length || 0} user contests`);
+
     const questions =
       await this.questionsService.findByContestId(contestId);
-    if (questions.length !== 12)
+    this.logger.log(`Found ${questions.length} questions for contest`);
+    
+    const answeredQuestions = questions.filter(question => question.outcome !== null);
+    this.logger.log(`Found ${answeredQuestions.length} answered questions`);
+    
+    if (questions.length !== 12 && answeredQuestions.length !== 12)
       throw new BadRequestException(
-        'Contest must have exactly 12 questions to resolve',
-      );
-    const allOutcomesSet = questions.every(
-      (question) => question.outcome !== null,
-    );
-    if (!allOutcomesSet)
-      throw new BadRequestException(
-        'All questions must have a correct outcome set before resolving',
+        'Contest must have exactly 12 questions to resolve and 12 must be answered',
       );
 
     const questionMap = new Map<string, Question>();
     for (const question of questions) {
       questionMap.set(question.id, question);
     }
+    this.logger.log(`Created question map with ${questionMap.size} entries`);
+    this.logger.log(`Question map keys: ${Array.from(questionMap.keys())}`);
 
     const userContests = contest.userContests;
+    this.logger.log(`Processing ${userContests.length} user contests`);
+    
     const userMap = new Map<string, any>();
     for (const uc of userContests) {
       userMap.set(uc.user.id, uc.user);
     }
+    this.logger.log(`Created user map with ${userMap.size} entries`);
+    this.logger.log(`User map keys: ${Array.from(userMap.keys())}`);
 
     const allPredictions = [];
-    const userContestIds = userContests.map(uc => uc.id);
-    for (const userContestId of userContestIds) {
-      const userPredictions = await this.predictionsService.findByContest(userContestId);
-      allPredictions.push(...userPredictions);
-    }
+    
+    const userPredictions = await this.predictionsService.findByContest(contestId);
+    this.logger.log(`Found ${userPredictions.length} predictions for user contest ${contestId}`);
+    allPredictions.push(...userPredictions);
+  
+    this.logger.log(`Total predictions collected: ${allPredictions.length}`);
 
     // Group predictions by user ID using a Map
     const predictionsByUser = new Map<string, any[]>();
@@ -113,82 +123,119 @@ export class ContestsService {
       }
       predictionsByUser.get(prediction.userId).push(prediction);
     }
+    this.logger.log(`Grouped predictions by ${predictionsByUser.size} users`);
+    
+    for (const [userId, predictions] of predictionsByUser.entries()) {
+      this.logger.log(`User ${userId} has ${predictions.length} predictions`);
+    }
 
-    // Prepare batch updates for predictions
     const predictionUpdates = [];
 
-    // Calculate scores for each user
     const userScores = [];
     for (const [userId, userPredictions] of predictionsByUser.entries()) {
+      this.logger.log(`Processing predictions for user ${userId}`);
+      
       if (userPredictions.length !== 9) {
         this.logger.warn(`User ${userId} has ${userPredictions.length} predictions instead of 9 for contest ${contestId}`);
         continue;
       }
 
       let correctAnswers = 0;
-      let tiebreakerScore = 0;
-      let predictedSelectedVideo = false;
-
-      // Check each prediction against questions
+      let tiebreakerScorebySection = {
+        [QuestionLevel.EASY]: 0,
+        [QuestionLevel.MEDIUM]: 0,
+        [QuestionLevel.HARD]: 0,
+      };
+      let tiebreakScoreBynumberOfBets = 0;
       for (const prediction of userPredictions) {
-        const question = questionMap.get(prediction.videoId);
+        this.logger.log(`Checking prediction ${prediction.id} for question ${prediction.questionId}`);
+        
+        const question = questionMap.get(prediction.questionId);
         if (!question) {
+          this.logger.error(`question ${prediction.questionId} not found in question map`);
           throw new NotFoundException(
-            `Featured video ${prediction.videoId} not found`,
+            `question ${prediction.questionId} not found`,
           );
         }
 
         const isCorrect = prediction.prediction === question.outcome;
+        this.logger.log(`Prediction: ${prediction.prediction}, Outcome: ${question.outcome}, Correct: ${isCorrect}`);
 
         predictionUpdates.push({
           id: prediction.id,
           isCorrect
         });
 
-        // Update scores
         if (isCorrect) {
           correctAnswers++;
-          tiebreakerScore +=
+          tiebreakerScorebySection[question.difficultyLevel] += 1;
+          tiebreakScoreBynumberOfBets +=
             question.numberOfBets > 0 ? 1 / question.numberOfBets : 1;
+          this.logger.log(`Correct answer! Score now: ${correctAnswers}, Tiebreaker: ${tiebreakerScorebySection}, Tiebreaker: ${tiebreakScoreBynumberOfBets}`);
         }
       }
 
       userScores.push({
         userId,
         correctAnswers,
-        tiebreakerScore,
-        predictedSelectedVideo,
+        tiebreakerScorebySection,
+        tiebreakScoreBynumberOfBets,
       });
+      this.logger.log(`Final score for user ${userId}: ${correctAnswers} correct, ${tiebreakerScorebySection} tiebreaker, ${tiebreakScoreBynumberOfBets} tiebreaker`);
     }
+    this.logger.log(`Calculated scores for ${userScores.length} users`);
+    this.logger.log(`User scores before sorting: ${JSON.stringify(userScores)}`);
 
-    // Batch update all predictions
+    this.logger.log(`Updating ${predictionUpdates.length} predictions with results`);
     await Promise.all(
       predictionUpdates.map(update =>
         this.predictionsService.updatePredictionResult(update.id, update.isCorrect)
       )
     );
+    this.logger.log(`Finished updating prediction results`);
 
     // Sort users by score and tiebreaker
     userScores.sort((a, b) => {
       if (a.correctAnswers !== b.correctAnswers)
         return b.correctAnswers - a.correctAnswers;
-      return b.tiebreakerScore - a.tiebreakerScore;
+      
+      // First tiebreaker: Compare by difficulty level
+      if (a.tiebreakerScorebySection[QuestionLevel.HARD] !== b.tiebreakerScorebySection[QuestionLevel.HARD]) {
+        return b.tiebreakerScorebySection[QuestionLevel.HARD] - a.tiebreakerScorebySection[QuestionLevel.HARD];
+      }
+      
+      if (a.tiebreakerScorebySection[QuestionLevel.MEDIUM] !== b.tiebreakerScorebySection[QuestionLevel.MEDIUM]) {
+        return b.tiebreakerScorebySection[QuestionLevel.MEDIUM] - a.tiebreakerScorebySection[QuestionLevel.MEDIUM];
+      }
+      
+      if (a.tiebreakerScorebySection[QuestionLevel.EASY] !== b.tiebreakerScorebySection[QuestionLevel.EASY]) {
+        return b.tiebreakerScorebySection[QuestionLevel.EASY] - a.tiebreakerScorebySection[QuestionLevel.EASY];
+      }
+      
+      return b.tiebreakScoreBynumberOfBets - a.tiebreakScoreBynumberOfBets;
     });
+    this.logger.log(`User scores after sorting: ${JSON.stringify(userScores)}`);
 
-    // Create leaderboard entries
     const leaderboardEntries = [];
     let currentRank = 1;
     let prevScore = null;
-    let prevTiebreaker = null;
+    let prevTiebreakerHard = null;
+    let prevTiebreakerMedium = null;
+    let prevTiebreakerEasy = null;
+    let prevTiebreakerBets = null;
 
     for (let i = 0; i < userScores.length; i++) {
       const userScore = userScores[i];
 
-      // Only increment rank if score or tiebreaker is different
+      // Only increment rank if score or any tiebreaker is different
       if (i > 0 &&
         (userScore.correctAnswers !== prevScore ||
-          userScore.tiebreakerScore !== prevTiebreaker)) {
+         userScore.tiebreakerScorebySection[QuestionLevel.HARD] !== prevTiebreakerHard ||
+         userScore.tiebreakerScorebySection[QuestionLevel.MEDIUM] !== prevTiebreakerMedium ||
+         userScore.tiebreakerScorebySection[QuestionLevel.EASY] !== prevTiebreakerEasy ||
+         userScore.tiebreakScoreBynumberOfBets !== prevTiebreakerBets)) {
         currentRank = i + 1;
+        this.logger.log(`Rank changed to ${currentRank} for user ${userScore.userId}`);
       }
 
       leaderboardEntries.push({
@@ -197,91 +244,29 @@ export class ContestsService {
         score: userScore.correctAnswers,
         rank: currentRank,
       });
+      this.logger.log(`Created leaderboard entry for user ${userScore.userId}: rank ${currentRank}, score ${userScore.correctAnswers}`);
 
       prevScore = userScore.correctAnswers;
-      prevTiebreaker = userScore.tiebreakerScore;
+      prevTiebreakerHard = userScore.tiebreakerScorebySection[QuestionLevel.HARD];
+      prevTiebreakerMedium = userScore.tiebreakerScorebySection[QuestionLevel.MEDIUM];
+      prevTiebreakerEasy = userScore.tiebreakerScorebySection[QuestionLevel.EASY];
+      prevTiebreakerBets = userScore.tiebreakScoreBynumberOfBets;
     }
+    this.logger.log(`Created ${leaderboardEntries.length} leaderboard entries`);
 
-    // Batch create leaderboard entries
+    this.logger.log(`Saving leaderboard entries to database`);
     await Promise.all(
       leaderboardEntries.map(entry => this.leaderboardsService.create(entry))
     );
-
-    // Batch slot assignments
-    const batchSlots = [
-      { min: 1, max: 1, slot: '1' },
-      { min: 2, max: 2, slot: '2' },
-      { min: 3, max: 3, slot: '3' },
-      { min: 4, max: 8, slot: '4-8' },
-      { min: 9, max: 12, slot: '9-12' },
-      { min: 13, max: 20, slot: '13-20' },
-      { min: 21, max: 50, slot: '20-50' },
-      { min: 51, max: 200, slot: '50-200' },
-      { min: 201, max: 550, slot: '200-550' },
-    ];
-
-    // Create a map for quick batch lookup
-    const batchSlotMap = new Map();
-    for (const slot of batchSlots) {
-      for (let rank = slot.min; rank <= slot.max; rank++) {
-        batchSlotMap.set(rank, slot.slot);
-      }
-    }
-
-    const batchAssignments = [];
-    for (let i = 0; i < leaderboardEntries.length; i++) {
-      const entry = leaderboardEntries[i];
-      const userScore = userScores.find(us => us.userId === entry.userId);
-      const rank = entry.rank;
-
-      let batch = batchSlotMap.get(rank) || 'unassigned';
-
-      const isTop8 = rank <= 8;
-      const isLastRanked = rank === leaderboardEntries.length;
-
-      if (isTop8) {
-        batchAssignments.push({ userId: userScore.userId, batch });
-      } else if (isLastRanked) {
-        // Find the next higher batch slot
-        let nextBatch = 'unassigned';
-        for (const slot of batchSlots) {
-          if (slot.min > rank) {
-            nextBatch = slot.slot;
-            break;
-          }
-        }
-        batchAssignments.push({ userId: userScore.userId, batch: nextBatch });
-      } else {
-        if (userScore.predictedSelectedVideo) {
-          // Move up one batch if possible
-          const currentIndex = batchSlots.findIndex(slot => slot.slot === batch);
-          const higherBatch = currentIndex > 0 ? batchSlots[currentIndex - 1].slot : batch;
-          batchAssignments.push({ userId: userScore.userId, batch: higherBatch });
-        } else {
-          // Move down one batch if possible
-          const currentIndex = batchSlots.findIndex(slot => slot.slot === batch);
-          const lowerBatch = batchSlots[currentIndex + 1]?.slot || 'unassigned';
-          batchAssignments.push({ userId: userScore.userId, batch: lowerBatch });
-        }
-      }
-    }
+    this.logger.log(`Finished saving leaderboard entries`);
 
     // Update contest status
+    this.logger.log(`Updating contest status to COMPLETED`);
     contest.status = ContestStatus.COMPLETED;
     await this.contestRepository.save(contest);
+    this.logger.log(`Contest status updated successfully`);
 
-    // Calculate winners and payouts
-    const winners: any[] = leaderboardEntries.map((entry) => {
-      const user = userMap.get(entry.userId);
-      const batch = batchAssignments.find(ba => ba.userId === entry.userId)?.batch;
-      const basePayout = entry.score * 10;
-      const batchMultiplier = batch === '1' ? 2 : batch === '2' ? 1.5 : 1;
-      const payoutInSol = basePayout * batchMultiplier;
-
-      return { wallet: (user.publicAddress), payout: payoutInSol };
-    });
-
-
+    this.logger.log(`Contest resolution completed successfully`);
   }
 
   async findOne(id: string): Promise<Contest> {
@@ -315,17 +300,10 @@ export class ContestsService {
       throw new NotFoundException(`Contest with ID ${id} not found`);
   }
 
-  // New Contest Video Methods
-  async getContestVideos(contestId: string): Promise<Question[]> {
-    this.logger.debug(`Getting videos for contest ${contestId}`);
-    const contest = await this.findOne(contestId);
-    return this.questionsService.findByContestId(contestId);
-  }
-
   async answerVideo(
     questionId: string,
     contestId: string,
-    answer: 'yes' | 'no',
+    answer: 'YES' | 'NO',
   ): Promise<Question> {
     this.logger.log(`Answering video ${questionId} for contest ${contestId} with ${answer}`);
     const question = await this.questionsService.findOne(questionId);
@@ -337,7 +315,7 @@ export class ContestsService {
 
     return this.questionsService.setOutcome(
       question.id,
-      answer === 'yes' ? OutcomeType.YES : OutcomeType.NO,
+      answer === 'YES' ? OutcomeType.YES : OutcomeType.NO,
     )
   }
 
