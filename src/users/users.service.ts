@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException, Logger, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository, In, MoreThan } from 'typeorm';
 import { User } from './entities/users.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ExpoPushTokenDto } from './dto/expo-push-token.dto';
+import { subDays } from 'date-fns';
 
 @Injectable()
 export class UserService {
@@ -264,5 +265,20 @@ export class UserService {
       }
       throw new InternalServerErrorException('Failed to add points to users');
     }
+  }
+
+  async getUserAnalytics(): Promise<{
+    totalUsers: number;
+    yesterdayNewUsers: number;
+    newUsers: number;
+  }> {
+    const totalUsers = await this.userRepository.count();
+    const yesterdayNewUsers = await this.userRepository.count({
+      where: { createdAt: MoreThan(subDays(new Date(), 1)) }
+    });
+    const newUsers = await this.userRepository.count({
+      where: { createdAt: MoreThan(subDays(new Date(), 1)) }
+    });
+    return { totalUsers, yesterdayNewUsers, newUsers };
   }
 }

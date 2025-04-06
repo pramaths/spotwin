@@ -171,4 +171,12 @@ export class UserContestsService {
 
     return userContests.map(data => data.contest);
   }
+
+  async findByContest(contestId: string): Promise<any[]> {
+    const userContests = await this.userContestRepository.find({
+      where: { contest: { id: contestId } },
+      relations: ['user', 'contest'],
+    });
+    return userContests;
+  }
 }

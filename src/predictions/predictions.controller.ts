@@ -68,7 +68,7 @@ export class PredictionsController {
     return await this.predictionsService.findOne(id);
   }
 
-  @Get('user-contest/:contestId')
+  @Get('contest/:contestId')
   @ApiOperation({ summary: 'Get predictions by user contest id' })
   @ApiParam({ name: 'contestId', description: 'User Contest ID' })
   @ApiResponse({
