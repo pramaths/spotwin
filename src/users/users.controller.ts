@@ -156,4 +156,22 @@ export class UserController {
   async updateReferralCodeUsed(@Param('id') id: string, @Body() referralCodeDto: ReferralCodeDto): Promise<User> {
     return await this.userService.updateReferralCodeUsed(id, referralCodeDto.referralCode || null);
   }
+
+
+  @Get("analytics")
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Get analytics for all users' })
+  @ApiResponse({ 
+    status: HttpStatus.OK, 
+    description: 'Returns analytics for all users',
+  })
+  async getUserCounts(): Promise<{
+    totalUsers: number;
+    yesterdayNewUsers: number;
+    newUsers: number;
+  }> {
+    const { totalUsers, yesterdayNewUsers, newUsers } = await this.userService.getUserAnalytics();
+    return { totalUsers, yesterdayNewUsers, newUsers };
+  }
+  
 }

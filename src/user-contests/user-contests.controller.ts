@@ -80,4 +80,16 @@ export class UserContestsController {
   async create(@Body() createUserContestDto: CreateUserContestDto) {
     return this.userContestsService.create(createUserContestDto);
   }
+
+  @Get('contest/:contestId')
+  @ApiOperation({ summary: 'Get all contests for a specific user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns user contests',
+    type: [UserContest],
+  })
+  findByContest(@Param('contestId') contestId: string) {
+    return this.userContestsService.findByContest(contestId);
+  }
+  
 }
