@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, Logger, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In, MoreThan } from 'typeorm';
+import { Repository, In, MoreThan, LessThan, LessThanOrEqual, Between } from 'typeorm';
 import { User } from './entities/users.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -83,8 +83,11 @@ export class UserService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      this.logger.error(`Failed to fetch user: ${error.message}`, error.stack);
-      throw new InternalServerErrorException('Failed to fetch user');
+      this.logger.error(
+        `Failed to fetch user with ID ${id}: ${error.message}`, 
+        error.stack
+      );
+      throw new InternalServerErrorException(`Failed to fetch user with ID ${id}`);
     }
   }
 
@@ -274,20 +277,23 @@ export class UserService {
   }> {
     try {
       const totalUsers = await this.userRepository.count();
+      const now = new Date();
       
-      const yesterday = subDays(new Date(), 1);
-      const yesterdayNewUsers = await this.userRepository.count({
+      const todayStart = new Date(now);
+      todayStart.setHours(0, 0, 0, 0);
+      
+      const yesterdayStart = new Date(todayStart);
+      yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+      
+      const newUsers = await this.userRepository.count({
         where: { 
-          createdAt: MoreThan(yesterday)
+          createdAt: MoreThan(todayStart)
         }
       });
       
-      // This appears to be duplicating the yesterdayNewUsers calculation
-      // Let's make it count users from the last 7 days instead
-      const lastWeek = subDays(new Date(), 7);
-      const newUsers = await this.userRepository.count({
+      const yesterdayNewUsers = await this.userRepository.count({
         where: { 
-          createdAt: MoreThan(lastWeek)
+          createdAt: Between(yesterdayStart, todayStart)
         }
       });
       
