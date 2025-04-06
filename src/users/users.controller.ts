@@ -158,7 +158,7 @@ export class UserController {
   }
 
 
-  @Get("analytics")
+  @Get("admin/analytics")
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get analytics for all users' })
   @ApiResponse({ 
