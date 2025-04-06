@@ -272,13 +272,29 @@ export class UserService {
     yesterdayNewUsers: number;
     newUsers: number;
   }> {
-    const totalUsers = await this.userRepository.count();
-    const yesterdayNewUsers = await this.userRepository.count({
-      where: { createdAt: MoreThan(subDays(new Date(), 1)) }
-    });
-    const newUsers = await this.userRepository.count({
-      where: { createdAt: MoreThan(subDays(new Date(), 1)) }
-    });
-    return { totalUsers, yesterdayNewUsers, newUsers };
+    try {
+      const totalUsers = await this.userRepository.count();
+      
+      const yesterday = subDays(new Date(), 1);
+      const yesterdayNewUsers = await this.userRepository.count({
+        where: { 
+          createdAt: MoreThan(yesterday)
+        }
+      });
+      
+      // This appears to be duplicating the yesterdayNewUsers calculation
+      // Let's make it count users from the last 7 days instead
+      const lastWeek = subDays(new Date(), 7);
+      const newUsers = await this.userRepository.count({
+        where: { 
+          createdAt: MoreThan(lastWeek)
+        }
+      });
+      
+      return { totalUsers, yesterdayNewUsers, newUsers };
+    } catch (error) {
+      this.logger.error(`Failed to get user analytics: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Failed to get user analytics');
+    }
   }
 }
