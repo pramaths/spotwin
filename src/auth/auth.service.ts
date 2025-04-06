@@ -75,7 +75,8 @@ export class AuthService {
       
       return { 
         user,
-        token 
+        token,
+        isNewUser: true,
       };
     } catch (error) {
       this.logger.error('Verification process failed', { error });

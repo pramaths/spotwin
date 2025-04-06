@@ -62,6 +62,7 @@ export class UserContestsService {
       entryFee: contest.entryFee,
     });
     user.points -= contest.entryFee;
+    user.totalContests += 1;
     await this.userRepository.save(user);
 
     const savedUserContest = await this.userContestRepository.save(userContest);
