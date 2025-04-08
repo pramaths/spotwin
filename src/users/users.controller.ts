@@ -22,6 +22,7 @@ import { ReferralCodeDto } from './dto/referral-code.dto';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../common/enums/roles.enum';
 import { JwtAuthGuard } from '../auth/strategies/jwt.strategy';
+import { BuyTicketDto } from './dto/buy-ticket.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -199,7 +200,8 @@ export class UserController {
   @Post('buy-ticket')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Buy tickets for a user' })
-  async buyTickets(@Req() req: Request & { user: any }): Promise<User> {
-    return await this.userService.buyTickets(req.user.id);
+  @ApiBody({ type: BuyTicketDto })
+  async buyTickets(@Body() buyTicketDto: BuyTicketDto, @Req() req: Request & { user: any }): Promise<User> {
+    return await this.userService.buyTickets(req.user.id, buyTicketDto.ticketId);
   }
 }

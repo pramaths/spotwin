@@ -8,6 +8,7 @@ import { ExpoPushTokenDto } from './dto/expo-push-token.dto';
 import { subDays } from 'date-fns';
 import { UserTicket } from './entities/user-ticket.entity';
 import { EmailService } from '../email/email.service';
+import { Ticket } from '../tickets/entities/ticket.entity';
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
@@ -308,18 +309,19 @@ export class UserService {
     }
   }
 
-  async buyTickets(id: string): Promise<User> {
+  async buyTickets(id: string, ticketId: string): Promise<User> {
     try {
       return await this.userRepository.manager.transaction(async transactionalEntityManager => {
         const user = await transactionalEntityManager.findOne(User, { where: { id } });
+        const ticket = await transactionalEntityManager.findOne(Ticket, { where: { id: ticketId } });
         if (!user) {
           throw new NotFoundException('User not found');
         }
-        if (user.points < 12000) {
+        if (user.points < ticket.costPoints) {
           throw new BadRequestException('Insufficient points');
         }
         
-        user.points -= 12000;
+        user.points -= ticket.costPoints;
         const userTicket = transactionalEntityManager.create(UserTicket, {
           userId: user.id,
           purchasedAt: new Date(),
@@ -332,11 +334,10 @@ export class UserService {
           await this.emailService.sendTicketPurchaseNotification(
             user.id,
             user.username,
-            12000
+            user.phoneNumber
           );
         } catch (emailError) {
           this.logger.error(`Failed to send ticket purchase email: ${emailError.message}`, emailError.stack);
-          // Don't throw the error as the ticket purchase was successful
         }
 
         return savedUser;

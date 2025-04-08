@@ -19,7 +19,7 @@ export class EmailService {
     });
   }
 
-  async sendTicketPurchaseNotification(userId: string, username: string, points: number): Promise<void> {
+  async sendTicketPurchaseNotification(userId: string, username: string, phoneNumber: string): Promise<void> {
     try {
       const adminEmails = this.configService.get<string>('ADMIN_EMAILS')?.split(',') || [];
       const operationEmails = this.configService.get<string>('OPERATION_EMAILS')?.split(',') || [];
@@ -41,7 +41,7 @@ export class EmailService {
           <ul>
             <li><strong>User ID:</strong> ${userId}</li>
             <li><strong>Username:</strong> ${username}</li>
-            <li><strong>Points Spent:</strong> ${points}</li>
+            <li><strong>Phone Number:</strong> ${phoneNumber}</li>
             <li><strong>Purchase Time:</strong> ${new Date().toLocaleString()}</li>
           </ul>
         `,
