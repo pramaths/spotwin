@@ -37,4 +37,13 @@ export class CreateLeaderboardDto {
   @IsNumber()
   @Min(1)
   rank: number;
+
+  @ApiProperty({
+    description: 'Points awarded to the user based on rank',
+    example: 4000,
+    required: false,
+  })
+  @IsNumber()
+  @Min(0)
+  points?: number;
 }

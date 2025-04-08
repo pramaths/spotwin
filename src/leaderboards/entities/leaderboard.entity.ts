@@ -67,6 +67,13 @@ export class Leaderboard {
   rank: number;
 
   @ApiProperty({
+    description: 'The points awarded to the user based on rank',
+    example: 4000,
+  })
+  @Column({ type: 'int', default: 0 })
+  points: number;
+
+  @ApiProperty({
     description: 'When the leaderboard entry was created',
     example: '2023-01-01T00:00:00Z',
   })

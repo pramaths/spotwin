@@ -10,6 +10,7 @@ import { UserContestsModule } from '../user-contests/user-contests.module';
 import { ConfigModule } from '@nestjs/config';
 import { QuestionsModule } from '../questions/questions.module';
 import { MatchesModule } from '../matches/matches.module';
+import { UserModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { MatchesModule } from '../matches/matches.module';
     ConfigModule,
     QuestionsModule,
     forwardRef(() => MatchesModule),
+    UserModule,
   ],
   providers: [ContestsService],
   controllers: [ContestsController],

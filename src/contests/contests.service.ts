@@ -28,6 +28,7 @@ import { Question } from '../questions/entities/questions.entity';
 import { Match } from '../matches/entities/match.entity';
 import { MatchesService } from '../matches/matches.service';
 import { QuestionLevel } from '../common/enums/common.enum';
+import { UserService } from '../users/users.service';
 
 @Injectable()
 export class ContestsService {
@@ -42,6 +43,7 @@ export class ContestsService {
     private userContestsService: UserContestsService,
     private questionsService: QuestionsService,
     private matchesService: MatchesService,
+    private userService: UserService,
   ) { }
 
 
@@ -117,7 +119,6 @@ export class ContestsService {
   
     this.logger.log(`Total predictions collected: ${allPredictions.length}`);
 
-    // Group predictions by user ID using a Map
     const predictionsByUser = new Map<string, any[]>();
     for (const prediction of allPredictions) {
       if (!predictionsByUser.has(prediction.userId)) {
@@ -226,10 +227,11 @@ export class ContestsService {
     let prevTiebreakerEasy = null;
     let prevTiebreakerBets = null;
 
+    const userPointsMap = new Map<number, string[]>();
+
     for (let i = 0; i < userScores.length; i++) {
       const userScore = userScores[i];
 
-      // Only increment rank if score or any tiebreaker is different
       if (i > 0 &&
         (userScore.correctAnswers !== prevScore ||
          userScore.tiebreakerScorebySection[QuestionLevel.HARD] !== prevTiebreakerHard ||
@@ -240,13 +242,33 @@ export class ContestsService {
         this.logger.log(`Rank changed to ${currentRank} for user ${userScore.userId}`);
       }
 
+      let points = 100;
+      if (currentRank === 1) {
+        points = 4000; // 1st place
+      } else if (currentRank === 2) {
+        points = 1000; 
+      } else if (currentRank === 3) {
+        points = 500; // 3rd place
+      } else if (currentRank >= 4 && currentRank <= 10) {
+        points = 200; // 4th to 10th place
+      }
+      
+      this.logger.log(`Assigning ${points} points for rank ${currentRank}`);
+
+      // Add user to the appropriate points group
+      if (!userPointsMap.has(points)) {
+        userPointsMap.set(points, []);
+      }
+      userPointsMap.get(points).push(userScore.userId);
+
       leaderboardEntries.push({
         userId: userScore.userId,
         contestId,
         score: userScore.correctAnswers,
         rank: currentRank,
+        points: points, // Adding points to the leaderboard entry
       });
-      this.logger.log(`Created leaderboard entry for user ${userScore.userId}: rank ${currentRank}, score ${userScore.correctAnswers}`);
+      this.logger.log(`Created leaderboard entry for user ${userScore.userId}: rank ${currentRank}, score ${userScore.correctAnswers}, points ${points}`);
 
       prevScore = userScore.correctAnswers;
       prevTiebreakerHard = userScore.tiebreakerScorebySection[QuestionLevel.HARD];
@@ -262,11 +284,15 @@ export class ContestsService {
     );
     this.logger.log(`Finished saving leaderboard entries`);
 
-    // Update contest status
-    this.logger.log(`Updating contest status to COMPLETED`);
-    contest.status = ContestStatus.COMPLETED;
-    await this.contestRepository.save(contest);
-    this.logger.log(`Contest status updated successfully`);
+    // Update user points in their balance
+    this.logger.log(`Updating user points in their balances`);
+    for (const [points, userIds] of userPointsMap.entries()) {
+      if (userIds.length > 0) {
+        this.logger.log(`Adding ${points} points to ${userIds.length} users: ${userIds}`);
+        await this.userService.addPoints(userIds, points);
+      }
+    }
+    this.logger.log(`Finished updating user points`);
 
     this.logger.log(`Contest resolution completed successfully`);
   }
