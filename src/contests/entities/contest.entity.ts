@@ -51,9 +51,9 @@ export class Contest {
   @ApiProperty({
     description: 'The status of the contest',
     enum: ContestStatus,
-    example: ContestStatus.OPEN,
+    example: ContestStatus.PENDING,
   })
-  @Column({ type: 'enum', enum: ContestStatus, default: ContestStatus.OPEN })
+  @Column({ type: 'enum', enum: ContestStatus, default: ContestStatus.PENDING })
   status: ContestStatus;
   
   @ApiProperty({

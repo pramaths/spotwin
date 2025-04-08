@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Contest } from './entities/contest.entity';
 import { ContestsService } from './contests.service';
@@ -15,12 +15,12 @@ import { MatchesModule } from '../matches/matches.module';
   imports: [
     TypeOrmModule.forFeature([Contest]),
     EventsModule,
-    PredictionsModule,
+    forwardRef(() => PredictionsModule),
     LeaderboardsModule,
     UserContestsModule,
     ConfigModule,
     QuestionsModule,
-    MatchesModule,
+    forwardRef(() => MatchesModule),
   ],
   providers: [ContestsService],
   controllers: [ContestsController],

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Match } from './entities/match.entity';
 import { SportsModule } from '../common/sports/sports.module';
@@ -9,8 +9,15 @@ import { Event } from 'src/events/entities/events.entity';
 import { Team } from 'src/teams/entities/team.entity';  
 import { EventsModule } from 'src/events/events.module';
 import { Contest } from 'src/contests/entities/contest.entity';
+import { ContestsModule } from 'src/contests/contests.module';
+
 @Module({
-  imports: [TypeOrmModule.forFeature([Match, Event, Team, Contest]), SportsModule, TeamsModule, EventsModule],
+  imports: [TypeOrmModule.forFeature([Match, Event, Team, Contest]), 
+  SportsModule, 
+  TeamsModule, 
+  EventsModule,
+  forwardRef(() => ContestsModule)
+],
   providers: [MatchesService],
   controllers: [MatchesController],
   exports: [MatchesService],

@@ -22,6 +22,7 @@ import { AuthorizedCreator } from './authorized_creators/entities/authorized-cre
 import { QuestionsModule } from './questions/questions.module';
 import { MatchesModule } from './matches/matches.module';
 import { ReferralsModule } from './referrals/referrals.module';
+import { TicketsModule } from './tickets/tickets.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { ReferralsModule } from './referrals/referrals.module';
     QuestionsModule,
     MatchesModule,
     ReferralsModule,
+    TicketsModule,
   ],
   controllers: [AppController],
   providers: [

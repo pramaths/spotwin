@@ -4,6 +4,8 @@ import {
   BadRequestException,
   OnModuleInit,
   Logger,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -34,10 +36,10 @@ export class ContestsService {
   constructor(
     @InjectRepository(Contest)
     private contestRepository: Repository<Contest>,
+    @Inject(forwardRef(() => PredictionsService))
     private predictionsService: PredictionsService,
     private leaderboardsService: LeaderboardsService,
     private userContestsService: UserContestsService,
-    private configService: ConfigService,
     private questionsService: QuestionsService,
     private matchesService: MatchesService,
   ) { }

@@ -6,6 +6,8 @@ import { ApiTags, ApiOperation, ApiResponse, ApiCreatedResponse } from '@nestjs/
 import { Contest } from 'src/contests/entities/contest.entity';
 import { UpdateMatchDto } from './dto/update-match.dto';
 import { UpdateMatchStatusDto } from './dto/update-match-status.dto';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { UserRole } from 'src/common/enums/roles.enum';
 
 @ApiTags('matches')
 @Controller('matches')
@@ -13,6 +15,7 @@ export class MatchesController {
     constructor(private readonly matchesService: MatchesService) { }
 
     @Post()
+    @Roles(UserRole.ADMIN)
     @ApiOperation({ summary: 'Create a new match' })
     @ApiCreatedResponse({
         description: 'The match has been successfully created.',
@@ -23,6 +26,7 @@ export class MatchesController {
     }
 
     @Get(':id')
+    @Roles(UserRole.ADMIN)
     @ApiOperation({ summary: 'Get a match by ID' })
     @ApiResponse({
         status: 200,
@@ -42,6 +46,7 @@ export class MatchesController {
     }
 
     @Get('live')
+    @Roles(UserRole.ADMIN)
     @ApiOperation({ summary: 'Get all live matches' })
     @ApiResponse({
         status: 200,
@@ -53,6 +58,7 @@ export class MatchesController {
     }
 
     @Get()
+    @Roles(UserRole.ADMIN)
     @ApiOperation({ summary: 'Get all matches' })
     @ApiResponse({
         status: 200,
@@ -64,6 +70,7 @@ export class MatchesController {
     }
 
     @Get('event/:id')
+    @Roles(UserRole.ADMIN)
     @ApiOperation({ summary: 'Get all matches by event ID' })
     @ApiResponse({
         status: 200,
@@ -75,6 +82,7 @@ export class MatchesController {
     }
 
     @Get(':id/contests')
+    @Roles(UserRole.ADMIN)
     @ApiOperation({ summary: 'Get all contests by match ID' })
     @ApiResponse({
         status: 200,
@@ -86,6 +94,7 @@ export class MatchesController {
     }
 
     @Patch(':id')
+    @Roles(UserRole.ADMIN)
     @ApiOperation({ summary: 'Update a match by ID' })
     @ApiResponse({
         status: 200,
@@ -98,6 +107,7 @@ export class MatchesController {
 
 
     @Patch(':id/status')
+    @Roles(UserRole.ADMIN)
     @ApiOperation({ summary: 'Update a match status' })
     @ApiResponse({
         status: 200,
@@ -117,6 +127,7 @@ export class MatchesController {
 
 
     @Delete(':id')
+    @Roles(UserRole.ADMIN)
     @ApiOperation({ summary: 'Delete a match by ID' })
     @ApiResponse({
         status: 200,
@@ -125,6 +136,5 @@ export class MatchesController {
     async deleteMatch(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
         return this.matchesService.deleteMatch(id);
     }
-    
     
 }

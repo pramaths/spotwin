@@ -2,6 +2,8 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -10,13 +12,15 @@ import { CreatePredictionDto } from './dto/create-prediction.dto';
 import { UpdatePredictionDto } from './dto/update-prediction.dto';
 import { ContestStatus } from '../common/enums/common.enum';
 import { QuestionsService } from '../questions/questions.service';
-
+import { ContestsService } from '../contests/contests.service';
 @Injectable()
 export class PredictionsService {
   constructor(
     @InjectRepository(Prediction)
     private predictionRepository: Repository<Prediction>,
     private questionsService: QuestionsService,
+    @Inject(forwardRef(() => ContestsService))
+    private contestsService: ContestsService,
   ) {}
 
   async create(createPredictionDto: CreatePredictionDto): Promise<Prediction> {
@@ -25,6 +29,7 @@ export class PredictionsService {
         userId: createPredictionDto.userId,
         contestId: createPredictionDto.contestId 
       },
+      relations: ['contest'],
     });
 
     if (existingPredictions.length >= 9) {
@@ -34,6 +39,9 @@ export class PredictionsService {
     }  
     const contest = existingPredictions[0]?.contest;
     if (contest && contest.status !== ContestStatus.OPEN) {
+      if(contest.match.startTime < new Date()){
+        await this.contestsService.update(contest.id, {status: ContestStatus.COMPLETED});
+      }
       throw new BadRequestException(
         'Predictions can only be made while the contest is open',
       );
