@@ -74,6 +74,12 @@ export class ContestsService {
     });
     if (!contest)
       throw new NotFoundException(`Contest with ID ${contestId} not found`);
+    
+    if (contest.status === ContestStatus.RESOLVED) {
+      this.logger.log(`Contest with ID ${contestId} is already resolved. Skipping resolution.`);
+      return;
+    }
+    
     if (contest.status !== ContestStatus.COMPLETED)
       throw new BadRequestException(
         'Contest is not completed and cannot be resolved',
@@ -294,6 +300,7 @@ export class ContestsService {
     }
     this.logger.log(`Finished updating user points`);
 
+    await this.update(contestId, { status: ContestStatus.RESOLVED });
     this.logger.log(`Contest resolution completed successfully`);
   }
 
