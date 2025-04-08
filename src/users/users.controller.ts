@@ -196,7 +196,7 @@ export class UserController {
     return { totalUsers, yesterdayNewUsers, newUsers };
   }
 
-  @Post('buy-tickets')
+  @Post('buy-ticket')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Buy tickets for a user' })
   async buyTickets(@Req() req: Request & { user: any }): Promise<User> {
