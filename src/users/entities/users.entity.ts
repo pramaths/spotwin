@@ -14,6 +14,7 @@ import { Transaction } from '../../transactions/entities/transaction.entity';
 import { Payout } from '../../payouts/entities/payout.entity';
 import { Bet } from '../../bets/entities/bets.entity';
 import { UserStreak } from '../../user-contests/entities/user-streak.entity';
+import { UserTicket } from './user-ticket.entity';
 
 @Entity('users')
 export class User {
@@ -77,6 +78,9 @@ export class User {
 
   @OneToMany(() => UserStreak, (streak) => streak.user)
   streaks: UserStreak[];
+
+  @OneToMany(() => UserTicket, (ut) => ut.user)
+  userTickets: UserTicket[];
 
   @CreateDateColumn()
   createdAt: Date;

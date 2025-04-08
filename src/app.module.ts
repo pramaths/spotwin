@@ -23,6 +23,7 @@ import { QuestionsModule } from './questions/questions.module';
 import { MatchesModule } from './matches/matches.module';
 import { ReferralsModule } from './referrals/referrals.module';
 import { TicketsModule } from './tickets/tickets.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { TicketsModule } from './tickets/tickets.module';
     MatchesModule,
     ReferralsModule,
     TicketsModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [

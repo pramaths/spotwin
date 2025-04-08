@@ -6,7 +6,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ExpoPushTokenDto } from './dto/expo-push-token.dto';
 import { subDays } from 'date-fns';
-
+import { UserTicket } from './entities/user-ticket.entity';
+import { EmailService } from '../email/email.service';
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
@@ -14,6 +15,9 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(UserTicket)
+    private readonly userTicketRepository: Repository<UserTicket>,
+    private readonly emailService: EmailService,
   ) { }
 
   private generateReferralCode(): string {
@@ -305,18 +309,43 @@ export class UserService {
   }
 
   async buyTickets(id: string): Promise<User> {
-    try{
-      const user = await this.findOne(id);
-      if(!user){
-        throw new NotFoundException('User not found');
-      }
-      if(user.points < 12000){
-        throw new BadRequestException('Insufficient points');
-      }
-      user.points -= 12000;
-      return await this.userRepository.save(user);
+    try {
+      return await this.userRepository.manager.transaction(async transactionalEntityManager => {
+        const user = await transactionalEntityManager.findOne(User, { where: { id } });
+        if (!user) {
+          throw new NotFoundException('User not found');
+        }
+        if (user.points < 12000) {
+          throw new BadRequestException('Insufficient points');
+        }
+        
+        user.points -= 12000;
+        const userTicket = transactionalEntityManager.create(UserTicket, {
+          userId: user.id,
+          purchasedAt: new Date(),
+        });
+        
+        await transactionalEntityManager.save(userTicket);
+        const savedUser = await transactionalEntityManager.save(user);
+
+        try {
+          await this.emailService.sendTicketPurchaseNotification(
+            user.id,
+            user.username,
+            12000
+          );
+        } catch (emailError) {
+          this.logger.error(`Failed to send ticket purchase email: ${emailError.message}`, emailError.stack);
+          // Don't throw the error as the ticket purchase was successful
+        }
+
+        return savedUser;
+      });
     } catch (error) {
       this.logger.error(`Failed to buy tickets: ${error.message}`, error.stack);
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
       throw new InternalServerErrorException('Failed to buy tickets');
     }
   }
