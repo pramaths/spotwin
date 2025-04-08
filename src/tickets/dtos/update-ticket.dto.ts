@@ -9,7 +9,7 @@ export class UpdateTicketDto {
     })
     @IsOptional()
     @IsNumber()
-    points?: number;
+    costPoints?: number;
 
     @ApiProperty({
         example: 'Santiago Bernabeu',

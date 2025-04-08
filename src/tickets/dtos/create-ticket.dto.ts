@@ -8,7 +8,7 @@ export class CreateTicketDto {
     })
     @IsNotEmpty()
     @IsNumber()
-    points: number;
+    costPoints: number;
 
     @ApiProperty({
         example: 'Santiago Bernabeu',
