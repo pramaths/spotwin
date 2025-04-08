@@ -46,32 +46,41 @@ export class TicketsService {
 
   async update(id: string, updateTicketDto: UpdateTicketDto): Promise<Ticket> {
     const ticket = await this.findOne(id);
-
-    // Check if teams exist if they are being updated
-    if (updateTicketDto.teamAId) {
-      await this.teamsService.findOne(updateTicketDto.teamAId);
+    
+    const updatedTicket = { ...ticket };
+    
+    if (updateTicketDto.teamAId !== undefined) {
+      const teamA = await this.teamsService.findOne(updateTicketDto.teamAId);
+      if (!teamA) {
+        throw new NotFoundException(`Team A with ID ${updateTicketDto.teamAId} not found`);
+      }
+      updatedTicket.teamAId = updateTicketDto.teamAId;
+      updatedTicket.teamA = teamA as any;
     }
     
-    if (updateTicketDto.teamBId) {
-      await this.teamsService.findOne(updateTicketDto.teamBId);
+    if (updateTicketDto.teamBId !== undefined) {
+      const teamB = await this.teamsService.findOne(updateTicketDto.teamBId);
+      if (!teamB) {
+        throw new NotFoundException(`Team B with ID ${updateTicketDto.teamBId} not found`);
+      }
+      updatedTicket.teamBId = updateTicketDto.teamBId;
+      updatedTicket.teamB = teamB as any;
     }
-
-    // Convert matchDateTime string to Date if it's provided
-    let matchDateTime = undefined;
-    if (updateTicketDto.matchDateTime) {
-      matchDateTime = new Date(updateTicketDto.matchDateTime);
+    
+    // Update other fields if they're present in the DTO
+    if (updateTicketDto.costPoints !== undefined) {
+      updatedTicket.costPoints = updateTicketDto.costPoints;
     }
-
-    // Remove matchDateTime from the DTO to handle it separately
-    const { matchDateTime: dateTimeString, ...rest } = updateTicketDto;
     
-    // Merge and save
-    Object.assign(ticket, {
-      ...rest,
-      ...(matchDateTime && { matchDateTime }),
-    });
+    if (updateTicketDto.stadium !== undefined) {
+      updatedTicket.stadium = updateTicketDto.stadium;
+    }
     
-    return this.ticketsRepository.save(ticket);
+    if (updateTicketDto.matchDateTime !== undefined) {
+      updatedTicket.matchDateTime = new Date(updateTicketDto.matchDateTime);
+    }
+    
+    return this.ticketsRepository.save(updatedTicket);
   }
 
   async remove(id: string): Promise<void> {
