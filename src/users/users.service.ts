@@ -303,4 +303,21 @@ export class UserService {
       throw new InternalServerErrorException('Failed to get user analytics');
     }
   }
+
+  async buyTickets(id: string): Promise<User> {
+    try{
+      const user = await this.findOne(id);
+      if(!user){
+        throw new NotFoundException('User not found');
+      }
+      if(user.points < 12000){
+        throw new BadRequestException('Insufficient points');
+      }
+      user.points -= 12000;
+      return await this.userRepository.save(user);
+    } catch (error) {
+      this.logger.error(`Failed to buy tickets: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Failed to buy tickets');
+    }
+  }
 }

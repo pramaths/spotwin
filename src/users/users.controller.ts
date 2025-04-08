@@ -8,6 +8,9 @@ import {
   Query,
   HttpStatus,
   HttpCode,
+  UseGuards,
+  Req,
+  ForbiddenException
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBody } from '@nestjs/swagger';
 import { UserService } from './users.service';
@@ -18,6 +21,7 @@ import { ExpoPushTokenDto } from './dto/expo-push-token.dto';
 import { ReferralCodeDto } from './dto/referral-code.dto';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../common/enums/roles.enum';
+import { JwtAuthGuard } from '../auth/strategies/jwt.strategy';
 
 @ApiTags('users')
 @Controller('users')
@@ -55,6 +59,7 @@ export class UserController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get a user by ID' })
   @ApiParam({ name: 'id', description: 'User ID' })
   @ApiResponse({ 
@@ -66,7 +71,10 @@ export class UserController {
     status: HttpStatus.NOT_FOUND, 
     description: 'User with the specified ID not found' 
   })
-  async findOne(@Param('id') id: string): Promise<User> {
+  async findOne(@Param('id') id: string, @Req() req: Request & { user: any }): Promise<User> {
+    if(req.user.id !== id){
+      throw new ForbiddenException('You are not authorized to access this resource');
+    }
     return await this.userService.findOne(id);
   }
 
@@ -96,6 +104,7 @@ export class UserController {
   }
 
   @Patch(':id/deactivate')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Deactivate a user account' })
   @ApiParam({ name: 'id', description: 'User ID' })
   @ApiResponse({ 
@@ -112,6 +121,7 @@ export class UserController {
   }
 
   @Patch(':id/activate')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Activate a user account' })
   @ApiParam({ name: 'id', description: 'User ID' })
   @ApiResponse({ 
@@ -128,14 +138,19 @@ export class UserController {
   }
 
   @Post(':id/expo-push-token')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Update a user\'s Expo push token' })
   @ApiParam({ name: 'id', description: 'User ID' })
   @ApiBody({ type: ExpoPushTokenDto })
-  async updateExpoPushToken(@Param('id') id: string, @Body() expoPushTokenDto: ExpoPushTokenDto): Promise<User> {
+  async updateExpoPushToken(@Param('id') id: string, @Body() expoPushTokenDto: ExpoPushTokenDto, @Req() req: Request & { user: any }): Promise<User> {
+    if(req.user.id !== id){
+      throw new ForbiddenException('You are not authorized to access this resource');
+    }
     return await this.userService.updateExpoPushToken(id, expoPushTokenDto);
   }
 
   @Get(':id/balance')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get a user\'s balance' })
   @ApiParam({ name: 'id', description: 'User ID' })
   @ApiResponse({ 
@@ -143,17 +158,24 @@ export class UserController {
     description: 'Returns the user\'s balance',
     type: Number
   })
-  async getUserBalance(@Param('id') id: string): Promise<{ balance: number }> {
+  async getUserBalance(@Param('id') id: string, @Req() req: Request & { user: any }): Promise<{ balance: number }> {
+    if(req.user.id !== id){
+      throw new ForbiddenException('You are not authorized to access this resource');
+    }
     const balance = await this.userService.getUserBalance(id);
     return { balance: balance as number };
   }
 
 
   @Patch(':id/referral-code-used')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Update a user\'s referral code used' })
   @ApiParam({ name: 'id', description: 'User ID' })
   @ApiBody({ type: ReferralCodeDto })
-  async updateReferralCodeUsed(@Param('id') id: string, @Body() referralCodeDto: ReferralCodeDto): Promise<User> {
+  async updateReferralCodeUsed(@Param('id') id: string, @Body() referralCodeDto: ReferralCodeDto, @Req() req: Request & { user: any }): Promise<User> {
+    if(req.user.id !== id){
+      throw new ForbiddenException('You are not authorized to access this resource');
+    }
     return await this.userService.updateReferralCodeUsed(id, referralCodeDto.referralCode || null);
   }
 
@@ -173,5 +195,11 @@ export class UserController {
     const { totalUsers, yesterdayNewUsers, newUsers } = await this.userService.getUserAnalytics();
     return { totalUsers, yesterdayNewUsers, newUsers };
   }
-  
+
+  @Post('buy-tickets')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Buy tickets for a user' })
+  async buyTickets(@Req() req: Request & { user: any }): Promise<User> {
+    return await this.userService.buyTickets(req.user.id);
+  }
 }

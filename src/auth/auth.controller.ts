@@ -19,6 +19,7 @@ import {
   import { JwtService } from '@nestjs/jwt';
   import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiHeader } from '@nestjs/swagger';
   import { UserService } from '../users/users.service';
+
   @ApiTags('auth')
   @Controller('auth')
   export class AuthController {
@@ -152,7 +153,7 @@ import {
       try {
         this.logger.debug('User object from JWT:', req.user);
         
-        const userId = req.user.sub || req.user.userId || req.user.id;
+        const userId = req.user.id;
         
         if (!userId) {
           throw new Error('User ID not found in JWT payload');

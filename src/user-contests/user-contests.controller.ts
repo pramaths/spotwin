@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, HttpException, HttpStatus, Req } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -11,13 +11,16 @@ import { CreateUserContestDto } from './dto/create-user-contest.dto';
 import { User } from '../users/entities/users.entity';
 import { UserContest } from './entities/user-contest.entity';
 import { UserStreak } from './entities/user-streak.entity';
-
+import { Roles } from '../common/decorators/roles.decorator';
+import { UserRole } from '../common/enums/roles.enum';
+import { JwtAuthGuard } from '../auth/strategies/jwt.strategy';
 @ApiTags('user-contests')
 @Controller('user-contests')
 export class UserContestsController {
   constructor(private readonly userContestsService: UserContestsService) {}
 
   @Get()
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get all user contests' })
   @ApiResponse({
     status: 200,
@@ -71,14 +74,15 @@ export class UserContestsController {
   }
 
   @Post('join')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Create a new user contest' })
   @ApiResponse({
     status: 201,
     description: 'Returns the created user contest',
     type: UserContest,
   })
-  async create(@Body() createUserContestDto: CreateUserContestDto) {
-    return this.userContestsService.create(createUserContestDto);
+  async create(@Body() createUserContestDto: CreateUserContestDto, @Req() req: Request & { user: any }) {
+    return this.userContestsService.create(createUserContestDto, req.user.id);
   }
 
   @Get('contest/:contestId')
@@ -91,5 +95,4 @@ export class UserContestsController {
   findByContest(@Param('contestId') contestId: string) {
     return this.userContestsService.findByContest(contestId);
   }
-  
 }

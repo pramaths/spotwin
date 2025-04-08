@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -27,7 +28,11 @@ export class UserContestsService {
 
   async create(
     createUserContestDto: CreateUserContestDto,
+    userId: string,
   ): Promise<UserContest> {
+    if(userId !== createUserContestDto.userId){
+      throw new ForbiddenException('You are not authorized to access this resource');
+    }
     const [contest, user] = await Promise.all([
       this.contestRepository.findOne({
         where: { id: createUserContestDto.contestId },

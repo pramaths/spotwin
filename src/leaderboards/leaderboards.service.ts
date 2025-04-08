@@ -76,7 +76,7 @@ export class LeaderboardsService {
         rank: data.rank,
         username: data.user.username,
         score: data.score,
-        prize: data.rank === 1 ? "IPL Ticket" : "100",
+        prize: data.rank === 1 ? "500" : "100",
       };
     });
   }
