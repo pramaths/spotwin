@@ -37,6 +37,7 @@ export class UserContestsService {
     const [contest, user] = await Promise.all([
       this.contestRepository.findOne({
         where: { id: createUserContestDto.contestId },
+        relations:["events"]
       }),
       this.userRepository.findOne({
         where: { id: createUserContestDto.userId },
