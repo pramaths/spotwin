@@ -37,7 +37,7 @@ export class UserContestsService {
     const [contest, user] = await Promise.all([
       this.contestRepository.findOne({
         where: { id: createUserContestDto.contestId },
-        relations:["events"]
+        relations: ["match", "match.event"]
       }),
       this.userRepository.findOne({
         where: { id: createUserContestDto.userId },
@@ -52,7 +52,7 @@ export class UserContestsService {
       throw new BadRequestException('Contest is cancelled or completed');
     }
 
-    if(contest.match.event.startDate < new Date()){
+    if(contest.match.startTime < new Date()){
       await this.contestRepository.update(contest.id, { status: ContestStatus.COMPLETED });
       throw new BadRequestException('Contest has already started');
     }
