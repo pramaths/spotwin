@@ -180,7 +180,15 @@ export class UserContestsService {
       relations: ['contest', 'contest.match', 'contest.match.teamA', 'contest.match.teamB', 'contest.match.event'],
     });
 
-    return userContests.map(data => data.contest);
+    return userContests.map(data => {
+      const contest = { ...data.contest };
+      
+      if (contest.status === ContestStatus.RESOLVED) {
+        contest.status = ContestStatus.COMPLETED;
+      }
+      
+      return contest;
+    });
   }
 
   async findByContest(contestId: string): Promise<any[]> {
