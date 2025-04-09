@@ -394,7 +394,7 @@ export class ContestsService {
       entryFee: contest.entryFee,
       match: contest.match, 
       questions: contest.Questions.slice(0, 3), 
-      status: contest.status,
+      status: contest.status === ContestStatus.RESOLVED ? ContestStatus.COMPLETED : contest.status,
       event: contest.match.event,
       sport: contest.match.event.sport,
     }));
