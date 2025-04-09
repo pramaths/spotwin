@@ -12,6 +12,7 @@ import { CreateUserContestDto } from './dto/create-user-contest.dto';
 import { User } from '../users/entities/users.entity';
 import { Contest } from '../contests/entities/contest.entity';
 import { startOfDay, differenceInDays, addDays } from 'date-fns';
+import { ContestStatus } from '../common/enums/common.enum';
 
 @Injectable()
 export class UserContestsService {
@@ -48,6 +49,11 @@ export class UserContestsService {
 
     if (contest.status === 'CANCELLED' || contest.status === 'COMPLETED') {
       throw new BadRequestException('Contest is cancelled or completed');
+    }
+
+    if(contest.match.event.startDate < new Date()){
+      await this.contestRepository.update(contest.id, { status: ContestStatus.COMPLETED });
+      throw new BadRequestException('Contest has already started');
     }
 
     const existingUserContest = await this.userContestRepository.findOne({
