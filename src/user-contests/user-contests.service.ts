@@ -204,11 +204,11 @@ export class UserContestsService {
     const result = await this.userContestRepository
       .createQueryBuilder('uc')
       .leftJoin('uc.user', 'user')
-      .select('user.id', 'userId')
-      .addSelect('user.name', 'userName')
-      .addSelect('COUNT(uc.contestId)', 'contestCount')
-      .groupBy('user.id')
-      .addGroupBy('user.name')
+      .select('"user"."id"', 'userId')
+      .addSelect('"user"."username"', 'userName')
+      .addSelect('COUNT("uc"."contestId")', 'contestCount')
+      .groupBy('"user"."id"')
+      .addGroupBy('"user"."username"')
       .getRawMany();
   
     return result;
