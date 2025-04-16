@@ -34,12 +34,7 @@ export class LeaderboardsService {
         if (contestLeaderboards.length > 0 && contestLeaderboards[0].contest) {
           const userIds = contestLeaderboards.map(entry => entry.userId);
           const contestName = contestLeaderboards[0].contest.name || 'Contest';
-          
-          await this.notificationsService.sendLeaderboardNotification(
-            savedLeaderboard.contestId,
-            contestName,
-            userIds
-          );
+      
         }
       } catch (error) {
         console.error('Failed to send leaderboard notification', error);
