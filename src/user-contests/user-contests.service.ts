@@ -205,7 +205,7 @@ export class UserContestsService {
       .createQueryBuilder('uc')
       .leftJoin('uc.user', 'user')
       .select('"user"."id"', 'userId')
-      .addSelect('"user"."username"', 'userName')
+      .addSelect('"user"."username"', 'username')
       .addSelect('COUNT("uc"."contestId")', 'contestCount')
       .groupBy('"user"."id"')
       .addGroupBy('"user"."username"')
