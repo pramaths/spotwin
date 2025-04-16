@@ -40,7 +40,9 @@ export class MatchesService {
       teamA,
       teamB
     });
-    return this.matchRepository.save(match);
+    const savedMatch = await this.matchRepository.save(match);
+    
+    return savedMatch;
   }
 
   async findOne(id: string): Promise<Match> {

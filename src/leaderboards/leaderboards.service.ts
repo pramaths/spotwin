@@ -5,18 +5,48 @@ import { Leaderboard } from './entities/leaderboard.entity';
 import { CreateLeaderboardDto } from './dto/create-leaderboard.dto';
 import { UpdateLeaderboardDto } from './dto/update-leaderboard.dto';
 import { LeaderboardResponseDto } from './dto/response.dto';
+import { NotificationsService } from '../notifications/notifications.service';
+
 @Injectable()
 export class LeaderboardsService {
   constructor(
     @InjectRepository(Leaderboard)
     private leaderboardRepository: Repository<Leaderboard>,
+    private notificationsService: NotificationsService,
   ) {}
 
   async create(
     createLeaderboardDto: CreateLeaderboardDto,
   ): Promise<Leaderboard> {
     const leaderboard = this.leaderboardRepository.create(createLeaderboardDto);
-    return await this.leaderboardRepository.save(leaderboard);
+    const savedLeaderboard = await this.leaderboardRepository.save(leaderboard);
+    
+    // If we have contest information, send a notification
+    if (savedLeaderboard.contestId) {
+      try {
+        // Find all leaderboards for this contest to get user IDs
+        const contestLeaderboards = await this.leaderboardRepository.find({
+          where: { contestId: savedLeaderboard.contestId },
+          relations: ['contest', 'user'],
+        });
+        
+        // If contest information is available, send notification
+        if (contestLeaderboards.length > 0 && contestLeaderboards[0].contest) {
+          const userIds = contestLeaderboards.map(entry => entry.userId);
+          const contestName = contestLeaderboards[0].contest.name || 'Contest';
+          
+          await this.notificationsService.sendLeaderboardNotification(
+            savedLeaderboard.contestId,
+            contestName,
+            userIds
+          );
+        }
+      } catch (error) {
+        console.error('Failed to send leaderboard notification', error);
+      }
+    }
+    
+    return savedLeaderboard;
   }
 
   async findAllGroupedByContest(): Promise<{

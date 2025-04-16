@@ -10,14 +10,17 @@ import { Team } from 'src/teams/entities/team.entity';
 import { EventsModule } from 'src/events/events.module';
 import { Contest } from 'src/contests/entities/contest.entity';
 import { ContestsModule } from 'src/contests/contests.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Match, Event, Team, Contest]), 
-  SportsModule, 
-  TeamsModule, 
-  EventsModule,
-  forwardRef(() => ContestsModule)
-],
+  imports: [
+    TypeOrmModule.forFeature([Match, Event, Team, Contest]), 
+    SportsModule, 
+    TeamsModule, 
+    EventsModule,
+    forwardRef(() => ContestsModule),
+    NotificationsModule,
+  ],
   providers: [MatchesService],
   controllers: [MatchesController],
   exports: [MatchesService],

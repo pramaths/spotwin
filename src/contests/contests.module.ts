@@ -11,6 +11,7 @@ import { ConfigModule } from '@nestjs/config';
 import { QuestionsModule } from '../questions/questions.module';
 import { MatchesModule } from '../matches/matches.module';
 import { UserModule } from '../users/users.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { UserModule } from '../users/users.module';
     QuestionsModule,
     forwardRef(() => MatchesModule),
     UserModule,
+    NotificationsModule,
   ],
   providers: [ContestsService],
   controllers: [ContestsController],

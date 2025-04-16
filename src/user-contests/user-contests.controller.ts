@@ -95,4 +95,16 @@ export class UserContestsController {
   findByContest(@Param('contestId') contestId: string) {
     return this.userContestsService.findByContest(contestId);
   }
+
+  @Get('user-contest-analytics')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Get user contest analytics' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns user contest analytics',
+    type: [UserContest],
+  })
+  async usercontestanalytics(){
+    return this.userContestsService.userParticipationAnalytics();
+  }
 }

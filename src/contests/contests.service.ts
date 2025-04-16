@@ -29,6 +29,7 @@ import { Match } from '../matches/entities/match.entity';
 import { MatchesService } from '../matches/matches.service';
 import { QuestionLevel } from '../common/enums/common.enum';
 import { UserService } from '../users/users.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class ContestsService {
@@ -44,6 +45,7 @@ export class ContestsService {
     private questionsService: QuestionsService,
     private matchesService: MatchesService,
     private userService: UserService,
+    private notificationsService: NotificationsService,
   ) { }
 
 
@@ -61,7 +63,20 @@ export class ContestsService {
       match,
     });
 
-    return await this.contestRepository.save(contest);
+    const savedContest = await this.contestRepository.save(contest);
+    
+    // Send notification for new contest
+    try {
+      await this.notificationsService.sendNewContestNotification(
+        savedContest.id,
+        savedContest.name || 'New Contest',
+        `${match.teamA.name} vs ${match.teamB.name}`
+      );
+    } catch (error) {
+      this.logger.error('Failed to send new contest notification', error);
+    }
+
+    return savedContest;
   }
 
   async resolveContest(
@@ -70,7 +85,7 @@ export class ContestsService {
     this.logger.log(`Starting to resolve contest with ID: ${contestId}`);
     const contest = await this.contestRepository.findOne({
       where: { id: contestId },
-      relations: ['userContests', 'userContests.user'],
+      relations: ['userContests', 'userContests.user', 'match', 'match.teamA', 'match.teamB'],
     });
     if (!contest)
       throw new NotFoundException(`Contest with ID ${contestId} not found`);
@@ -299,6 +314,29 @@ export class ContestsService {
       }
     }
     this.logger.log(`Finished updating user points`);
+
+    // Get participating user IDs for notifications
+    const participatingUserIds = contest.userContests
+      ? contest.userContests.map(uc => uc.user.id)
+      : [];
+
+    // Send notification about contest completion
+    try {
+      await this.notificationsService.sendContestCompletedNotification(
+        contestId,
+        contest.name || 'Contest',
+        participatingUserIds
+      );
+      
+      // Send leaderboard notification
+      await this.notificationsService.sendLeaderboardNotification(
+        contestId,
+        contest.name || 'Contest',
+        participatingUserIds
+      );
+    } catch (error) {
+      this.logger.error('Failed to send contest completion notifications', error);
+    }
 
     await this.update(contestId, { status: ContestStatus.RESOLVED });
     this.logger.log(`Contest resolution completed successfully`);
