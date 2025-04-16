@@ -30,7 +30,6 @@ export class LeaderboardsService {
           relations: ['contest', 'user'],
         });
         
-        // If contest information is available, send notification
         if (contestLeaderboards.length > 0 && contestLeaderboards[0].contest) {
           const userIds = contestLeaderboards.map(entry => entry.userId);
           const contestName = contestLeaderboards[0].contest.name || 'Contest';

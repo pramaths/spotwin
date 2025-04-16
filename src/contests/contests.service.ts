@@ -64,17 +64,6 @@ export class ContestsService {
     });
 
     const savedContest = await this.contestRepository.save(contest);
-    
-    // Send notification for new contest
-    try {
-      await this.notificationsService.sendNewContestNotification(
-        savedContest.id,
-        savedContest.name || 'New Contest',
-        `${match.teamA.name} vs ${match.teamB.name}`
-      );
-    } catch (error) {
-      this.logger.error('Failed to send new contest notification', error);
-    }
 
     return savedContest;
   }
@@ -320,23 +309,6 @@ export class ContestsService {
       ? contest.userContests.map(uc => uc.user.id)
       : [];
 
-    // Send notification about contest completion
-    try {
-      await this.notificationsService.sendContestCompletedNotification(
-        contestId,
-        contest.name || 'Contest',
-        participatingUserIds
-      );
-      
-      // Send leaderboard notification
-      await this.notificationsService.sendLeaderboardNotification(
-        contestId,
-        contest.name || 'Contest',
-        participatingUserIds
-      );
-    } catch (error) {
-      this.logger.error('Failed to send contest completion notifications', error);
-    }
 
     await this.update(contestId, { status: ContestStatus.RESOLVED });
     this.logger.log(`Contest resolution completed successfully`);
