@@ -31,6 +31,18 @@ export class UserContestsController {
     return this.userContestsService.findAll();
   }
 
+  @Get('user-contest-analytics')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Get user contest analytics' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns user contest analytics',
+    type: [UserContest],
+  })
+  async usercontestanalytics(){
+    return this.userContestsService.userParticipationAnalytics();
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a specific user contest' })
   @ApiResponse({
@@ -96,15 +108,4 @@ export class UserContestsController {
     return this.userContestsService.findByContest(contestId);
   }
 
-  @Get('user-contest-analytics')
-  @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'Get user contest analytics' })
-  @ApiResponse({
-    status: 200,
-    description: 'Returns user contest analytics',
-    type: [UserContest],
-  })
-  async usercontestanalytics(){
-    return this.userContestsService.userParticipationAnalytics();
-  }
 }
