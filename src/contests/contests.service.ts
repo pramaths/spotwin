@@ -252,7 +252,7 @@ export class ContestsService {
         this.logger.log(`Rank changed to ${currentRank} for user ${userScore.userId}`);
       }
 
-      let points = 100;
+      let points = 10;
       if (currentRank === 1) {
         points = 4000; // 1st place
       } else if (currentRank === 2) {
@@ -261,7 +261,11 @@ export class ContestsService {
         points = 500; // 3rd place
       } else if (currentRank >= 4 && currentRank <= 10) {
         points = 200; // 4th to 10th place
-      }
+      } else if (currentRank >= 11 && currentRank <= 20) {
+        points = 100; // 11th to 20th place
+      } else if (currentRank >= 21 && currentRank <= 30) {
+        points = 50; // 21st to 30th place
+      } 
       
       this.logger.log(`Assigning ${points} points for rank ${currentRank}`);
 
