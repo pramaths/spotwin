@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -11,9 +11,12 @@ export class NotificationsController {
 
   @Post('send')
   @Roles(UserRole.ADMIN)
-
   async sendNotification(@Body() body: { title: string, body: string }) {
-    await this.notificationsService.sendNotifications(body.title, body.body);
+    try {
+      await this.notificationsService.sendNotifications(body.title, body.body);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
   }
 }
 
