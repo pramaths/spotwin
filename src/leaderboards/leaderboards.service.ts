@@ -100,7 +100,8 @@ export class LeaderboardsService {
         rank: data.rank,
         username: data.user.username,
         score: data.score,
-        prize: data.points ? `${data.points}` : (data.rank === 1 ? "4000" : data.rank === 2 ? "1000" : data.rank === 3 ? "500" : data.rank >= 4 && data.rank <= 10 ? "200" : "100"),
+        prize: data.points.toString(),
+        userId: data.userId,
       };
     });
   }

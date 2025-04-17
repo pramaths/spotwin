@@ -15,5 +15,9 @@ export class LeaderboardResponseDto {
 
   @ApiProperty({ description: 'Prize of the user' })
   prize?: string;
+
+  @ApiProperty({ description: 'User ID' })
+  userId: string;  
+  
 }
 
