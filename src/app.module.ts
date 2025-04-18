@@ -25,6 +25,7 @@ import { ReferralsModule } from './referrals/referrals.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { EmailModule } from './email/email.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { NotificationsModule } from './notifications/notifications.module';
       useFactory: typeOrmConfig,
     }),
     TypeOrmModule.forFeature([AuthorizedCreator]),
+    ScheduleModule.forRoot(),
     AuthModule,
     UserModule,
     SportsModule,

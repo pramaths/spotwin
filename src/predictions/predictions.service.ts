@@ -25,9 +25,9 @@ export class PredictionsService {
 
   async create(createPredictionDto: CreatePredictionDto): Promise<Prediction> {
     const existingPredictions = await this.predictionRepository.find({
-      where: { 
+      where: {
         userId: createPredictionDto.userId,
-        contestId: createPredictionDto.contestId 
+        contestId: createPredictionDto.contestId,
       },
       relations: ['contest'],
     });
@@ -36,11 +36,13 @@ export class PredictionsService {
       throw new BadRequestException(
         'User already has the maximum number of predictions (9) for this contest',
       );
-    }  
+    }
     const contest = existingPredictions[0]?.contest;
     if (contest && contest.status !== ContestStatus.OPEN) {
-      if(contest.match.startTime < new Date()){
-        await this.contestsService.update(contest.id, {status: ContestStatus.COMPLETED});
+      if (contest.match.startTime < new Date()) {
+        await this.contestsService.update(contest.id, {
+          status: ContestStatus.COMPLETED,
+        });
       }
       throw new BadRequestException(
         'Predictions can only be made while the contest is open',
@@ -57,7 +59,10 @@ export class PredictionsService {
     }
 
     const prediction = this.predictionRepository.create(createPredictionDto);
-    await this.questionsService.updateNumberOfPredictions(createPredictionDto.questionId, 1);
+    await this.questionsService.updateNumberOfPredictions(
+      createPredictionDto.questionId,
+      1,
+    );
     return await this.predictionRepository.save(prediction);
   }
 
@@ -94,7 +99,10 @@ export class PredictionsService {
     });
   }
 
-  async findByContestAndUser(contestId: string, userId: string): Promise<Prediction[]> {
+  async findByContestAndUser(
+    contestId: string,
+    userId: string,
+  ): Promise<Prediction[]> {
     return await this.predictionRepository.find({
       where: { contestId, userId },
       relations: ['question'],
@@ -106,11 +114,13 @@ export class PredictionsService {
     updatePredictionDto: UpdatePredictionDto,
   ): Promise<Prediction> {
     const prediction = await this.findOne(id);
-
+    if (prediction.contest.status !== ContestStatus.OPEN) {
+      throw new BadRequestException('Contest is not open');
+    }
     if (updatePredictionDto.questionId) {
       const existingPredictions = await this.findByContestAndUser(
         prediction.contestId,
-        prediction.userId
+        prediction.userId,
       );
       const questionTaken = existingPredictions.some(
         (p) => p.questionId === updatePredictionDto.questionId && p.id !== id,
@@ -140,7 +150,10 @@ export class PredictionsService {
     return await this.predictionRepository.save(prediction);
   }
 
-  async removeByQuestionAndUser(questionId: string, userId: string): Promise<void> {
+  async removeByQuestionAndUser(
+    questionId: string,
+    userId: string,
+  ): Promise<void> {
     console.log('questionId', questionId);
     console.log('userId', userId);
     const prediction = await this.predictionRepository.findOne({
@@ -148,7 +161,9 @@ export class PredictionsService {
     });
 
     if (!prediction) {
-      throw new NotFoundException(`Prediction with question ID ${questionId} not found for user ${userId}`);
+      throw new NotFoundException(
+        `Prediction with question ID ${questionId} not found for user ${userId}`,
+      );
     }
 
     await this.predictionRepository.remove(prediction);

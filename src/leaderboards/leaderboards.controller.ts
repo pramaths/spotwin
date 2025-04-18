@@ -8,6 +8,7 @@ import {
   Delete,
   HttpException,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { LeaderboardsService } from './leaderboards.service';
 import { CreateLeaderboardDto } from './dto/create-leaderboard.dto';
@@ -23,6 +24,7 @@ import { Leaderboard } from './entities/leaderboard.entity';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../common/enums/roles.enum';
 import { LeaderboardResponseDto } from './dto/response.dto';
+import { JwtAuthGuard } from '../auth/strategies/jwt.strategy';
 @ApiTags('leaderboards')
 @Controller('leaderboards')
 export class LeaderboardsController {
@@ -75,6 +77,7 @@ export class LeaderboardsController {
   }
 
   @Get('contest/:contestId')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get leaderboard entries for a specific contest' })
   @ApiParam({ name: 'contestId', description: 'Contest ID' })
   @ApiResponse({

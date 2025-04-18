@@ -48,8 +48,8 @@ export class UserContestsService {
       throw new NotFoundException('Contest or user not found');
     }
 
-    if (contest.status === 'CANCELLED' || contest.status === 'COMPLETED') {
-      throw new BadRequestException('Contest is cancelled or completed');
+    if(contest.status !== ContestStatus.OPEN){
+      throw new BadRequestException('Contest is not open');
     }
 
     if(contest.match.startTime < new Date()){
