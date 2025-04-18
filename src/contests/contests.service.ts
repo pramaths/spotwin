@@ -298,7 +298,6 @@ export class ContestsService {
     );
     this.logger.log(`Finished saving leaderboard entries`);
 
-    // Update user points in their balance
     this.logger.log(`Updating user points in their balances`);
     for (const [points, userIds] of userPointsMap.entries()) {
       if (userIds.length > 0) {

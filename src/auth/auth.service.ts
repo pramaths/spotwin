@@ -55,7 +55,7 @@ export class AuthService {
           this.logger.log('User not found in database, creating new user');
           
           user = await this.userService.create({
-            username: generateUsername(),
+            username: generateUsername("",2,9),
             imageUrl: 'https://ui.shadcn.com/avatars/shadcn.jpg',
             phoneNumber: verifyOtpDto.phoneNumber,
           });
