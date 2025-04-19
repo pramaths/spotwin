@@ -207,12 +207,10 @@ export class ContestsService {
     );
     this.logger.log(`Finished updating prediction results`);
 
-    // Sort users by score and tiebreaker
     userScores.sort((a, b) => {
       if (a.correctAnswers !== b.correctAnswers)
         return b.correctAnswers - a.correctAnswers;
       
-      // First tiebreaker: Compare by difficulty level
       if (a.tiebreakerScorebySection[QuestionLevel.HARD] !== b.tiebreakerScorebySection[QuestionLevel.HARD]) {
         return b.tiebreakerScorebySection[QuestionLevel.HARD] - a.tiebreakerScorebySection[QuestionLevel.HARD];
       }
@@ -306,12 +304,6 @@ export class ContestsService {
       }
     }
     this.logger.log(`Finished updating user points`);
-
-    // Get participating user IDs for notifications
-    const participatingUserIds = contest.userContests
-      ? contest.userContests.map(uc => uc.user.id)
-      : [];
-
 
     await this.update(contestId, { status: ContestStatus.RESOLVED });
     this.logger.log(`Contest resolution completed successfully`);

@@ -68,7 +68,11 @@ export class UserService {
   async findAll(): Promise<User[]> {
     try {
       this.logger.log('Fetching all users');
-      return await this.userRepository.find();
+      return await this.userRepository.find({
+        where: {
+          isActive: true
+        }
+      });
     } catch (error) {
       this.logger.error(`Failed to fetch users: ${error.message}`, error.stack);
       throw new InternalServerErrorException('Failed to fetch users');
@@ -103,7 +107,7 @@ export class UserService {
   async findByPhonenumber(phoneNumber: string): Promise<User> {
     try {
       this.logger.log(`Fetching user with phoneNumber: ${phoneNumber}`);
-      const user = await this.userRepository.findOne({ where: { phoneNumber } });
+      const user = await this.userRepository.findOne({ where: { phoneNumber, isActive: true } });
       if (!user) {
         this.logger.warn(`User with phoneNumber ${phoneNumber} not found`);
         throw new NotFoundException(`User with phoneNumber ${phoneNumber} not found`);
