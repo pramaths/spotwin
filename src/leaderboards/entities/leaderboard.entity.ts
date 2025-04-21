@@ -41,7 +41,7 @@ export class Leaderboard {
     description: 'The user associated with this leaderboard entry',
     type: () => User,
   })
-  @ManyToOne(() => User, (user) => user.leaderboards, { eager: false })
+  @ManyToOne(() => User, (user) => user.leaderboards, { eager: false, nullable: true })
   @JoinColumn({ name: 'userId' })
   user: User;
 
