@@ -115,6 +115,11 @@ export class PredictionsService {
   ): Promise<Prediction> {
     const prediction = await this.findOne(id);
     if (prediction.contest.status !== ContestStatus.OPEN) {
+      if(prediction.contest.match.startTime < new Date()){
+        await this.contestsService.update(prediction.contestId, {
+          status: ContestStatus.COMPLETED,
+        });
+      }
       throw new BadRequestException('Contest is not open');
     }
     if (updatePredictionDto.questionId) {

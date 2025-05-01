@@ -21,25 +21,6 @@ export class LeaderboardsService {
     const leaderboard = this.leaderboardRepository.create(createLeaderboardDto);
     const savedLeaderboard = await this.leaderboardRepository.save(leaderboard);
     
-    // If we have contest information, send a notification
-    if (savedLeaderboard.contestId) {
-      try {
-        // Find all leaderboards for this contest to get user IDs
-        const contestLeaderboards = await this.leaderboardRepository.find({
-          where: { contestId: savedLeaderboard.contestId },
-          relations: ['contest', 'user'],
-        });
-        
-        if (contestLeaderboards.length > 0 && contestLeaderboards[0].contest) {
-          const userIds = contestLeaderboards.map(entry => entry.userId);
-          const contestName = contestLeaderboards[0].contest.name || 'Contest';
-      
-        }
-      } catch (error) {
-        console.error('Failed to send leaderboard notification', error);
-      }
-    }
-    
     return savedLeaderboard;
   }
 
