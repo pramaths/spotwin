@@ -55,6 +55,7 @@ export class UserContestsController {
   }
 
   @Get('user/:userId')
+  @Roles(UserRole.USER)
   @ApiOperation({ summary: 'Get all contests for a specific user' })
   @ApiResponse({
     status: 200,
