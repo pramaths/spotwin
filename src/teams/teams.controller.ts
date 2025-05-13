@@ -68,6 +68,7 @@ export class TeamsController {
   }
 
   @Get()
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get all teams with optional filtering' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -79,6 +80,7 @@ export class TeamsController {
   }
 
   @Get(':id')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get a team by ID' })
   @ApiParam({ name: 'id', description: 'Team ID' })
   @ApiResponse({

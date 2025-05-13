@@ -13,7 +13,6 @@ import { UserContest } from './entities/user-contest.entity';
 import { UserStreak } from './entities/user-streak.entity';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../common/enums/roles.enum';
-import { JwtAuthGuard } from '../auth/strategies/jwt.strategy';
 @ApiTags('user-contests')
 @Controller('user-contests')
 export class UserContestsController {
@@ -86,7 +85,6 @@ export class UserContestsController {
   }
 
   @Post('join')
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Create a new user contest' })
   @ApiResponse({
     status: 201,

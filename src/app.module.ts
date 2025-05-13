@@ -16,8 +16,10 @@ import { LeaderboardsModule } from './leaderboards/leaderboards.module';
 import { PayoutsModule } from './payouts/payouts.module';
 import { PredictionsModule } from './predictions/predictions.module';
 import { AuthorizedCreatorsModule } from './authorized_creators/authorized-creators.module';
+import { PrivyModule } from './privy/privy.module';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from './common/guards/roles.guard';
+import { PrivyAuthGuard } from './common/guards/privy-auth.guard';
 import { AuthorizedCreator } from './authorized_creators/entities/authorized-creator.entity';
 import { QuestionsModule } from './questions/questions.module';
 import { MatchesModule } from './matches/matches.module';
@@ -60,12 +62,17 @@ import { ScheduleModule } from '@nestjs/schedule';
     TicketsModule,
     EmailModule,
     NotificationsModule,
+    PrivyModule,
   ],
   controllers: [AppController],
   providers: [
     {
       provide: APP_GUARD,
       useClass: RolesGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PrivyAuthGuard,
     },
     AppService,
   ],

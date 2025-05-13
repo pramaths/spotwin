@@ -72,6 +72,7 @@ export class SportsController {
   }
 
   @Get()
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get all sports' })
   @ApiResponse({ status: 200, description: 'Return all sports' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
@@ -87,6 +88,7 @@ export class SportsController {
   }
 
   @Get(':id')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get a sport by id' })
   @ApiParam({
     name: 'id',

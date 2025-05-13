@@ -24,8 +24,14 @@ export class User {
   @Column()
   username: string;
 
+  @Column({unique:true})
+  privyId: string;
+
   @Column({ unique: true })
-  phoneNumber: string;
+  email: string;
+
+  @Column({unique:true})
+  walletAddress: string;
 
   @Column({ default: true })
   isActive: boolean;

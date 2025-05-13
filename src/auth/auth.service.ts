@@ -1,63 +1,45 @@
 import { Injectable, UnauthorizedException, Logger, NotFoundException } from '@nestjs/common';
 import { UserService } from '../users/users.service';
 import { Response } from 'express';
-import { JwtService } from '@nestjs/jwt';
-import { OtplessService } from './otpless.service';
-import { SendOtpDto } from './dto/send-otp.dto';
-import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { generateUsername } from 'unique-username-generator';
+import { PrivyService } from 'src/privy/privy.service';
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
   constructor(
     private userService: UserService,
-    private jwtService: JwtService,
-    private otplessService: OtplessService,
+    private privyService: PrivyService
   ) {}
 
-  async sendOtp(sendOtpDto: SendOtpDto): Promise<{ message: string, requestId: string }> {
-    this.logger.debug('OTP request received', { phoneNumber: sendOtpDto.phoneNumber });
-    try {
-      const result = await this.otplessService.initiateOtp(sendOtpDto.phoneNumber);
-      return result;
-    } catch (error) {
-      this.logger.error('Failed to send OTP', { error });
-      throw error;
-    }
-  }
-
-  async verifyOtpAndLogin(verifyOtpDto: VerifyOtpDto) {
-    this.logger.debug('OTP verification request received', { requestId: verifyOtpDto.requestId });
+  async verifyTokenAndLogin(token:string) {
+    this.logger.debug('Privy token received', { token });
     
-    if (!verifyOtpDto.requestId) {
-      throw new UnauthorizedException('Invalid request ID');
+    if (!token) {
+      throw new UnauthorizedException('Invalid token');
     }
-
-    if (!verifyOtpDto.phoneNumber) {
-      throw new UnauthorizedException('Phone number is required');
-    }
-    
     try {
-      const isValid = await this.otplessService.verifyOtp(verifyOtpDto.requestId, verifyOtpDto.otp);
+      const privyUser = await this.privyService.verifyTokenAndLogin(token);
       
-      if (!isValid) {
+      if (!privyUser) {
         throw new UnauthorizedException('Invalid or expired OTP');
       }
       
       let user;
       
       try {
-        user = await this.userService.findByPhonenumber(verifyOtpDto.phoneNumber);
+        user = await this.userService.findByEmail(privyUser.email);
         this.logger.log('User found in database by phone number', { userId: user.id });
       } catch (error) {
         if (error instanceof NotFoundException) {
           this.logger.log('User not found in database, creating new user');
           
           user = await this.userService.create({
-            username: generateUsername("",2,9),
+            username: privyUser.name,
             imageUrl: 'https://ui.shadcn.com/avatars/shadcn.jpg',
-            phoneNumber: verifyOtpDto.phoneNumber,
+            walletAddress: privyUser.walletAddress || '', 
+            email: privyUser.email || '', 
+            privyId: privyUser.privyId,
           });
           
           this.logger.log('User created successfully', { userId: user.id });
@@ -65,17 +47,9 @@ export class AuthService {
           throw error;
         }
       }
-
-      const payload = {
-        sub: user.id,
-        phoneNumber: user.phoneNumber,
-      };
-
-      const token = this.jwtService.sign(payload);
       
       return { 
         user,
-        token,
         isNewUser: true,
       };
     } catch (error) {
@@ -89,8 +63,8 @@ export class AuthService {
     return { message: 'Logout successful' };
   }
 
-  async getUser(phoneNumber: string) {
-    const user = await this.userService.findByPhonenumber(phoneNumber);
+  async getUser(email: string) {
+    const user = await this.userService.findByEmail(email);
     if (!user) {
       throw new UnauthorizedException('User not found');
     }

@@ -15,10 +15,9 @@ import {
   import { Response, Request } from 'express';
   import { SendOtpDto } from './dto/send-otp.dto';
   import { VerifyOtpDto } from './dto/verify-otp.dto';
-  import { JwtAuthGuard } from './strategies/jwt.strategy';
-  import { JwtService } from '@nestjs/jwt';
   import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiHeader } from '@nestjs/swagger';
   import { UserService } from '../users/users.service';
+  import { Public } from '../common/decorators/public.decorator';
 
   @ApiTags('auth')
   @Controller('auth')
@@ -26,72 +25,32 @@ import {
     private readonly logger = new Logger(AuthController.name);
     constructor(
       private readonly authService: AuthService,
-      private readonly jwttService: JwtService,
       private readonly userService: UserService,
     ) {}
   
-    @Post('otp')
+    @Post('login')
+    @Public()
     @HttpCode(HttpStatus.OK)
-    @ApiOperation({ summary: 'Send OTP to phone number' })
-    @ApiBody({ type: SendOtpDto })
+    @ApiHeader({
+      name: 'Authorization',
+      description: 'Bearer JWT token',
+      required: true,
+    })
     @ApiResponse({ 
       status: HttpStatus.OK, 
-      description: 'OTP sent successfully',
+      description: 'Logged in successfully',
     })
     @ApiResponse({ 
       status: HttpStatus.BAD_REQUEST, 
-      description: 'Invalid phone number' 
+      description: 'Invalid authorization token' 
     })
-    async sendOtp(@Body() sendOtpDto: SendOtpDto, @Res() res: Response) {
-      try {
-        const result = await this.authService.sendOtp(sendOtpDto);
-        this.logger.log('OTP initiated successfully');
-        return res.json(result);
-      } catch (error) {
-        this.logger.error(`OTP initiating error: ${error.message}`);
-        this.logger.error('Full error details:', error);
-        
-        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-          message: 'Error during OTP initiation process',
-          error: error.message,
-        });
-      }
+    async login(@Headers('authorization') authHeader: string) {
+      const token = authHeader.split(' ')[1];
+      const response = await this.authService.verifyTokenAndLogin(token);
+      const userData = this.userService.findByEmail(response.user.email);
+      return userData;
     }
-  
-    @Post('verify-otp')
-    @HttpCode(HttpStatus.OK)
-    @ApiOperation({ summary: 'Verify OTP and login user' })
-    @ApiBody({ type: VerifyOtpDto })
-    @ApiResponse({ 
-      status: HttpStatus.OK, 
-      description: 'User logged in successfully',
-    })
-    @ApiResponse({ 
-      status: HttpStatus.UNAUTHORIZED, 
-      description: 'Invalid or expired OTP' 
-    })
-    async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto, @Res() res: Response) {
-      try {
-        const result = await this.authService.verifyOtpAndLogin(verifyOtpDto);
-        this.logger.log('OTP verification and login successful');
-        return res.json(result);
-      } catch (error) {
-        this.logger.error(`OTP verification error: ${error.message}`);
-        this.logger.error('Full error details:', error);
-        
-        if (error.message === 'Invalid or expired OTP' || error.message === 'Invalid request ID') {
-          return res.status(HttpStatus.UNAUTHORIZED).json({
-            message: error.message,
-          });
-        }
-        
-        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-          message: 'Error during OTP verification process',
-          error: error.message,
-        });
-      }
-    }
-  
+
     @Post('logout')
     @HttpCode(HttpStatus.OK)
     @ApiHeader({
@@ -116,8 +75,8 @@ import {
   
       try {
         const token = authHeader.split(' ')[1];
-        const decoded = this.jwttService.verify(token);
-        const phoneNumber = decoded.phoneNumber;
+        const decoded = await this.authService.verifyTokenAndLogin(token);
+        const phoneNumber = decoded.user.email;
         
         if (!phoneNumber) {
           throw new Error('No phone number found in token');
@@ -135,7 +94,6 @@ import {
     }
   
     @Get('me')
-    @UseGuards(JwtAuthGuard)
     @ApiHeader({
       name: 'Authorization',
       description: 'Bearer JWT token',
@@ -151,22 +109,24 @@ import {
     })
     async getCurrentUser(@Req() req: Request & { user: any }) {
       try {
-        this.logger.debug('User object from JWT:', req.user);
+        this.logger.debug('User object from Privy authentication:', req.user);
         
-        const userId = req.user.id;
-        
-        if (!userId) {
-          throw new Error('User ID not found in JWT payload');
+        if (!req.user) {
+          this.logger.error('No user object found in request');
+          throw new Error('User not authenticated');
         }
-        
-        this.logger.log(`Getting current user from database with ID: ${userId}`);
-        const user = await this.userService.findById(userId);
-        
-        if (!user) {
-          throw new Error(`User with ID ${userId} not found`);
+        if (req.user.email) {
+          this.logger.log(`Attempting to find user by email: ${req.user.email}`);
+          try {
+            const userByEmail = await this.userService.findByEmail(req.user.email);
+            this.logger.log(`Successfully found user by email: ${req.user.email}`);
+            return userByEmail;
+          } catch (emailError) {
+            this.logger.warn(`Could not find user by email: ${emailError.message}`);
+          }
         }
-        
-        return user;
+        this.logger.error('Could not find user with the provided authentication data');
+        throw new Error('User not found in the system');
       } catch (error) {
         this.logger.error(`Error fetching user from database: ${error.message}`, error.stack);
         throw error;

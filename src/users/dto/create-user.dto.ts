@@ -12,13 +12,32 @@ export class CreateUserDto {
   username: string;
 
   @ApiProperty({
-    description: 'Phone number of the user',
-    example: '+1234567890',
+    description: 'Unique privyId for the user',
+    example: 'cm7xb8o7h002bai0oaxp2opie',
     required: true
   })
   @IsString()
   @IsNotEmpty()
-  phoneNumber: string;
+  privyId: string;
+
+  @ApiProperty({
+    description: 'email of the user',
+    example: 'john_doe@example.com',
+    required: true
+  })
+  @IsString()
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @ApiProperty({
+    description: " Wallet address of the user",
+    example: "0x1234567890123456789012345678901234567890",
+    required: true
+  })
+  @IsString()
+  @IsNotEmpty()
+  walletAddress: string;
 
   @ApiProperty({
     description: 'Profile image URL',

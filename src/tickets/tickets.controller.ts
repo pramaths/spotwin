@@ -4,7 +4,6 @@ import { CreateTicketDto } from './dtos/create-ticket.dto';
 import { UpdateTicketDto } from './dtos/update-ticket.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { Ticket } from './entities/ticket.entity';
-import { JwtAuthGuard } from '../auth/strategies/jwt.strategy';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../common/enums/roles.enum';
 

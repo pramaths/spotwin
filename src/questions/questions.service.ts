@@ -18,10 +18,6 @@ export class QuestionsService {
     return this.questionRepository.save(question);
   }
 
-  async findAll(): Promise<Question[]> {
-    return this.questionRepository.find();
-  }
-
   async findOne(id: string): Promise<Question> {
     return this.questionRepository.findOne({ where: { id } });
   }

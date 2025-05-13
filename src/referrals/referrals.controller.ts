@@ -2,7 +2,6 @@ import { Controller, Get, Post, Body, Param, Logger, UseGuards, Request, BadRequ
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ReferralsService } from './referrals.service';
 import { User } from '../users/entities/users.entity';
-import { JwtAuthGuard } from '../auth/strategies/jwt.strategy';
 import { ApplyReferralDto } from './dto/apply-referral.dto';
 
 @ApiTags('referrals')
@@ -13,7 +12,6 @@ export class ReferralsController {
   constructor(private readonly referralsService: ReferralsService) {}
 
   @Get('my-code')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get or generate user referral code' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Returns user referral code' })
@@ -26,7 +24,6 @@ export class ReferralsController {
   }
 
   @Post('apply')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Apply a referral code' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Referral code applied successfully' })
@@ -43,7 +40,6 @@ export class ReferralsController {
   }
 
   @Get('my-referrals')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get users referred by the current user' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Returns list of referred users' })
@@ -59,7 +55,6 @@ export class ReferralsController {
   }
 
   @Get('my-referrer')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get referrer of the current user' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Returns referrer details or null' })

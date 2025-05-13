@@ -22,7 +22,7 @@ export class UserService {
   ) { }
 
   private generateReferralCode(): string {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let result = '';
     const charactersLength = characters.length;
 
@@ -104,21 +104,21 @@ export class UserService {
     return await this.findOne(id);
   }
 
-  async findByPhonenumber(phoneNumber: string): Promise<User> {
+  async findByEmail(email: string): Promise<User> {
     try {
-      this.logger.log(`Fetching user with phoneNumber: ${phoneNumber}`);
-      const user = await this.userRepository.findOne({ where: { phoneNumber, isActive: true } });
+      this.logger.log(`Fetching user with email: ${email}`);
+      const user = await this.userRepository.findOne({ where: { email, isActive: true } });
       if (!user) {
-        this.logger.warn(`User with phoneNumber ${phoneNumber} not found`);
-        throw new NotFoundException(`User with phoneNumber ${phoneNumber} not found`);
+        this.logger.warn(`User with email ${email} not found`);
+        throw new NotFoundException(`User with email ${email} not found`);
       }
       return user;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      this.logger.error(`Failed to fetch user by phoneNumber: ${error.message}`, error.stack);
-      throw new InternalServerErrorException('Failed to fetch user by phoneNumber');
+      this.logger.error(`Failed to fetch user by email: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Failed to fetch user by email');
     }
   }
 
@@ -134,7 +134,7 @@ export class UserService {
       }
       this.logger.error(`Failed to update user: ${error.message}`, error.stack);
       if (error.code === '23505') { // PostgreSQL unique violation code
-        throw new BadRequestException('User with this phonenumber, username, or public address already exists');
+        throw new BadRequestException('User with this email, username, or public address already exists');
       }
       throw new InternalServerErrorException('Failed to update user');
     }
@@ -338,7 +338,7 @@ export class UserService {
           await this.emailService.sendTicketPurchaseNotification(
             user.id,
             user.username,
-            user.phoneNumber
+            user.email
           );
         } catch (emailError) {
           this.logger.error(`Failed to send ticket purchase email: ${emailError.message}`, emailError.stack);

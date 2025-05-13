@@ -64,6 +64,7 @@ export class EventsController {
     type: Number,
     description: 'Items per page',
   })
+  @Roles(UserRole.ADMIN)
   @Get()
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,

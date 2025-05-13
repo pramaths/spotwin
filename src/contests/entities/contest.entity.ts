@@ -34,6 +34,20 @@ export class Contest {
   name: string;
 
   @ApiProperty({
+    description: "Contest Public key",
+    example: "B8MjW2X3Y4Z5"
+  })
+  @Column({nullable: true})
+  publicKey: string;
+
+  @ApiProperty({
+    description: "contest pool mint",
+    example: "B8MjW2X3Y4Z5"
+  })
+  @Column({nullable: true})
+  poolMint: string;
+
+  @ApiProperty({
     description: 'The entry fee for the contest (in SOL)',
     example: 0.1,
     nullable: true,

@@ -24,11 +24,6 @@ export class QuestionsController {
     return this.questionsService.create(createQuestionDto);
   }
 
-  @Get()
-  findAll() {
-    return this.questionsService.findAll();
-  }
-
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.questionsService.findOne(id);

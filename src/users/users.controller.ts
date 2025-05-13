@@ -21,7 +21,6 @@ import { ExpoPushTokenDto } from './dto/expo-push-token.dto';
 import { ReferralCodeDto } from './dto/referral-code.dto';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../common/enums/roles.enum';
-import { JwtAuthGuard } from '../auth/strategies/jwt.strategy';
 import { BuyTicketDto } from './dto/buy-ticket.dto';
 
 @ApiTags('users')
@@ -60,7 +59,6 @@ export class UserController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get a user by ID' })
   @ApiParam({ name: 'id', description: 'User ID' })
   @ApiResponse({ 
@@ -139,7 +137,6 @@ export class UserController {
   }
 
   @Post(':id/expo-push-token')
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Update a user\'s Expo push token' })
   @ApiParam({ name: 'id', description: 'User ID' })
   @ApiBody({ type: ExpoPushTokenDto })
@@ -151,7 +148,6 @@ export class UserController {
   }
 
   @Get(':id/balance')
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get a user\'s balance' })
   @ApiParam({ name: 'id', description: 'User ID' })
   @ApiResponse({ 
@@ -169,7 +165,6 @@ export class UserController {
 
 
   @Patch(':id/referral-code-used')
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Update a user\'s referral code used' })
   @ApiParam({ name: 'id', description: 'User ID' })
   @ApiBody({ type: ReferralCodeDto })
@@ -198,7 +193,6 @@ export class UserController {
   }
 
   @Post('buy-ticket')
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Buy tickets for a user' })
   @ApiBody({ type: BuyTicketDto })
   async buyTickets(@Body() buyTicketDto: BuyTicketDto, @Req() req: Request & { user: any }): Promise<User> {

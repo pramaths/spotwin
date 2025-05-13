@@ -30,8 +30,8 @@ async function bootstrap() {
     }));
     app.enableCors({
       origin: process.env.NODE_ENV === 'production' 
-        ? ["https://gibberish-agbilemon.vercel.app"] 
-        : ['https://9shootsshhr2332jferere.vercel.app', 'https://gibberish-agbilemon.vercel.app/'],
+        ? ["https://gibberish-agbilemon.vercel.app","http://localhost:3000"] 
+        : ["https://gibberish-agbilemon.vercel.app/","http://localhost:3000"],
       allowedHeaders: ['Authorization', 'Content-Type', 'x-phone-number'],
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
       maxAge: 86400, // 24 hours in seconds - caching preflight requests
