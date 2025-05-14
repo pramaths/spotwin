@@ -130,6 +130,7 @@ export class ContestsController {
     status: 200,
     description: 'All contests retrieved',
   })
+  @Roles(UserRole.ADMIN)
   async findAllAdmin() {
     try {
       return await this.contestsService.findAllAdmin();

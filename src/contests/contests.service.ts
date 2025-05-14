@@ -396,6 +396,7 @@ export class ContestsService {
     return contests.map((contest) => ({
       id: contest.id,
       name: contest.name,
+      currency: contest.currency,
       entryFee: contest.entryFee,
       match: contest.match, 
       questions: contest.Questions.slice(0, 3), 

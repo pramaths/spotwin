@@ -13,6 +13,8 @@ import { User } from '../users/entities/users.entity';
 import { Contest } from '../contests/entities/contest.entity';
 import { startOfDay, differenceInDays, addDays } from 'date-fns';
 import { ContestStatus } from '../common/enums/common.enum';
+import {Keypair, VersionedTransaction, Connection, clusterApiUrl, PublicKey} from '@solana/web3.js';
+import bs58 from 'bs58';
 
 @Injectable()
 export class UserContestsService {
@@ -31,21 +33,66 @@ export class UserContestsService {
     createUserContestDto: CreateUserContestDto,
     userId: string,
   ): Promise<UserContest> {
-    if(userId !== createUserContestDto.userId){
-      throw new ForbiddenException('You are not authorized to access this resource');
-    }
-    const [contest, user] = await Promise.all([
-      this.contestRepository.findOne({
-        where: { id: createUserContestDto.contestId },
-        relations: ["match", "match.event"]
-      }),
-      this.userRepository.findOne({
-        where: { id: createUserContestDto.userId },
-      }),
-    ]);
 
-    if (!contest || !user) {
-      throw new NotFoundException('Contest or user not found');
+    const feePayerAddress = process.env.FEE_PAYER_ADDRESS;
+    const feePayerPrivateKey = process.env.FEE_PAYER_PRIVATE_KEY;
+    const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
+
+    const feePayerWallet = Keypair.fromSecretKey(bs58.decode(feePayerPrivateKey));
+
+    const transactionBuffer = Buffer.from(createUserContestDto.instructions, 'base64');
+    const transaction = VersionedTransaction.deserialize(transactionBuffer);
+    const message = transaction.message;
+    const accountKeys = message.getAccountKeys();
+    const feePayerIndex = 0; // Fee payer is always the first account
+    const feePayer = accountKeys.get(feePayerIndex);
+    if (!feePayer || feePayer.toBase58() !== feePayerAddress) {
+      throw new BadRequestException('Invalid fee payer in transaction');
+    }
+
+    for (const instruction of message.compiledInstructions) {
+      
+      const programId = accountKeys.get(instruction.programIdIndex);
+
+      // Check if instruction is for System Program (transfers)
+      if (programId && programId.toBase58() === '11111111111111111111111111111111') {
+        // Check if it's a transfer (command 2)
+        if (instruction.data[0] === 2) {
+          const senderIndex = instruction.accountKeyIndexes[0];
+          const senderAddress = accountKeys.get(senderIndex);
+
+          // Don't allow transactions that transfer tokens from fee payer
+          if (senderAddress && senderAddress.toBase58() === feePayerAddress) {
+            throw new BadRequestException('Transaction attempts to transfer funds from fee payer');
+          }
+        }
+      }
+    }
+    transaction.sign([feePayerWallet]);
+
+    // 4. Send transaction
+    const signature = await connection.sendTransaction(transaction);
+    console.log('Transaction signature:', signature);
+    
+    const user = await this.userRepository.findOne({
+      where: { privyId: userId },
+    });
+    if(!user){
+      throw new NotFoundException('User not found');
+    }
+    const contest = await this.contestRepository.findOne({
+      where: { id: createUserContestDto.contestId },
+      relations: ["match", "match.event"]
+    });
+    if(!contest){
+      throw new NotFoundException('Contest not found');
+    }
+    const userContest = await this.userContestRepository.findOne({
+        where: { contest: { id: contest.id }, user: { id: user.id } },
+      });
+
+    if (userContest) {
+      throw new BadRequestException('User already joined this contest');
     }
 
     if(contest.status !== ContestStatus.OPEN){
@@ -59,7 +106,7 @@ export class UserContestsService {
 
     const existingUserContest = await this.userContestRepository.findOne({
       where: {
-        user: { id: createUserContestDto.userId },
+        user: { id: user.id },
         contest: { id: contest.id },
       },
     });
@@ -68,7 +115,7 @@ export class UserContestsService {
       throw new BadRequestException('User already joined this contest');
     }
 
-    const userContest = this.userContestRepository.create({
+    const newUserContest = this.userContestRepository.create({
       user: user,
       contest: contest,
       entryFee: contest.entryFee,
@@ -77,7 +124,7 @@ export class UserContestsService {
     user.totalContests += 1;
     await this.userRepository.save(user);
 
-    const savedUserContest = await this.userContestRepository.save(userContest);
+    const savedUserContest = await this.userContestRepository.save(newUserContest);
 
     await this.updateStreak(user, savedUserContest.joinedAt);
 

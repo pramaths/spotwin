@@ -11,10 +11,9 @@ export class CreateUserContestDto {
   contestId: string;
 
   @ApiProperty({
-    description: 'The userId',
+    description: 'The entry fee',
     example: 10,
   })
-  @IsString()
   @IsNotEmpty()
-  userId: string;
+  instructions: any;
 }

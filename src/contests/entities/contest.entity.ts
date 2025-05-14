@@ -34,6 +34,12 @@ export class Contest {
   name: string;
 
   @ApiProperty({
+    description: 'contest id saved in solana'
+  })
+  @Column({nullable: true})
+  contestId: string;
+
+  @ApiProperty({
     description: "Contest Public key",
     example: "B8MjW2X3Y4Z5"
   })
@@ -55,11 +61,13 @@ export class Contest {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   entryFee: number;
 
+
+
   @ApiProperty({
     description: 'The currency used for the entry fee',
-    example: 'INR',
+    example: 'USDC',
   })
-  @Column({ default: 'INR' })
+  @Column({ default: 'USDC' })
   currency: string;
 
   @ApiProperty({

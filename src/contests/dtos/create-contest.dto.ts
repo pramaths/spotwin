@@ -23,4 +23,32 @@ export class CreateContestDto {
   @IsNumber()
   entryFee: number;
 
+  @ApiProperty({
+    description: 'The currency used for the entry fee',
+    example: 'USDC',
+  })
+  @IsString()
+  currency: string;
+
+  @ApiProperty({
+    description : "pool mint",
+    example : "B8MjW2X3Y4Z5"
+  })
+  @IsString()
+  poolMint: string;
+
+  @ApiProperty({
+    description : "contest id saved in solana",
+    example : "B8MjW2X3Y4Z5"
+  })
+  @IsString()
+  contestId: string;
+
+  @ApiProperty({
+    description : "contest public key",
+    example : "B8MjW2X3Y4Z5"
+  })
+  @IsString()
+  publicKey: string;
+
 }
