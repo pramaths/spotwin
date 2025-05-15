@@ -45,5 +45,10 @@ export class QuestionsController {
   async getQuestionsByContestId(@Param('id') id: string) {
     return this.questionsService.getQuestionsByContestId(id);
   }
+  @Get('/contest/admin/:id')
+  @Roles(UserRole.ADMIN)
+  async getQuestionsByContestIdforadmin(@Param('id') id: string) {
+    return this.questionsService.getQuestionsByContestId(id);
+  }
 
 }

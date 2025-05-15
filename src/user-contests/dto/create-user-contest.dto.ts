@@ -15,5 +15,5 @@ export class CreateUserContestDto {
     example: 10,
   })
   @IsNotEmpty()
-  instructions: any;
+  instructions: string;
 }

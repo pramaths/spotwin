@@ -53,11 +53,21 @@ export class Question {
   contest: Contest;
 
   @ApiProperty({
+    description: "special question",
+    example: false,
+  })
+  @Column({ default: false })
+  specialQuestion: boolean;
+
+  @ApiProperty({
     description: 'The number of bets on the question',
     example: 100,
   })
   @Column({ default: 0 })
   numberOfBets: number;
+
+  @Column({default: 0})
+  contestOrder: number;
 
   @CreateDateColumn()
   createdAt: Date;

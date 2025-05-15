@@ -13,15 +13,27 @@ import { UpdatePredictionDto } from './dto/update-prediction.dto';
 import { ContestStatus } from '../common/enums/common.enum';
 import { QuestionsService } from '../questions/questions.service';
 import { ContestsService } from '../contests/contests.service';
+import { SpotwinClient } from 'src/solana/sdk';
+import { Connection, Keypair, PublicKey } from '@solana/web3.js';
+import * as bs58 from 'bs58';
+import { Wallet } from '@coral-xyz/anchor';
+import { User } from 'src/users/entities/users.entity';
+import { OutcomeType } from 'src/common/enums/outcome-type.enum';
+import { BN } from 'bn.js';
+
 @Injectable()
 export class PredictionsService {
+
   constructor(
     @InjectRepository(Prediction)
     private predictionRepository: Repository<Prediction>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
     private questionsService: QuestionsService,
     @Inject(forwardRef(() => ContestsService))
     private contestsService: ContestsService,
-  ) {}
+    private readonly spotwinClient: SpotwinClient,
+  ) { }
 
   async create(createPredictionDto: CreatePredictionDto): Promise<Prediction> {
     const existingPredictions = await this.predictionRepository.find({
@@ -159,8 +171,7 @@ export class PredictionsService {
     questionId: string,
     userId: string,
   ): Promise<void> {
-    console.log('questionId', questionId);
-    console.log('userId', userId);
+
     const prediction = await this.predictionRepository.findOne({
       where: { questionId, userId },
     });
@@ -174,4 +185,64 @@ export class PredictionsService {
     await this.predictionRepository.remove(prediction);
     await this.questionsService.updateNumberOfPredictions(questionId, -1);
   }
+
+  async submitPredictiontoOnchain(user: any, contestId: string): Promise<void> {
+    const contest = await this.contestsService.findOne(contestId);
+    const dbUser = await this.userRepository.findOne({ where: { privyId: user.userId } });
+    const predictions = await this.findByContestAndUser(contestId, dbUser.id);
+    const questions = await this.questionsService.getQuestionsByContestId(contestId);
+    questions.sort((a, b) => a.contestOrder - b.contestOrder);
+
+    const predMap = new Map<string, Prediction>();
+    predictions.forEach(p => predMap.set(p.questionId.toString(), p));
+
+    const numQuestions = questions.length; 
+    const REQUIRED_ATTEMPTS = 9;
+    let attemptMask = 0;
+    let answerMask  = 0;
+    questions.forEach((q, idx) => {
+      const p = predMap.get(q.id.toString());
+      if (p) {
+        // mark this question as attempted
+        attemptMask |= (1 << idx);
+        // if their answer is “yes” (1), set the answer bit
+        if (p.prediction === OutcomeType.YES) {
+          answerMask |= (1 << idx);
+        }
+      }
+    });
+    console.log("attemptMask", attemptMask);
+    console.log("answerMask", answerMask);
+
+    const attemptedCount = attemptMask
+      .toString(2)
+      .split('')
+      .filter(bit => bit === '1').length;
+
+    if (attemptedCount !== REQUIRED_ATTEMPTS) {
+      throw new BadRequestException(
+        `You must attempt exactly ${REQUIRED_ATTEMPTS} questions, but attempted ${attemptedCount}.`
+      );
+    }
+
+    // 5. Log padded 15-bit binary masks for debugging
+    console.log(
+      'attemptMask (binary):',
+      attemptMask.toString(2).padStart(numQuestions, '0')
+    );
+    console.log(
+      'answerMask  (binary):',
+      answerMask.toString(2).padStart(numQuestions, '0')
+    );
+
+    const updateAnswers = this.spotwinClient.updateAnswers(
+      new BN(contest.contestId),
+      attemptMask,
+      answerMask,
+      new PublicKey(dbUser.walletAddress),
+    );
+    console.log("updateAnswers",updateAnswers)
+   return; 
+  }
+    
 }

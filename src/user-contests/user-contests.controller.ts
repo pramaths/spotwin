@@ -42,6 +42,17 @@ export class UserContestsController {
     return this.userContestsService.userParticipationAnalytics();
   }
 
+  @Get('user')
+  @ApiOperation({ summary: 'Get all contests for a specific user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns user contests',
+    type: [UserContest],
+  })
+  findByUser(@Req() req: Request & { user: any }) {
+    return this.userContestsService.findByUser(req.user.userId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a specific user contest' })
   @ApiResponse({
@@ -53,16 +64,7 @@ export class UserContestsController {
     return this.userContestsService.findOne(id);
   }
 
-  @Get('user/:userId')
-  @ApiOperation({ summary: 'Get all contests for a specific user' })
-  @ApiResponse({
-    status: 200,
-    description: 'Returns user contests',
-    type: [UserContest],
-  })
-  findByUser(@Param('userId') userId: string) {
-    return this.userContestsService.findByUser(userId);
-  }
+
 
   @Get('user/:userId/streak')
   @ApiOperation({ summary: 'Get the streak for a specific user' })

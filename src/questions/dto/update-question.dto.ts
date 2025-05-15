@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsBoolean } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { OutcomeType } from '../../common/enums/outcome-type.enum';
 import { QuestionLevel } from '../../common/enums/common.enum';
@@ -30,5 +30,13 @@ export class UpdateQuestionDto {
   @IsOptional()
   @IsString()
   outcome?: OutcomeType;
+
+  @ApiProperty({
+    description: 'Special question',
+    example: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  specialQuestion?: boolean;
 }
 

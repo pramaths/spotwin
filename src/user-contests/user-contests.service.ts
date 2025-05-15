@@ -14,8 +14,7 @@ import { Contest } from '../contests/entities/contest.entity';
 import { startOfDay, differenceInDays, addDays } from 'date-fns';
 import { ContestStatus } from '../common/enums/common.enum';
 import {Keypair, VersionedTransaction, Connection, clusterApiUrl, PublicKey} from '@solana/web3.js';
-import bs58 from 'bs58';
-
+import * as bs58 from 'bs58'; 
 @Injectable()
 export class UserContestsService {
   constructor(
@@ -31,25 +30,32 @@ export class UserContestsService {
 
   async create(
     createUserContestDto: CreateUserContestDto,
-    userId: string,
+    privyId: string,
   ): Promise<UserContest> {
 
     const feePayerAddress = process.env.FEE_PAYER_ADDRESS;
     const feePayerPrivateKey = process.env.FEE_PAYER_PRIVATE_KEY;
-    const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
-
+    const connection = new Connection(process.env.SOLANA_RPC_URL!, 'confirmed');
+   
     const feePayerWallet = Keypair.fromSecretKey(bs58.decode(feePayerPrivateKey));
+    console.log('Fee payer private key:', feePayerPrivateKey);
+    console.log('Fee payer wallet:', feePayerWallet.publicKey.toBase58());
 
     const transactionBuffer = Buffer.from(createUserContestDto.instructions, 'base64');
     const transaction = VersionedTransaction.deserialize(transactionBuffer);
+
+    const sim = await connection.simulateTransaction(transaction, { sigVerify: false });
+    console.dir(sim.value.logs, { depth: null });
+
     const message = transaction.message;
     const accountKeys = message.getAccountKeys();
     const feePayerIndex = 0; // Fee payer is always the first account
     const feePayer = accountKeys.get(feePayerIndex);
+    console.log('Fee payer:', feePayer.toBase58());
     if (!feePayer || feePayer.toBase58() !== feePayerAddress) {
       throw new BadRequestException('Invalid fee payer in transaction');
     }
-
+    console.log("feepayer address matched")
     for (const instruction of message.compiledInstructions) {
       
       const programId = accountKeys.get(instruction.programIdIndex);
@@ -68,6 +74,7 @@ export class UserContestsService {
         }
       }
     }
+    console.log("transaction verified")
     transaction.sign([feePayerWallet]);
 
     // 4. Send transaction
@@ -75,7 +82,7 @@ export class UserContestsService {
     console.log('Transaction signature:', signature);
     
     const user = await this.userRepository.findOne({
-      where: { privyId: userId },
+      where: { privyId: privyId },
     });
     if(!user){
       throw new NotFoundException('User not found');
@@ -120,7 +127,6 @@ export class UserContestsService {
       contest: contest,
       entryFee: contest.entryFee,
     });
-    user.points -= contest.entryFee;
     user.totalContests += 1;
     await this.userRepository.save(user);
 
@@ -223,8 +229,14 @@ export class UserContestsService {
   }
 
   async findByUser(userId: string): Promise<any[]> {
+    const user = await this.userRepository.findOne({
+      where: { privyId: userId },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
     const userContests = await this.userContestRepository.find({
-      where: { user: { id: userId } },
+      where: { user: { id: user.id } },
       relations: ['contest', 'contest.match', 'contest.match.teamA', 'contest.match.teamB', 'contest.match.event'],
     });
 
@@ -245,6 +257,16 @@ export class UserContestsService {
       relations: ['user', 'contest'],
     });
     return userContests;
+  }
+
+  async findUserByPrivyId(privyId: string): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { privyId },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
 
   async userParticipationAnalytics(): Promise<any[]> {

@@ -58,13 +58,9 @@ export class PrivyAuthGuard implements CanActivate {
     }
 
     try {
-      this.logger.debug('Attempting to verify Privy token');
-      
-      // Verify the Privy token and get the user info
       const privyUser = await this.privyService.verifyTokenAndLogin(token);
       
       if (!privyUser) {
-        this.logger.warn('No user data returned after token verification');
         throw new UnauthorizedException('Invalid token - no user data');
       }
       

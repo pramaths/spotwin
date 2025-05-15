@@ -1,0 +1,1221 @@
+{
+  "address": "9ADHDvAGodZkqeQm1XEEQimYaUM9LRJ2z7dp37zdSdDr",
+  "metadata": {
+    "name": "spotwin",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "create_contest",
+      "discriminator": [
+        129,
+        189,
+        164,
+        27,
+        152,
+        242,
+        123,
+        93
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "contest",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "contest_id"
+              },
+              {
+                "kind": "account",
+                "path": "pool_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "contest_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "pool_mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "contest_id",
+          "type": "u64"
+        },
+        {
+          "name": "entry_fee",
+          "type": "u64"
+        },
+        {
+          "name": "lock_slot",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initialize",
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [],
+      "args": []
+    },
+    {
+      "name": "initialize_stake",
+      "discriminator": [
+        33,
+        175,
+        216,
+        4,
+        116,
+        130,
+        164,
+        177
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "docs": [
+            "Whoever pays the rent (you, or a deployer script)"
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "pool_mint",
+          "docs": [
+            "The SPL mint users will stake (USDC / SPOT)"
+          ]
+        },
+        {
+          "name": "stake_vault",
+          "docs": [
+            "PDA that will hold all staked tokens"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "stake_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "join_contest",
+      "discriminator": [
+        247,
+        243,
+        77,
+        111,
+        247,
+        254,
+        100,
+        133
+      ],
+      "accounts": [
+        {
+          "name": "player",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "fee_payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "contest",
+          "writable": true
+        },
+        {
+          "name": "participant",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  97,
+                  114,
+                  116,
+                  105,
+                  99,
+                  105,
+                  112,
+                  97,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "contest_id"
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "contest_id"
+              },
+              {
+                "kind": "account",
+                "path": "pool_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "contest_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "player_token",
+          "writable": true
+        },
+        {
+          "name": "pool_mint",
+          "relations": [
+            "contest"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "contest_id",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "lock_contest",
+      "discriminator": [
+        124,
+        155,
+        70,
+        224,
+        136,
+        196,
+        104,
+        207
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "signer": true,
+          "relations": [
+            "contest"
+          ]
+        },
+        {
+          "name": "contest",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "contest_id",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "post_answer_key",
+      "discriminator": [
+        233,
+        243,
+        110,
+        148,
+        243,
+        10,
+        192,
+        252
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "signer": true,
+          "relations": [
+            "contest"
+          ]
+        },
+        {
+          "name": "contest",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "contest_id",
+          "type": "u64"
+        },
+        {
+          "name": "answer_key",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "post_payout_root",
+      "discriminator": [
+        210,
+        236,
+        116,
+        91,
+        67,
+        233,
+        80,
+        135
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "signer": true,
+          "relations": [
+            "contest"
+          ]
+        },
+        {
+          "name": "contest",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "contest_id",
+          "type": "u64"
+        },
+        {
+          "name": "payout_root",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "winner_count",
+          "type": "u32"
+        }
+      ]
+    },
+    {
+      "name": "send_batch",
+      "discriminator": [
+        212,
+        9,
+        35,
+        132,
+        25,
+        80,
+        77,
+        213
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "writable": true,
+          "relations": [
+            "contest"
+          ]
+        },
+        {
+          "name": "contest",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "contest_id"
+              },
+              {
+                "kind": "account",
+                "path": "pool_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "contest_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "pool_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "contest_id",
+          "type": "u64"
+        },
+        {
+          "name": "winners",
+          "type": {
+            "vec": "pubkey"
+          }
+        },
+        {
+          "name": "amounts",
+          "type": {
+            "vec": "u64"
+          }
+        }
+      ]
+    },
+    {
+      "name": "stake_tokens",
+      "discriminator": [
+        136,
+        126,
+        91,
+        162,
+        40,
+        131,
+        13,
+        127
+      ],
+      "accounts": [
+        {
+          "name": "staker",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "fee_payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "stake_acct",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "staker"
+              }
+            ]
+          }
+        },
+        {
+          "name": "stake_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "stake_authority",
+          "docs": [
+            "only used with `invoke_signed` to move tokens in/out."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "staker_ata",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "unstake_tokens",
+      "discriminator": [
+        58,
+        119,
+        215,
+        143,
+        203,
+        223,
+        32,
+        86
+      ],
+      "accounts": [
+        {
+          "name": "staker",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "stake_acct",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "staker"
+              }
+            ]
+          }
+        },
+        {
+          "name": "stake_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "stake_authority",
+          "docs": [
+            "only used with `invoke_signed` to move tokens in/out."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "staker_ata",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "update_answers",
+      "discriminator": [
+        64,
+        230,
+        55,
+        224,
+        174,
+        65,
+        57,
+        194
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "contest"
+          ]
+        },
+        {
+          "name": "contest",
+          "writable": true
+        },
+        {
+          "name": "player",
+          "docs": [
+            "Safe because we never read or write any lamports or data here."
+          ]
+        },
+        {
+          "name": "participant",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  97,
+                  114,
+                  116,
+                  105,
+                  99,
+                  105,
+                  112,
+                  97,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "contest_id"
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "contest_id",
+          "type": "u64"
+        },
+        {
+          "name": "new_answer_bits",
+          "type": "u16"
+        },
+        {
+          "name": "new_attempt_mask",
+          "type": "u16"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Contest",
+      "discriminator": [
+        216,
+        26,
+        88,
+        18,
+        251,
+        80,
+        201,
+        96
+      ]
+    },
+    {
+      "name": "Participant",
+      "discriminator": [
+        32,
+        142,
+        108,
+        79,
+        247,
+        179,
+        54,
+        6
+      ]
+    },
+    {
+      "name": "StakeAccount",
+      "discriminator": [
+        80,
+        158,
+        67,
+        124,
+        50,
+        189,
+        192,
+        255
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "Joined",
+      "discriminator": [
+        16,
+        20,
+        44,
+        48,
+        132,
+        189,
+        68,
+        98
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "ContestClosed",
+      "msg": "Contest is closed or not accepting entries"
+    },
+    {
+      "code": 6001,
+      "name": "NumericalOverflow",
+      "msg": "Arithmetic overflow occurred"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidAttemptMask",
+      "msg": "Must attempt exactly 9 questions"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidAnswerBits",
+      "msg": "Answer bits outside attempted mask"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidOwner",
+      "msg": "Invalid owner"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidMint",
+      "msg": "Invalid mint"
+    },
+    {
+      "code": 6006,
+      "name": "InvalidAnswerKey",
+      "msg": "Invalid answer key"
+    },
+    {
+      "code": 6007,
+      "name": "InvalidArguments",
+      "msg": "winners and amounts must have same non-zero length"
+    },
+    {
+      "code": 6008,
+      "name": "EmptyBatch",
+      "msg": "batch cannot be empty"
+    },
+    {
+      "code": 6009,
+      "name": "InvalidParticipant",
+      "msg": "provided account is not a valid participant PDA for this contest"
+    },
+    {
+      "code": 6010,
+      "name": "ContestNotAnswerKeyPosted",
+      "msg": "Contest is not in the correct state"
+    },
+    {
+      "code": 6011,
+      "name": "ContestNotLocked",
+      "msg": "Contest is not in the correct state"
+    },
+    {
+      "code": 6012,
+      "name": "AnswerKeyNotSet",
+      "msg": "Contest is not in the correct state"
+    },
+    {
+      "code": 6013,
+      "name": "InvalidWinnerCount",
+      "msg": "Invalid winner count"
+    },
+    {
+      "code": 6014,
+      "name": "InvalidContestId",
+      "msg": "Invalid contest id passed"
+    },
+    {
+      "code": 6015,
+      "name": "StakeLocked",
+      "msg": "Stake is locked"
+    },
+    {
+      "code": 6016,
+      "name": "InvalidUnstakeAmount",
+      "msg": "Invalid unstake amount"
+    }
+  ],
+  "types": [
+    {
+      "name": "Contest",
+      "docs": [
+        "Contest account"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "contest_id",
+            "type": "u64"
+          },
+          {
+            "name": "pool_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "entry_fee",
+            "type": "u64"
+          },
+          {
+            "name": "lock_slot",
+            "type": "u64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "ContestStatus"
+              }
+            }
+          },
+          {
+            "name": "total_entries",
+            "type": "u32"
+          },
+          {
+            "name": "answer_key",
+            "type": "u16"
+          },
+          {
+            "name": "payout_root",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "winner_count",
+            "type": "u32"
+          },
+          {
+            "name": "paid_so_far",
+            "type": "u64"
+          },
+          {
+            "name": "contest_bump",
+            "type": "u8"
+          },
+          {
+            "name": "vault_bump",
+            "type": "u8"
+          },
+          {
+            "name": "vault_authority_bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ContestStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Open"
+          },
+          {
+            "name": "Locked"
+          },
+          {
+            "name": "AnswerKeyPosted"
+          },
+          {
+            "name": "Settled"
+          },
+          {
+            "name": "Cancelled"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Joined",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "contest_id",
+            "type": "u64"
+          },
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "slot",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Participant",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "attempt_mask",
+            "type": "u16"
+          },
+          {
+            "name": "answer_bits",
+            "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "StakeAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "start_slot",
+            "type": "u64"
+          }
+        ]
+      }
+    }
+  ]
+}

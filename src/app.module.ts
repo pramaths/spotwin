@@ -28,6 +28,7 @@ import { TicketsModule } from './tickets/tickets.module';
 import { EmailModule } from './email/email.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { SolanaModule } from './solana/solana.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     EmailModule,
     NotificationsModule,
     PrivyModule,
+    SolanaModule,
   ],
   controllers: [AppController],
   providers: [

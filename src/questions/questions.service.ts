@@ -14,9 +14,21 @@ export class QuestionsService {
   ) {}
 
   async create(createQuestionDto: CreateQuestionDto): Promise<Question> {
-    const question = this.questionRepository.create(createQuestionDto);
+    try {
+      const existingCount = await this.questionRepository.count({
+        where: { contestId: createQuestionDto.contestId }
+      });
+      const payload = {
+        ...createQuestionDto,
+        contestOrder: existingCount,
+      };
+    const question = this.questionRepository.create(payload);
     return this.questionRepository.save(question);
+  } catch (error) {
+    console.log(error);
+    return null;
   }
+}
 
   async findOne(id: string): Promise<Question> {
     return this.questionRepository.findOne({ where: { id } });
@@ -47,8 +59,14 @@ export class QuestionsService {
   }
 
   async getQuestionsByContestId(contestId: string): Promise<Question[]> {
-      return this.questionRepository.find({ where: { contestId } });
+    try {
+    const questions = await this.questionRepository.find({ where: { contestId } });
+    return questions;
+  } catch (error) {
+    console.log(error);
+    return [];
   }
+}
 
   async updateNumberOfPredictions(questionId: string, value: number): Promise<Question> {
     const question = await this.findOne(questionId);

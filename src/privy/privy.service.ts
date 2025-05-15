@@ -166,14 +166,8 @@ import {
       }
       
       try {
-        this.logger.log('Verifying Privy auth token');
         const verifiedClaims: AuthTokenClaims = await this.privy.verifyAuthToken(token);
-        this.logger.log(`Token verified for user ID: ${verifiedClaims.userId}`);
-        
-        this.logger.log(`Fetching user details for ID: ${verifiedClaims.userId}`);
         const user = await this.privy.getUser(verifiedClaims.userId);
-        
-        this.logger.debug(`Privy user data: ${JSON.stringify(user, null, 2)}`);
         
         let email = '';
         if (user.google) {
@@ -208,12 +202,10 @@ import {
           privyId: verifiedClaims.userId,
         };
         
-        this.logger.log(`Successfully verified and extracted user data for ID: ${verifiedClaims.userId}`);
         return privyUser;
       } catch (error) {
         this.logger.error(`Failed to verify Privy token: ${error.message}`, error.stack);
         
-        // Log additional details about the error
         if (error.response) {
           this.logger.error(`Privy API response error: ${JSON.stringify(error.response.data)}`);
           this.logger.error(`Privy API response status: ${error.response.status}`);

@@ -36,7 +36,7 @@ export class AuthService {
           
           user = await this.userService.create({
             username: privyUser.name,
-            imageUrl: 'https://ui.shadcn.com/avatars/shadcn.jpg',
+            imageUrl: 'https://img.freepik.com/free-vector/smiling-redhaired-cartoon-boy_1308-174709.jpg?semt=ais_hybrid&w=740',
             walletAddress: privyUser.walletAddress || '', 
             email: privyUser.email || '', 
             privyId: privyUser.privyId,

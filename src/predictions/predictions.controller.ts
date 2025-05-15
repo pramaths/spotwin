@@ -9,6 +9,7 @@ import {
   HttpException,
   HttpStatus,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { PredictionsService } from './predictions.service';
 import { CreatePredictionDto } from './dto/create-prediction.dto';
@@ -22,10 +23,14 @@ import {
 } from '@nestjs/swagger';
 import { Prediction } from './entities/prediction.entity';
 
+
 @ApiTags('predictions')
 @Controller('predictions')
 export class PredictionsController {
-  constructor(private readonly predictionsService: PredictionsService) {}
+  
+  constructor(
+    private readonly predictionsService: PredictionsService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a new prediction' })
@@ -167,4 +172,16 @@ export class PredictionsController {
     return; // No content response
   }
 
+
+  @Post("submit/onchain")
+  @ApiOperation({ summary: 'Submit predictions to onchain' })
+  @ApiResponse({
+    status: 201,
+    description: 'The prediction has been successfully created.',
+    type: Prediction,
+  })
+  @ApiResponse({ status: 400, description: 'Bad request.' })
+  async submitPrediction(@Req() req: Request & { user: any }, @Body() body: { contestId: string }) {
+    return await this.predictionsService.submitPredictiontoOnchain(req.user, body.contestId);
+  }
 }
