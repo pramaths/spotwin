@@ -180,6 +180,7 @@ export class UserController {
   @Post('stake')
   @ApiOperation({ summary: 'Create a new user contest' })
   async stake(@Body() stakedto: StakeDto, @Req() req: Request & { user: any }) {
+    console.log(stakedto.stakeAmount)
     return this.userService.stake(stakedto, req.user.privyId);
   }
 }

@@ -335,7 +335,7 @@ export class UserService {
       where: { privyId: privyId },
     })
 
-    user.stakedAmount+= stakedto.stakeAmount;
+    user.stakedAmount+= stakedto.stakeAmount/1000000;
     await this.userRepository.save(user);
     console.log("user found",user.id)
   }
