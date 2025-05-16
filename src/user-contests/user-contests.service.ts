@@ -84,6 +84,7 @@ export class UserContestsService {
     const user = await this.userRepository.findOne({
       where: { privyId: privyId },
     });
+    console.log("user found",user.id)
     if(!user){
       throw new NotFoundException('User not found');
     }

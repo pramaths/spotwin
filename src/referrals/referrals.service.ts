@@ -115,30 +115,5 @@ export class ReferralsService {
     return user?.referrer || null;
   }
 
-  /**
-   * Credit both referrer and referee with points (to be implemented after first investment)
-   */
-  async creditReferralPoints(userId: string, points: number = 100): Promise<void> {
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-      relations: ['referrer']
-    });
-    
-    if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found`);
-    }
-    
-    if (!user.referrer) {
-      throw new BadRequestException('User does not have a referrer');
-    }
-    
-    // Credit both users with points
-    user.points += points;
-    user.referrer.points += points;
-    
-    // Save both users
-    await this.userRepository.save([user, user.referrer]);
-    
-    this.logger.log(`Credited ${points} points to user ${userId} and referrer ${user.referrer.id} for successful referral`);
-  }
+
 } 

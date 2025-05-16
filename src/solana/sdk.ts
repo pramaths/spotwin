@@ -1,8 +1,13 @@
-import { AnchorProvider, BN, Program, Wallet } from "@coral-xyz/anchor";
-import { Connection, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { AnchorProvider, BN, Program, Wallet } from '@coral-xyz/anchor';
+import {
+  Connection,
+  PublicKey,
+  SystemProgram,
+  SYSVAR_RENT_PUBKEY,
+} from '@solana/web3.js';
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import * as IDL from './spotwin.json';
-import { getAssociatedTokenAddress } from "@solana/spl-token";
+import { getAssociatedTokenAddress } from '@solana/spl-token';
 import { Spotwin } from './spotwin';
 
 type SpotwinIdl = any;
@@ -13,54 +18,64 @@ export class SpotwinClient {
   public readonly program: Program<SpotwinIdl>;
   public readonly provider: AnchorProvider;
 
-  constructor(
-    wallet: Wallet, 
-    connection: Connection, 
-  ) {
+  constructor(wallet: Wallet, connection: Connection) {
     if (!wallet?.publicKey) {
       throw new Error('Solana provider not properly initialized');
     }
 
     this.wallet = wallet;
     this.connection = connection;
-    this.provider = new AnchorProvider(connection, wallet, AnchorProvider.defaultOptions());
+    this.provider = new AnchorProvider(
+      connection,
+      wallet,
+      AnchorProvider.defaultOptions(),
+    );
     this.program = new Program(IDL as Spotwin, this.provider);
   }
 
   pdaContest(contestId: BN): PublicKey {
-    console.log("contestId",contestId)
+    console.log('contestId', contestId);
     return PublicKey.findProgramAddressSync(
-      [Buffer.from("contest"), contestId.toArrayLike(Buffer, "le", 8)],
-      this.program.programId
+      [Buffer.from('contest'), contestId.toArrayLike(Buffer, 'le', 8)],
+      this.program.programId,
     )[0];
   }
 
   pdaVault(contestId: BN, poolMint: PublicKey): PublicKey {
     return PublicKey.findProgramAddressSync(
-      [Buffer.from("vault"), contestId.toArrayLike(Buffer, "le", 8), poolMint.toBuffer()],
-      this.program.programId
+      [
+        Buffer.from('vault'),
+        contestId.toArrayLike(Buffer, 'le', 8),
+        poolMint.toBuffer(),
+      ],
+      this.program.programId,
     )[0];
   }
 
   pdaVaultAuthority(contestId: BN): PublicKey {
     return PublicKey.findProgramAddressSync(
-      [Buffer.from("vault_authority"), contestId.toArrayLike(Buffer, "le", 8)],
-      this.program.programId
+      [Buffer.from('vault_authority'), contestId.toArrayLike(Buffer, 'le', 8)],
+      this.program.programId,
     )[0];
   }
 
   pdaParticipant(contestId: BN, player: PublicKey): PublicKey {
     return PublicKey.findProgramAddressSync(
       [
-        Buffer.from("participant"), 
-        contestId.toArrayLike(Buffer, "le", 8),
-        player.toBuffer()
+        Buffer.from('participant'),
+        contestId.toArrayLike(Buffer, 'le', 8),
+        player.toBuffer(),
       ],
-      this.program.programId
+      this.program.programId,
     )[0];
   }
 
-  async createContest(contestId: BN, entryFee: BN, lockSlot: BN, poolMint: PublicKey): Promise<string> {
+  async createContest(
+    contestId: BN,
+    entryFee: BN,
+    lockSlot: BN,
+    poolMint: PublicKey,
+  ): Promise<string> {
     try {
       const contestPda = this.pdaContest(contestId);
       const vaultPda = this.pdaVault(contestId, poolMint);
@@ -80,7 +95,7 @@ export class SpotwinClient {
         })
         .rpc();
     } catch (error) {
-      console.error("Error in SpotwinClient.createContest:", error);
+      console.error('Error in SpotwinClient.createContest:', error);
       throw error;
     }
   }
@@ -90,16 +105,22 @@ export class SpotwinClient {
       const contestPda = this.pdaContest(contestId);
       const vaultPda = this.pdaVault(contestId, poolMint);
       const vaultAuthorityPda = this.pdaVaultAuthority(contestId);
-      const participantPda = this.pdaParticipant(contestId, this.wallet.publicKey);
+      const participantPda = this.pdaParticipant(
+        contestId,
+        this.wallet.publicKey,
+      );
 
-      const playerTokenAccount = await getAssociatedTokenAddress(poolMint, this.wallet.publicKey);
+      const playerTokenAccount = await getAssociatedTokenAddress(
+        poolMint,
+        this.wallet.publicKey,
+      );
 
-      console.log("contestPda",contestPda.toBase58())
-      console.log("vaultPda",vaultPda.toBase58())
-      console.log("vaultAuthorityPda",vaultAuthorityPda.toBase58())
-      console.log("participantPda",participantPda.toBase58())
-      console.log("playerTokenAccount",playerTokenAccount.toBase58())
-      console.log("poolMint",poolMint.toBase58())
+      console.log('contestPda', contestPda.toBase58());
+      console.log('vaultPda', vaultPda.toBase58());
+      console.log('vaultAuthorityPda', vaultAuthorityPda.toBase58());
+      console.log('participantPda', participantPda.toBase58());
+      console.log('playerTokenAccount', playerTokenAccount.toBase58());
+      console.log('poolMint', poolMint.toBase58());
       return await this.program.methods
         .joinContest(contestId)
         .accountsStrict({
@@ -108,7 +129,7 @@ export class SpotwinClient {
           contest: contestPda,
           participant: participantPda,
           vault: vaultPda,
-          vaultAuthority: vaultAuthorityPda, 
+          vaultAuthority: vaultAuthorityPda,
           playerToken: playerTokenAccount,
           poolMint: poolMint,
           systemProgram: SystemProgram.programId,
@@ -117,18 +138,32 @@ export class SpotwinClient {
         })
         .instruction();
     } catch (error) {
-      console.error("Error in SpotwinClient.joinContest:", error);
+      console.error('Error in SpotwinClient.joinContest:', error);
       throw error;
     }
   }
 
-  async updateAnswers(contestId: BN, newAnswerBits: number, newAttemptMask: number, player: PublicKey): Promise<string> {
+  async updateAnswers(
+    contestId: BN,
+    attemptMask: number,
+    answerBits: number,
+    player: PublicKey,
+  ): Promise<string> {
     try {
       const contestPda = this.pdaContest(contestId);
       const participantPda = this.pdaParticipant(contestId, player);
-
+      console.log(
+        'RPC args:',
+        contestId.toNumber(),
+        attemptMask,
+        attemptMask.toString(2),
+        attemptMask.toString(2).split('').filter(b => b === '1').length,
+        answerBits,
+        answerBits.toString(2)
+      );
+    
       return await this.program.methods
-        .updateAnswers(contestId, new BN(newAnswerBits), new BN(newAttemptMask)) 
+        .updateAnswers(contestId, (answerBits), (attemptMask))
         .accountsStrict({
           creator: this.wallet.publicKey,
           contest: contestPda,
@@ -137,7 +172,7 @@ export class SpotwinClient {
         })
         .rpc();
     } catch (error) {
-      console.error("Error in SpotwinClient.updateAnswers:", error);
+      console.error('Error in SpotwinClient.updateAnswers:', error);
       throw error;
     }
   }
@@ -149,54 +184,60 @@ export class SpotwinClient {
       return await this.program.methods
         .lockContest(contestId)
         .accountsStrict({
-          admin: this.wallet.publicKey, 
+          admin: this.wallet.publicKey,
           contest: contestPda,
-          systemProgram: SystemProgram.programId, 
+          systemProgram: SystemProgram.programId,
         })
         .rpc();
     } catch (error) {
-      console.error("Error in SpotwinClient.lockContest:", error);
+      console.error('Error in SpotwinClient.lockContest:', error);
       throw error;
     }
   }
 
-  async postAnswers(contestId: BN, correctAnswersBits: number): Promise<string> {
+  async postAnswers(
+    contestId: BN,
+    correctAnswersBits: number,
+  ): Promise<string> {
     try {
       const contestPda = this.pdaContest(contestId);
 
       return await this.program.methods
         .postAnswers(contestId, correctAnswersBits)
         .accountsStrict({
-          admin: this.wallet.publicKey, 
+          admin: this.wallet.publicKey,
           contest: contestPda,
-          systemProgram: SystemProgram.programId, 
+          systemProgram: SystemProgram.programId,
         })
         .rpc();
     } catch (error) {
-      console.error("Error in SpotwinClient.postAnswers:", error);
+      console.error('Error in SpotwinClient.postAnswers:', error);
       throw error;
     }
   }
 
   async sendBatch(
-    contestId: BN, 
-    poolMint: PublicKey, 
-    participantInfos: Array<{ participantPda: PublicKey; playerTokenAccount: PublicKey }>
+    contestId: BN,
+    poolMint: PublicKey,
+    participantInfos: Array<{
+      participantPda: PublicKey;
+      playerTokenAccount: PublicKey;
+    }>,
   ): Promise<string> {
     try {
       const contestPda = this.pdaContest(contestId);
       const vaultPda = this.pdaVault(contestId, poolMint);
       const vaultAuthorityPda = this.pdaVaultAuthority(contestId);
 
-      const remainingAccounts = participantInfos.flatMap(info => [
+      const remainingAccounts = participantInfos.flatMap((info) => [
         { pubkey: info.participantPda, isSigner: false, isWritable: true },
         { pubkey: info.playerTokenAccount, isSigner: false, isWritable: true },
       ]);
 
       return await this.program.methods
-        .sendBatch(contestId) 
+        .sendBatch(contestId)
         .accountsStrict({
-          admin: this.wallet.publicKey, 
+          admin: this.wallet.publicKey,
           contest: contestPda,
           vault: vaultPda,
           vaultAuthority: vaultAuthorityPda,
@@ -207,7 +248,7 @@ export class SpotwinClient {
         .remainingAccounts(remainingAccounts)
         .rpc();
     } catch (error) {
-      console.error("Error in SpotwinClient.sendBatch:", error);
+      console.error('Error in SpotwinClient.sendBatch:', error);
       throw error;
     }
   }

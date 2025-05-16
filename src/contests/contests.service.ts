@@ -300,7 +300,6 @@ export class ContestsService {
     for (const [points, userIds] of userPointsMap.entries()) {
       if (userIds.length > 0) {
         this.logger.log(`Adding ${points} points to ${userIds.length} users: ${userIds}`);
-        await this.userService.addPoints(userIds, points);
       }
     }
     this.logger.log(`Finished updating user points`);

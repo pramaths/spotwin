@@ -9,6 +9,9 @@ import { subDays } from 'date-fns';
 import { UserTicket } from './entities/user-ticket.entity';
 import { EmailService } from '../email/email.service';
 import { Ticket } from '../tickets/entities/ticket.entity';
+import { StakeDto } from './dto/stake.dto';
+import {Keypair, VersionedTransaction, Connection, clusterApiUrl, PublicKey} from '@solana/web3.js';
+import * as bs58 from 'bs58'; 
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
@@ -188,14 +191,6 @@ export class UserService {
     }
   }
 
-  async getUserBalance(id: string): Promise<Number> {
-    const user = await this.findOne(id);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    return user.points;
-  }
-
   async updateReferralCodeUsed(id: string, referralCode: string | null): Promise<User> {
     try {
       this.logger.log(`Updating referral code used for user with ID: ${id}, referral code: ${referralCode}`);
@@ -251,33 +246,6 @@ export class UserService {
     }
   }
 
-  async addPoints(userIds: string[], points: number){
-    try {
-      this.logger.log(`Adding ${points} points to ${userIds.length} users`);
-      
-      return await this.userRepository.manager.transaction(async transactionalEntityManager => {
-        const users = await transactionalEntityManager.find(User, { 
-          where: { id: In(userIds) } 
-        });
-        
-        if (!users || users.length === 0) {
-          throw new NotFoundException('No users found with the provided IDs');
-        }
-        
-        users.forEach(user => {
-          user.points += points;
-        });
-        
-        return await transactionalEntityManager.save(users);
-      });
-    } catch (error) {
-      this.logger.error(`Failed to add points in batch: ${error.message}`, error.stack);
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Failed to add points to users');
-    }
-  }
 
   async getUserAnalytics(): Promise<{
     totalUsers: number;
@@ -313,45 +281,62 @@ export class UserService {
     }
   }
 
-  async buyTickets(id: string, ticketId: string): Promise<User> {
-    try {
-      return await this.userRepository.manager.transaction(async transactionalEntityManager => {
-        const user = await transactionalEntityManager.findOne(User, { where: { id } });
-        const ticket = await transactionalEntityManager.findOne(Ticket, { where: { id: ticketId } });
-        if (!user) {
-          throw new NotFoundException('User not found');
-        }
-        if (user.points < ticket.costPoints) {
-          throw new BadRequestException('Insufficient points');
-        }
-        
-        user.points -= ticket.costPoints;
-        const userTicket = transactionalEntityManager.create(UserTicket, {
-          userId: user.id,
-          purchasedAt: new Date(),
-        });
-        
-        await transactionalEntityManager.save(userTicket);
-        const savedUser = await transactionalEntityManager.save(user);
+  async stake(stakedto:StakeDto, privyId: string):Promise<void> {
 
-        try {
-          await this.emailService.sendTicketPurchaseNotification(
-            user.id,
-            user.username,
-            user.email
-          );
-        } catch (emailError) {
-          this.logger.error(`Failed to send ticket purchase email: ${emailError.message}`, emailError.stack);
-        }
+    const feePayerAddress = process.env.FEE_PAYER_ADDRESS;
+    const feePayerPrivateKey = process.env.FEE_PAYER_PRIVATE_KEY;
+    const connection = new Connection(process.env.SOLANA_RPC_URL!, 'confirmed');
+   
+    const feePayerWallet = Keypair.fromSecretKey(bs58.decode(feePayerPrivateKey));
+    console.log('Fee payer private key:', feePayerPrivateKey);
+    console.log('Fee payer wallet:', feePayerWallet.publicKey.toBase58());
 
-        return savedUser;
-      });
-    } catch (error) {
-      this.logger.error(`Failed to buy tickets: ${error.message}`, error.stack);
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Failed to buy tickets');
+    const transactionBuffer = Buffer.from(stakedto.instructions, 'base64');
+    const transaction = VersionedTransaction.deserialize(transactionBuffer);
+
+    const sim = await connection.simulateTransaction(transaction, { sigVerify: false });
+    console.dir(sim.value.logs, { depth: null });
+
+    const message = transaction.message;
+    const accountKeys = message.getAccountKeys();
+    const feePayerIndex = 0; // Fee payer is always the first account
+    const feePayer = accountKeys.get(feePayerIndex);
+    console.log('Fee payer:', feePayer.toBase58());
+    if (!feePayer || feePayer.toBase58() !== feePayerAddress) {
+      throw new BadRequestException('Invalid fee payer in transaction');
     }
+    console.log("feepayer address matched")
+    for (const instruction of message.compiledInstructions) {
+      
+      const programId = accountKeys.get(instruction.programIdIndex);
+
+      // Check if instruction is for System Program (transfers)
+      if (programId && programId.toBase58() === '11111111111111111111111111111111') {
+        // Check if it's a transfer (command 2)
+        if (instruction.data[0] === 2) {
+          const senderIndex = instruction.accountKeyIndexes[0];
+          const senderAddress = accountKeys.get(senderIndex);
+
+          // Don't allow transactions that transfer tokens from fee payer
+          if (senderAddress && senderAddress.toBase58() === feePayerAddress) {
+            throw new BadRequestException('Transaction attempts to transfer funds from fee payer');
+          }
+        }
+      }
+    }
+    console.log("transaction verified")
+    transaction.sign([feePayerWallet]);
+
+    // 4. Send transaction
+    const signature = await connection.sendTransaction(transaction);
+    console.log('Transaction signature:', signature);
+    
+    const user = await this.userRepository.findOne({
+      where: { privyId: privyId },
+    })
+
+    user.stakedAmount+= stakedto.stakeAmount;
+    await this.userRepository.save(user);
+    console.log("user found",user.id)
   }
 }

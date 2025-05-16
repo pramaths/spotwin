@@ -39,8 +39,8 @@ export class User {
   @Column()
   imageUrl: string;
 
-  @Column({ default: 100 })
-  points: number;
+  @Column({default: 0})
+  stakedAmount: number;
 
   @Column({ nullable: true, default: 0 })
   totalContests: number;

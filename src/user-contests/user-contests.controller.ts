@@ -94,7 +94,7 @@ export class UserContestsController {
     type: UserContest,
   })
   async create(@Body() createUserContestDto: CreateUserContestDto, @Req() req: Request & { user: any }) {
-    return this.userContestsService.create(createUserContestDto, req.user.id);
+    return this.userContestsService.create(createUserContestDto, req.user.privyId);
   }
 
   @Get('contest/:contestId')

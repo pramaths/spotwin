@@ -22,7 +22,7 @@ import { ReferralCodeDto } from './dto/referral-code.dto';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../common/enums/roles.enum';
 import { BuyTicketDto } from './dto/buy-ticket.dto';
-
+import { StakeDto } from './dto/stake.dto';
 @ApiTags('users')
 @Controller('users')
 export class UserController {
@@ -147,21 +147,6 @@ export class UserController {
     return await this.userService.updateExpoPushToken(id, expoPushTokenDto);
   }
 
-  @Get(':id/balance')
-  @ApiOperation({ summary: 'Get a user\'s balance' })
-  @ApiParam({ name: 'id', description: 'User ID' })
-  @ApiResponse({ 
-    status: HttpStatus.OK, 
-    description: 'Returns the user\'s balance',
-    type: Number
-  })
-  async getUserBalance(@Param('id') id: string, @Req() req: Request & { user: any }): Promise<{ balance: number }> {
-    if(req.user.id !== id){
-      throw new ForbiddenException('You are not authorized to access this resource');
-    }
-    const balance = await this.userService.getUserBalance(id);
-    return { balance: balance as number };
-  }
 
 
   @Patch(':id/referral-code-used')
@@ -192,10 +177,9 @@ export class UserController {
     return { totalUsers, yesterdayNewUsers, newUsers };
   }
 
-  @Post('buy-ticket')
-  @ApiOperation({ summary: 'Buy tickets for a user' })
-  @ApiBody({ type: BuyTicketDto })
-  async buyTickets(@Body() buyTicketDto: BuyTicketDto, @Req() req: Request & { user: any }): Promise<User> {
-    return await this.userService.buyTickets(req.user.id, buyTicketDto.ticketId);
+  @Post('stake')
+  @ApiOperation({ summary: 'Create a new user contest' })
+  async stake(@Body() stakedto: StakeDto, @Req() req: Request & { user: any }) {
+    return this.userService.stake(stakedto, req.user.privyId);
   }
 }

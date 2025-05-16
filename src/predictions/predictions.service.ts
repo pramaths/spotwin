@@ -235,7 +235,7 @@ export class PredictionsService {
       answerMask.toString(2).padStart(numQuestions, '0')
     );
 
-    const updateAnswers = this.spotwinClient.updateAnswers(
+    const updateAnswers = await this.spotwinClient.updateAnswers(
       new BN(contest.contestId),
       attemptMask,
       answerMask,
