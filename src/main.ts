@@ -30,8 +30,8 @@ async function bootstrap() {
     }));
     app.enableCors({
       origin: process.env.NODE_ENV === 'production' 
-        ? ["https://gibberish-agbilemon.vercel.app","http://localhost:3000"] 
-        : ["https://gibberish-agbilemon.vercel.app/","http://localhost:3000"],
+        ? ["https://gibberish-agbilemon.vercel.app","http://localhost:3000", "https://breakout-spotwin.vercel.app"] 
+        : ["https://gibberish-agbilemon.vercel.app/","http://localhost:3000", "https://breakout-spotwin.vercel.app/"],
       allowedHeaders: ['Authorization', 'Content-Type', 'x-phone-number'],
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
       maxAge: 86400, // 24 hours in seconds - caching preflight requests
@@ -78,7 +78,7 @@ async function bootstrap() {
       next();
     });
 
-    const PORT = process.env.PORT ?? 8000;
+    const PORT = process.env.PORT ?? 8080;
     await app.listen(PORT, '0.0.0.0', () => {
       Logger.log(`Server is running on port ${PORT}`);
       Logger.log(`API Documentation: http://localhost:${PORT}/api`);
