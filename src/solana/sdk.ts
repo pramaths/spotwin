@@ -10,12 +10,11 @@ import * as IDL from './spotwin.json';
 import { getAssociatedTokenAddress } from '@solana/spl-token';
 import { Spotwin } from './spotwin';
 
-type SpotwinIdl = any;
 
 export class SpotwinClient {
   public readonly connection: Connection;
   public readonly wallet: Wallet;
-  public readonly program: Program<SpotwinIdl>;
+  public readonly program: Program<Spotwin>;
   public readonly provider: AnchorProvider;
 
   constructor(wallet: Wallet, connection: Connection) {
@@ -31,6 +30,7 @@ export class SpotwinClient {
       AnchorProvider.defaultOptions(),
     );
     this.program = new Program(IDL as Spotwin, this.provider);
+    console.log("Available accounts in IDL:", Object.keys(this.program.account));
   }
 
   pdaContest(contestId: BN): PublicKey {
@@ -66,6 +66,34 @@ export class SpotwinClient {
         contestId.toArrayLike(Buffer, 'le', 8),
         player.toBuffer(),
       ],
+      this.program.programId,
+    )[0];
+  }
+
+  pdaStakeConfig(): PublicKey {
+    return PublicKey.findProgramAddressSync(
+      [Buffer.from('stake_config')],
+      this.program.programId,
+    )[0];
+  }
+
+  pdaStakeVault(): PublicKey {
+    return PublicKey.findProgramAddressSync(
+      [Buffer.from('stake_vault')],
+      this.program.programId,
+    )[0];
+  }
+
+  pdaStakeAuthority(): PublicKey {
+    return PublicKey.findProgramAddressSync(
+      [Buffer.from('stake_vault_auth')],
+      this.program.programId,
+    )[0];
+  }
+
+  pdaStakeAcct(staker: PublicKey): PublicKey {
+    return PublicKey.findProgramAddressSync(
+      [Buffer.from('stake'), staker.toBuffer()],
       this.program.programId,
     )[0];
   }
@@ -184,9 +212,8 @@ export class SpotwinClient {
       return await this.program.methods
         .lockContest(contestId)
         .accountsStrict({
-          admin: this.wallet.publicKey,
+          creator: this.wallet.publicKey,
           contest: contestPda,
-          systemProgram: SystemProgram.programId,
         })
         .rpc();
     } catch (error) {
@@ -203,11 +230,10 @@ export class SpotwinClient {
       const contestPda = this.pdaContest(contestId);
 
       return await this.program.methods
-        .postAnswers(contestId, correctAnswersBits)
+        .postAnswerKey(contestId, correctAnswersBits)
         .accountsStrict({
-          admin: this.wallet.publicKey,
+          creator: this.wallet.publicKey,
           contest: contestPda,
-          systemProgram: SystemProgram.programId,
         })
         .rpc();
     } catch (error) {
@@ -235,9 +261,9 @@ export class SpotwinClient {
       ]);
 
       return await this.program.methods
-        .sendBatch(contestId)
+        .sendBatch(contestId, [], [])
         .accountsStrict({
-          admin: this.wallet.publicKey,
+          creator: this.wallet.publicKey,
           contest: contestPda,
           vault: vaultPda,
           vaultAuthority: vaultAuthorityPda,
@@ -251,5 +277,11 @@ export class SpotwinClient {
       console.error('Error in SpotwinClient.sendBatch:', error);
       throw error;
     }
+  }
+
+  async getStakeinfo(player: PublicKey): Promise<any> {
+      const stakeAcct = this.pdaStakeAcct(player);
+      const stakeInfo = await this.program.account.stakeAccount.fetch(stakeAcct);
+      return stakeInfo;
   }
 }

@@ -58,6 +58,13 @@ export class UserController {
     return await this.userService.findAll();
   }
 
+  @Get('balances')
+  @ApiOperation({ summary: 'Get user balances' })
+  async getstakeandtokenBalances( @Req() req: Request & { user: any }) {
+    return this.userService.getstakeandtokenBalances(req.user.privyId);
+  }
+
+  
   @Get(':id')
   @ApiOperation({ summary: 'Get a user by ID' })
   @ApiParam({ name: 'id', description: 'User ID' })
@@ -183,4 +190,5 @@ export class UserController {
     console.log(stakedto.stakeAmount)
     return this.userService.stake(stakedto, req.user.privyId);
   }
+
 }

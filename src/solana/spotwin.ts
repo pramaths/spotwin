@@ -221,6 +221,34 @@ export type Spotwin = {
           }
         },
         {
+          "name": "stakeConfig",
+          "docs": [
+            "PDA that will hold all staked tokens"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
@@ -412,6 +440,111 @@ export type Spotwin = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "moveToSpotwin",
+      "discriminator": [
+        226,
+        198,
+        105,
+        92,
+        156,
+        157,
+        36,
+        0
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "stakeVault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "stakeAuthority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "stakeConfig",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "spotwinBufferWallet",
+          "writable": true
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
     },
     {
       "name": "postAnswerKey",
@@ -620,6 +753,11 @@ export type Spotwin = {
       "accounts": [
         {
           "name": "staker",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "feePayer",
           "writable": true,
           "signer": true
         },
@@ -849,13 +987,22 @@ export type Spotwin = {
       ],
       "accounts": [
         {
-          "name": "player",
+          "name": "creator",
           "writable": true,
-          "signer": true
+          "signer": true,
+          "relations": [
+            "contest"
+          ]
         },
         {
           "name": "contest",
           "writable": true
+        },
+        {
+          "name": "player",
+          "docs": [
+            "Safe because we never read or write any lamports or data here."
+          ]
         },
         {
           "name": "participant",
@@ -944,6 +1091,19 @@ export type Spotwin = {
         189,
         192,
         255
+      ]
+    },
+    {
+      "name": "stakeConfig",
+      "discriminator": [
+        238,
+        151,
+        43,
+        3,
+        11,
+        151,
+        63,
+        176
       ]
     }
   ],
@@ -1047,6 +1207,16 @@ export type Spotwin = {
       "code": 6016,
       "name": "invalidUnstakeAmount",
       "msg": "Invalid unstake amount"
+    },
+    {
+      "code": 6017,
+      "name": "unauthorized",
+      "msg": "unauthorized"
+    },
+    {
+      "code": 6018,
+      "name": "nothingToSweep",
+      "msg": "Nothing to sweep"
     }
   ],
   "types": [
@@ -1205,6 +1375,22 @@ export type Spotwin = {
           {
             "name": "startSlot",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "stakeConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }

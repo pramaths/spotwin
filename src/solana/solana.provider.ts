@@ -46,7 +46,7 @@ export const SolanaProviders = [
   },
   {
     provide: SpotwinClient,
-    useFactory: (wallet: Wallet, connection: Connection) =>
+    useFactory: (wallet: Wallet, connection: Connection) => 
       new SpotwinClient(wallet, connection),
     inject: ['ANCHOR_WALLET', Connection],
   },

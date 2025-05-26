@@ -12,6 +12,9 @@ import { Ticket } from '../tickets/entities/ticket.entity';
 import { StakeDto } from './dto/stake.dto';
 import {Keypair, VersionedTransaction, Connection, clusterApiUrl, PublicKey} from '@solana/web3.js';
 import * as bs58 from 'bs58'; 
+import { SpotwinClient } from 'src/solana/sdk';
+import { getAccount, getAssociatedTokenAddress } from '@solana/spl-token';
+
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
@@ -22,6 +25,8 @@ export class UserService {
     @InjectRepository(UserTicket)
     private readonly userTicketRepository: Repository<UserTicket>,
     private readonly emailService: EmailService,
+    private readonly spotwinClient: SpotwinClient,
+    private readonly connection: Connection,
   ) { }
 
   private generateReferralCode(): string {
@@ -338,5 +343,40 @@ export class UserService {
     user.stakedAmount+= stakedto.stakeAmount/1000000;
     await this.userRepository.save(user);
     console.log("user found",user.id)
+  }
+
+  async getstakeandtokenBalances(privyId: string): Promise<{ stakedAmount: number, tokenAmount: number }> {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { privyId: privyId },
+      });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      const poolMint = new PublicKey(process.env.USDC_POOL_MINT!);
+      const playerTokenAccount = await getAssociatedTokenAddress(
+        poolMint,
+        new PublicKey(user.walletAddress),
+      );
+      const usdc_accountInfo = await getAccount(this.connection, playerTokenAccount);
+      let stakedAmount = 0;
+    try {
+      const stakeinfo = await this.spotwinClient.getStakeinfo(new PublicKey(user.walletAddress));
+      stakedAmount = stakeinfo?.amount ? Number(stakeinfo.amount) : 0;
+      console.log("stakeinfo", stakeinfo);
+    } catch (stakeErr) {
+      this.logger.warn(`Stake info not found for user ${user.walletAddress}, defaulting to 0`);
+    }
+      console.log("usdc_accountInfo",usdc_accountInfo)
+      return {
+        stakedAmount: stakedAmount,
+        tokenAmount: Number(usdc_accountInfo.amount),
+      }
+
+    } catch (error) {
+      this.logger.error(`Failed to get stake and token balances: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Failed to get stake and token balances');
+    }
   }
 }

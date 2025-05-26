@@ -172,6 +172,8 @@ import {
         let email = '';
         if (user.google) {
           email = user.google.email;
+        }else if(user.twitter){
+          email = user.twitter.username;
         }
         
         let walletAddress = '';
@@ -181,9 +183,7 @@ import {
           const solanaAccount = user.linkedAccounts.find(
             (account: any) => account.chainType === 'solana' && account.walletClientType === 'privy'
           );
-          if (solanaAccount && solanaAccount) {
-            walletAddress = 'o9ggg' ;
-          }
+          walletAddress = solanaAccount[0].address;
         }
         
         // Extract name from various possible sources
@@ -192,6 +192,10 @@ import {
           name = user.google.name;
         } else if (user.google && user.google.name) {
           name = user.google.name;
+        }
+
+        if(user.twitter) {
+          name = user.twitter.name;
         }
         
         const privyUser = {
