@@ -174,6 +174,8 @@ import {
           email = user.google.email;
         }else if(user.twitter){
           email = user.twitter.username;
+        }else if(user.apple){
+          email = user.apple.email;
         }
         
         let walletAddress = '';
@@ -186,16 +188,13 @@ import {
           walletAddress = solanaAccount[0].address;
         }
         
-        // Extract name from various possible sources
         let name = '';
-        if (user.google) {
+      if (user.google && user.google.name) {
           name = user.google.name;
-        } else if (user.google && user.google.name) {
-          name = user.google.name;
-        }
-
-        if(user.twitter) {
+        }else if(user.twitter) {
           name = user.twitter.name;
+        }else if(user.apple){
+          name = email.split('@')[0];
         }
         
         const privyUser = {
